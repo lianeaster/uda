@@ -1,0 +1,207 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Українська Академія Дистиляції{% endblock %}
+{% block content %}
+
+<section class="hero">
+    <div class="container hero-split">
+        <div data-reveal>
+            <span class="tag tag-accent-2 tag-lg">Спеціалізована освітня платформа</span>
+            <h1>Вчимо робити дистиляти, які не соромно ставити на полицю</h1>
+            <p class="hero-lead">Технологи, науковці, крафтові виробники та сомельє — під одним дахом. Теорія, практика на діючих виробництвах і власний рецепт на виході.</p>
+            <div class="hero-actions">
+                <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Обрати курс</a>
+                <a class="btn-outline" href="{% url 'core:courses' %}">Програми навчання</a>
+            </div>
+            <div class="hero-stats">
+                <div><div class="stat-number">7</div><div class="stat-label">курсів і майстерень</div></div>
+                <div><div class="stat-number">60</div><div class="stat-label">днів флагманської програми</div></div>
+                <div><div class="stat-number">12</div><div class="stat-label">партнерів галузі</div></div>
+            </div>
+        </div>
+        <div class="hero-figure" data-reveal>
+            <div class="hero-blob"></div>
+            <img class="washed" src="{% static 'img/hero.svg' %}" alt="Українська Академія Дистиляції">
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Кому це потрібно</h2>
+        <p class="section-lead" data-reveal>Академія працює з тими, хто вже виробляє, і з тими, хто тільки шукає перший куб.</p>
+        <div class="grid-cards cols-230">
+            <div class="card card-stack" data-reveal>
+                <span class="card-kicker">01</span>
+                <h3>Крафтовим виробникам</h3>
+                <p class="card-body">Поглибити технологію конкретної категорії напоїв і прибрати дефекти в смаку.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="card-kicker">02</span>
+                <h3>Підприємцям</h3>
+                <p class="card-body">Зрозуміти, як відкрити дистилерію: обладнання, дозволи, кошторис, нормативка.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="card-kicker">03</span>
+                <h3>Студентам</h3>
+                <p class="card-body">Харчові та крафтові технології — практика на діючих виробництвах і контакти галузі.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="card-kicker">04</span>
+                <h3>Ентузіастам</h3>
+                <p class="card-body">Розібратись у процесі від сировини до витримки — без міфів і кухонних порад.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <div class="flagship" data-reveal>
+            <div class="flagship-body">
+                <span class="tag tag-lg">Флагманська програма</span>
+                <h2>Курс «Майстер дистиляції»</h2>
+                <p class="lead">Перший в Україні повний курс: технологія, обладнання, сенсорика й управління виробництвом. Тримісячна сертифікаційна програма для виробників і професіоналів галузі.</p>
+                <div class="flagship-facts">
+                    <div><div class="label">Формат</div><div class="value">Онлайн / Офлайн</div></div>
+                    <div><div class="label">Старт</div><div class="value">{{ next_intake }}</div></div>
+                    <div><div class="label">Тривалість</div><div class="value">60 днів</div></div>
+                    <div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div>
+                </div>
+                <div class="flagship-actions">
+                    <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
+                    <a class="btn-outline" href="{% url 'core:courses' %}">Усі програми</a>
+                </div>
+            </div>
+            <img class="washed" src="{% static 'img/course-master.svg' %}" alt="Курс «Майстер дистиляції»">
+        </div>
+        <p class="fine-print" data-reveal>Членам Асоціації крафтових дистилерів України та випускникам Академії — знижка 20%.</p>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <div class="section-bar">
+            <h2 data-reveal>Що ще можна вивчити</h2>
+            <a class="btn-ghost" href="{% url 'core:courses' %}">Усі курси →</a>
+        </div>
+        <div class="grid-cards cols-250">
+            <div class="card card-stack" data-reveal>
+                <span class="tag tag-accent">Зерно</span>
+                <h3>Зернові дистиляти й горілка</h3>
+                <p class="card-body">Зброджування крохмалевмісної сировини, ректифікація, робота з водою.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="tag tag-accent">Солод</span>
+                <h3>Майстерня віскі</h3>
+                <p class="card-body">Солодові дистиляти: затирання, дріжджі, форма куба, відбір фракцій.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="tag tag-accent-2">Ботаніка</span>
+                <h3>Майстерня джину</h3>
+                <p class="card-body">Джин і настоянки: композиція ботанікалів, мацерація, парова інфузія.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="tag tag-accent-2">Смак</span>
+                <h3>Сенсорний аналіз</h3>
+                <p class="card-body">Як описувати напій, знаходити дефекти й вести дегустаційну панель.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Лектори</h2>
+        <p class="section-lead" data-reveal>Практики галузі: технологи, науковці та сомельє, які щодня працюють із напоями.</p>
+        <div class="grid-cards cols-250">
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Іван Бачурін">
+                <h3>Іван Бачурін</h3>
+                <p>Кращий сомельє України 2009, президент Асоціації сомельє України.</p>
+            </div>
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Тимур Ражабов">
+                <h3>Тимур Ражабов</h3>
+                <p>Тренінг-менеджер «Planet Z», організатор Ukrainian Spirit Course.</p>
+            </div>
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Марина Білько">
+                <h3>Марина Білько</h3>
+                <p>Професор кафедри біотехнології продуктів бродіння НУХТ, д.т.н.</p>
+            </div>
+        </div>
+        <p style="margin-top:22px;"><a class="btn-ghost" href="{% url 'core:lecturers' %}">Усі лектори →</a></p>
+    </div>
+</section>
+
+<section class="section-surface">
+    <div class="container">
+        <h2 data-reveal>Відгуки випускників</h2>
+        <p class="section-lead" data-reveal>Короткі відео про те, що дав курс і що змінилось на виробництві.</p>
+        <div class="grid-cards cols-240">
+            {% for video in testimonial_videos %}
+            <a class="video-thumb" data-reveal href="{{ video }}" target="_blank" rel="noopener">
+                <img class="washed" src="{% static 'img/testimonial.svg' %}" alt="Відгук випускника">
+                <span class="play-badge">▶</span>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Консалтинг і лабораторія</h2>
+        <div class="grid-cards cols-280">
+            <div class="card card-stack card-tinted-sage" data-reveal style="padding:32px;">
+                <h3 style="font-size:24px;margin:0;">Власна дистилерія</h3>
+                <p class="card-body" style="font-size:15px;">Проєктування, кошторис, авторський нагляд, нормативно-технічна документація та консультації на місці.</p>
+                <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зробити заявку</a>
+            </div>
+            <div class="card card-stack card-tinted-copper" data-reveal style="padding:32px;">
+                <h3 style="font-size:24px;margin:0;">Лабораторія напоїв</h3>
+                <p class="card-body" style="font-size:15px;">Розробка рецептури під ваш смаковий профіль: від ідеї напою до готової технології виробництва.</p>
+                <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зробити заявку</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal style="font-size:20px;font-family:'PT Sans',sans-serif;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;opacity:0.55;margin-bottom:24px;">Партнери</h2>
+        <div class="partner-list" data-reveal>
+            <span class="partner-chip">Напої. Технології та Інновації</span>
+            <span class="partner-chip">Всеукраїнська Асоціація Барменів</span>
+            <span class="partner-chip">Drinks.ua</span>
+            <span class="partner-chip">КНТЕУ</span>
+            <span class="partner-chip">Асоціація Сомельє України</span>
+            <span class="partner-chip">Асоціація Крафтових Дистиляторів України</span>
+            <span class="partner-chip">ОНАХТ</span>
+            <span class="partner-chip">Wine Travel Awards</span>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <div class="section-bar">
+            <h2 data-reveal>Новини галузі</h2>
+            <a class="btn-ghost" href="https://distillingacademy.com.ua/blog" target="_blank" rel="noopener">Весь блог →</a>
+        </div>
+        <div class="grid-cards cols-280">
+            <a class="news-item" data-reveal href="https://distillingacademy.com.ua/services/konsultatsiyi-vyrobnytstva-dystylyativ" target="_blank" rel="noopener">
+                <img class="washed" src="{% static 'img/course-master.svg' %}" alt="Консультації з виробництва дистилятів">
+                <h3>Консультації з виробництва дистилятів</h3>
+                <p>Викладачі Академії відповідають на питання виробників — від сировини до фасування.</p>
+            </a>
+            <a class="news-item" data-reveal href="https://distillingacademy.com.ua/blog/pidpilnyy-kraft-abo-butlehery-ukrayinsky" target="_blank" rel="noopener">
+                <img class="washed" src="{% static 'img/testimonial.svg' %}" alt="Підпільний крафт">
+                <h3>Підпільний крафт, або бутлегери по-українськи</h3>
+                <p>Що насправді означає «craft distillery» і чому легалізація вигідна виробнику.</p>
+            </a>
+        </div>
+    </div>
+</section>
+{% endblock %}

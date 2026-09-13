@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% block title %}Предмети{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <h1>Предмети</h1>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
+            <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Користувачі</a>
+            <a href="{% url 'schedule:subject_add' %}" class="btn">+ Додати предмет</a>
+        </div>
+    </div>
+
+    <div class="table-card">
+    <table>
+        <thead>
+            <tr>
+                <th>Назва</th>
+                <th>Курс</th>
+                <th>Викладачі</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for subject in subjects %}
+            <tr>
+                <td>{{ subject.name }}</td>
+                <td>{{ subject.course.name|default:"—" }}</td>
+                <td>
+                    {% for t in subject.teachers.all %}
+                        <span class="chip">{{ t.get_full_name|default:t.username }}</span>
+                    {% empty %}
+                        <span class="muted">— не призначено —</span>
+                    {% endfor %}
+                </td>
+                <td class="row-actions">
+                    <form class="inline-form" method="post" action="{% url 'schedule:subject_delete' subject.pk %}" onsubmit="return confirm('Видалити предмет {{ subject.name }}?');">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button danger-link">Видалити</button>
+                    </form>
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="4" class="muted">Ще немає жодного предмету.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

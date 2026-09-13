@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Вхід — Навчальна платформа{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page">
+        <h1>Навчальна платформа</h1>
+        <p style="text-align:center;color:var(--muted);margin-top:-8px;">Українська Академія Дистиляції</p>
+        {% if form.non_field_errors %}
+            <ul class="errorlist">
+                {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+            </ul>
+        {% endif %}
+        <form method="post">
+            {% csrf_token %}
+            <p>
+                <label for="{{ form.username.id_for_label }}">Логін</label>
+                {{ form.username }}
+                {{ form.username.errors }}
+            </p>
+            <p>
+                <label for="{{ form.password.id_for_label }}">Пароль</label>
+                {{ form.password }}
+                {{ form.password.errors }}
+            </p>
+            <input type="hidden" name="next" value="{{ next }}">
+            <button type="submit" class="btn" style="width:100%;">Увійти</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

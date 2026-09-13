@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Лектори Академії{% endblock %}
+{% block content %}
+
+<section class="page-intro">
+    <div class="container">
+        <span class="tag tag-accent-2 tag-lg" data-reveal>Команда</span>
+        <h1 data-reveal>Лектори Академії</h1>
+        <p data-reveal>Науково-дослідні інститути, крафтові виробництва, виробники обладнання та сировини, маркетологи і юристи галузі.</p>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <div class="grid-cards cols-250" style="margin-top:0;">
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Іван Бачурін">
+                <h3>Іван Бачурін</h3>
+                <p>Кращий сомельє України 2009 року, амбасадор Moët-Hennessy, переможець Wine Trophy Ukraine 2014, президент Асоціації сомельє України.</p>
+            </div>
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Тимур Ражабов">
+                <h3>Тимур Ражабов</h3>
+                <p>Провідний тренінг-менеджер «Planet Z», викладач Parovoz Mixology Course і Wine Time Academy, організатор Ukrainian Spirit Course.</p>
+            </div>
+            <div class="lecturer" data-reveal>
+                <img class="washed" src="{% static 'img/lecturer.svg' %}" alt="Марина Білько">
+                <h3>Марина Білько</h3>
+                <p>Професор кафедри біотехнології продуктів бродіння і виноробства НУХТ, доктор технічних наук.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <div class="card card-stack card-tinted-sage" data-reveal style="padding:40px;">
+            <h3 style="font-size:26px;margin:0;">Хочете читати в Академії?</h3>
+            <p class="card-body" style="font-size:16px;max-width:40em;">Ми відкриті до технологів, науковців і практиків, які готові ділитись досвідом зі студентами.</p>
+            <a class="btn-primary" href="mailto:distillation.academy.ua@gmail.com">Написати нам</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block outro %}
+<section class="consult-band" id="zayavka">
+    <div class="container">
+        <div class="consult-grid">
+            <div data-reveal>
+                <h2>Не визначились із курсом?</h2>
+                <p>Залиште заявку — менеджер Академії зателефонує і допоможе підібрати програму під ваше виробництво. Консультація безкоштовна.</p>
+                <div class="consult-contacts">
+                    <div>
+                        <div class="label">Телефон</div>
+                        <a href="tel:+380677511110">067 751 11 10</a>
+                    </div>
+                    <div>
+                        <div class="label">Пошта</div>
+                        <a href="mailto:distillation.academy.ua@gmail.com">distillation.academy.ua@gmail.com</a>
+                    </div>
+                    <div>
+                        <div class="label">Адреса</div>
+                        Київ, вулиця Радунська, 20
+                    </div>
+                </div>
+            </div>
+
+            <div class="consult-form" data-reveal>
+                {% if submitted %}
+                    <div class="thanks-box">
+                        <h3>Дякуємо!</h3>
+                        <p>Ми зв'яжемось із вами протягом робочого дня.</p>
+                    </div>
+                {% else %}
+                    <h3>Безкоштовна консультація</h3>
+                    <form method="post" action="{% url 'core:lecturers' %}#zayavka" style="display:grid;gap:16px;">
+                        {% csrf_token %}
+                        <div>
+                            <label for="{{ form.name.id_for_label }}">Ім'я</label>
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}">Телефон</label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                        <div>
+                            <label for="{{ form.email.id_for_label }}">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div>
+                            <label for="{{ form.interest.id_for_label }}">Що вас цікавить</label>
+                            {{ form.interest }}
+                        </div>
+                        <div class="consent-row">
+                            {{ form.consent }}
+                            <label for="{{ form.consent.id_for_label }}">Погоджуюсь з <a href="https://distillingacademy.com.ua/privacy" target="_blank" rel="noopener">політикою конфіденційності</a></label>
+                        </div>
+                        {{ form.consent.errors }}
+                        <button type="submit" class="btn-primary btn-block">Надіслати заявку</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

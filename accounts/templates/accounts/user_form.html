@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Редагування користувача{% else %}Новий користувач{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page">
+        <h1>{% if object %}Редагування «{{ object.username }}»{% else %}Новий користувач{% endif %}</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+                <p>
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {{ field.errors }}
+                    {% if field.help_text %}<small style="color:var(--muted);">{{ field.help_text|safe }}</small>{% endif %}
+                </p>
+            {% endfor %}
+            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+        </form>
+        <p style="text-align:center;margin-top:16px;"><a href="{% url 'accounts:user_list' %}">&larr; До списку користувачів</a></p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% load accounts_extras %}
+{% block title %}Користувачі{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <h1>Користувачі</h1>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
+            <a href="{% url 'schedule:subject_list' %}" class="btn btn-secondary">Предмети</a>
+            <a href="{% url 'accounts:user_add' %}" class="btn">+ Додати користувача</a>
+        </div>
+    </div>
+
+    <form method="get" class="filter-bar">
+        <input type="hidden" name="sort" value="{{ current_sort }}">
+        <input type="hidden" name="dir" value="{{ current_dir }}">
+        <label for="role-filter" class="filter-label">Тип користувача:</label>
+        <select id="role-filter" name="role" onchange="this.form.submit()">
+            <option value="" {% if not current_role %}selected{% endif %}>Усі</option>
+            {% for value, label in role_choices %}
+                <option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+
+    <div class="table-card">
+    <table class="sortable-table">
+        <thead>
+            <tr>
+                {% for key, label in sort_columns %}
+                <th>
+                    <a href="?sort={{ key }}&dir={% if current_sort == key and current_dir == 'asc' %}desc{% else %}asc{% endif %}{% if current_role %}&role={{ current_role }}{% endif %}" class="sort-link">
+                        {{ label }}
+                        {% if current_sort == key %}
+                            <span class="sort-arrow">{% if current_dir == 'asc' %}&#9650;{% else %}&#9660;{% endif %}</span>
+                        {% endif %}
+                    </a>
+                </th>
+                {% endfor %}
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in users %}
+            <tr>
+                <td>{{ u.username }}</td>
+                <td>{{ u.get_full_name|default:"—" }}</td>
+                <td>{{ u.email|default:"—" }}</td>
+                <td><span class="role-badge role-{{ u.role }}">{{ u.get_role_display }}</span></td>
+                <td>
+                    {% if u.is_active %}
+                        <span class="status-dot status-active"></span>Активний
+                    {% else %}
+                        <span class="status-dot status-inactive"></span>Заблокований
+                    {% endif %}
+                </td>
+                <td class="row-actions">
+                    {% if request.user|can_edit:u %}
+                        <a href="{% url 'accounts:user_edit' u.pk %}">Редагувати</a>
+                        {% if u.pk != request.user.pk %}
+                        <form class="inline-form" method="post" action="{% url 'accounts:user_delete' u.pk %}" onsubmit="return confirm('Видалити користувача {{ u.username }}?');">
+                            {% csrf_token %}
+                            <button type="submit" class="link-button danger-link">Видалити</button>
+                        </form>
+                        {% endif %}
+                    {% else %}
+                        <span class="muted">—</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr><td colspan="6" class="muted">Немає користувачів за цим фільтром.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

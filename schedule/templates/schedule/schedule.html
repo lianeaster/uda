@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Розклад{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <h1>Розклад</h1>
+        {% if viewed_teacher %}
+            <p class="muted" style="margin:0;">{{ viewed_teacher.get_full_name|default:viewed_teacher.username }}</p>
+        {% elif viewing_unassigned %}
+            <p class="muted" style="margin:0;">Без викладача — нерозподілені резервації</p>
+        {% endif %}
+    </div>
+
+    <div class="schedule-toolbar">
+        <div class="month-nav">
+            <a class="icon-btn" href="?month={{ prev_month|date:'Y-m-d' }}{% if teacher_param %}&teacher={{ teacher_param }}{% endif %}" aria-label="Попередній місяць">&larr;</a>
+            <strong class="month-label">{{ month_label }}</strong>
+            <a class="icon-btn" href="?month={{ next_month|date:'Y-m-d' }}{% if teacher_param %}&teacher={{ teacher_param }}{% endif %}" aria-label="Наступний місяць">&rarr;</a>
+        </div>
+
+        {% if not user.is_teacher and teachers %}
+        <form method="get" class="teacher-select-form">
+            <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
+            <select name="teacher" onchange="this.form.submit()">
+                {% for t in teachers %}
+                    <option value="{{ t.pk }}" {% if teacher_param == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.get_full_name|default:t.username }}</option>
+                {% endfor %}
+                {% if user.is_manager or user.is_super_admin %}
+                    <option value="unassigned" {% if viewing_unassigned %}selected{% endif %}>— Без викладача —</option>
+                {% endif %}
+            </select>
+        </form>
+        {% endif %}
+
+        <div class="legend">
+            <span><span class="legend-swatch swatch-blue"></span>Курс заброньовано</span>
+            <span><span class="legend-swatch swatch-green"></span>Курс, предмет і викладач визначені</span>
+            <span><span class="legend-swatch swatch-orange"></span>Перетин у часі</span>
+        </div>
+    </div>
+
+    {% if not has_view %}
+        <p class="empty-hint">У системі ще немає жодного викладача — розклад буде доступний після додавання викладачів.</p>
+    {% else %}
+
+        <div class="month-grid">
+            <div class="month-grid-header">
+                {% for label in weekday_labels %}<div>{{ label }}</div>{% endfor %}
+            </div>
+            {% for week in weeks %}
+                <div class="month-grid-row">
+                    {% for day in week %}
+                        <div class="day-cell {% if not day.in_month %}day-cell-out{% endif %} {% if day.is_today %}day-cell-today{% endif %}"
+                             {% if day.in_month %}data-date="{{ day.date|date:'Y-m-d' }}" tabindex="0" role="button"{% endif %}>
+                            <span class="day-number">{{ day.date.day }}</span>
+                            {% if day.entries %}
+                                <div class="day-bar-track">
+                                    {% for entry in day.entries %}
+                                        <div class="day-bar-segment color-{{ entry.color }}" style="top:{{ entry.top_pct }}%;height:{{ entry.height_pct }}%;z-index:{{ entry.z_index }};" title="{{ entry.start_time|time:'H:i' }}–{{ entry.end_time|time:'H:i' }} {{ entry.title }}">
+                                            {% if entry.teacher_id %}<span class="segment-initials">{{ entry.teacher.initials }}</span>{% endif %}
+                                        </div>
+                                    {% endfor %}
+                                    {% for overlap in day.overlaps %}
+                                        <div class="day-bar-overlap" style="top:{{ overlap.top_pct }}%;height:{{ overlap.height_pct }}%;" title="Перетин у часі"></div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+
+        {{ entries_json|json_script:"schedule-entries-data" }}
+
+        <div id="day-modal" class="modal-backdrop" hidden>
+            <div class="modal" role="dialog" aria-modal="true">
+                <div class="modal-header">
+                    <h3 id="day-modal-title">Дата</h3>
+                    <button type="button" class="modal-close" id="day-modal-close" aria-label="Закрити">&times;</button>
+                </div>
+
+                <div id="day-modal-bookings" class="modal-bookings"></div>
+
+                {% if can_add %}
+                <form method="post" action="{% url 'schedule:add' %}" class="modal-add-form" id="day-modal-form"
+                      data-add-url="{% url 'schedule:add' %}" data-edit-url-template="{% url 'schedule:edit' 0 %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
+                    {{ form.date }}
+
+                    {% if form.course %}
+                        <p>
+                            <label for="{{ form.course.id_for_label }}">{{ form.course.label }}</label>
+                            {{ form.course }}
+                        </p>
+                    {% endif %}
+
+                    <p>
+                        <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
+                        {{ form.subject }}
+                    </p>
+
+                    {% if form.teacher %}
+                        <p>
+                            <label for="{{ form.teacher.id_for_label }}">{{ form.teacher.label }}</label>
+                            {{ form.teacher }}
+                        </p>
+                    {% endif %}
+
+                    <div class="form-row">
+                        <div>
+                            <label for="{{ form.start_hour.id_for_label }}">{{ form.start_hour.label }}</label>
+                            {{ form.start_hour }}
+                        </div>
+                        <div>
+                            <label for="{{ form.end_hour.id_for_label }}">{{ form.end_hour.label }}</label>
+                            {{ form.end_hour }}
+                        </div>
+                    </div>
+                    <p>
+                        <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                        {{ form.notes }}
+                    </p>
+                    <div class="form-row">
+                        <button type="submit" class="btn" id="day-modal-submit" style="flex:1;">Забронювати час</button>
+                        <button type="button" class="btn btn-secondary" id="day-modal-cancel-edit" style="flex:0 0 auto;" hidden>Скасувати</button>
+                    </div>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post" id="delete-entry-form" action="{% url 'schedule:delete' 0 %}" data-url-template="{% url 'schedule:delete' 0 %}" hidden>
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
+            <input type="hidden" name="teacher" value="{{ teacher_param }}">
+        </form>
+    {% endif %}
+</div>
+<script src="{% static 'js/schedule.js' %}"></script>
+{% endblock %}
