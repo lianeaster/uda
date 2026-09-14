@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="12 6 40 50" width="40" height="50" role="img" aria-label="Навчальна платформа">
+  <!-- Знак для темних і мідних поверхонь: біла крапля, бронзова бульбашка. -->
+  <path d="M32 10C32 10 45 27 45 36C45 43 39 48 32 48C25 48 19 43 19 36C19 27 32 10 32 10Z" fill="#ffffff"/>
+  <circle cx="27" cy="37.5" r="3.4" fill="#97694b"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 52.2C28.2 49.2 21.8 47.8 15 48.2"/>
+    <path d="M32 52.2C35.8 49.2 42.2 47.8 49 48.2"/>
+  </g>
+</svg>

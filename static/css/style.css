@@ -1,40 +1,40 @@
 :root {
-    --copper: #c67139;
-    --copper-dark: #a15c2d;
-    --copper-light: #e0a179;
-    --charcoal: #201e1d;
-    --ink: #201e1d;
+    /* Гайдлайн Академії: дві фірмові фарби. Решта гами — тінти й шейди
+       саме з них, жодного стороннього кольору. */
+    --ink: #231f20;
+    --charcoal: #231f20;
+    --copper: #97694b;
+
+    --copper-dark: #634838;
+    --copper-light: #ccb19a;
+
+    /* Пергамент. Чисті тінти міді на білому йдуть у рожеве (мідь має
+       тон 24°), тож підкладку тримаємо теплішою — 37-40°, а мідь
+       домішуємо вже в неї. */
     --cream: #f5ead8;
     --paper: #ebddc5;
-    --muted: #7a6f64;
+    --muted: #736c66;
     --border: #e2d3b6;
     --border-strong: #d4c09a;
 
-    /* Tonal ramps from the canvas design system — one shared lightness scale. */
-    --accent-100: #fff2eb;
-    --accent-200: #ffe1d0;
-    --accent-300: #ffc6a5;
-    --accent-400: #f6a06b;
-    --accent-600: #b2622d;
-    --accent-800: #643312;
-    --accent-900: #402310;
+    /* Мідна шкала — мідь, домішана в пергамент (14/26/44/66%),
+       далі в бік чорнила */
+    --accent-100: #e8d8c4;
+    --accent-200: #ddc8b3;
+    --accent-300: #ccb19a;
+    --accent-400: #b7957b;
+    --accent-600: #805a42;
+    --accent-800: #4f3b30;
+    --accent-900: #3a2e29;
 
-    --accent-2: #7a8a5e;
-    --accent-2-100: #f0fae1;
-    --accent-2-200: #e1eecc;
-    --accent-2-800: #3d472b;
-
-    --neutral-100: #f9f4ed;
-    --neutral-200: #eee7db;
-    --neutral-300: #dcd3c4;
-
-    --accent-bg: var(--accent-100);
-    --accent-text: var(--accent-800);
-    --accent-2-bg: var(--accent-2-100);
-    --accent-2-text: var(--accent-2-800);
+    --neutral-100: #f5ead8;
+    --neutral-200: #ebddc5;
+    --neutral-300: #d4c09a;
 
     --wrap: 1180px;
 
+    /* Статуси розкладу лишаються сигнальними — вони несуть зміст,
+       а не стиль (див. README). */
     --blue: #2f6fb0;
     --blue-bg: #e5f0fb;
     --green: #2f8f52;
@@ -44,14 +44,20 @@
     --red: #b3261e;
     --red-bg: #fbe2e0;
 
-    /* "Organic" system: generous, soft rounding everywhere; controls go pill. */
+    /* Один типографічний масштаб на весь сайт: чотири щаблі, жодних
+       довільних розмірів у компонентах. */
+    --h1: clamp(38px, 4.8vw, 58px);
+    --h2: clamp(28px, 3.1vw, 40px);
+    --h3: 21px;
+    --h4: 17px;
+
     --radius-sm: 10px;
     --radius: 20px;
     --radius-lg: 28px;
     --radius-pill: 999px;
-    --shadow-sm: 0 1px 2px rgba(46, 43, 37, 0.14);
-    --shadow: 0 3px 10px rgba(46, 43, 37, 0.16);
-    --shadow-lg: 0 12px 32px rgba(46, 43, 37, 0.22);
+    --shadow-sm: 0 1px 2px rgba(35, 31, 32, 0.12);
+    --shadow: 0 3px 10px rgba(35, 31, 32, 0.15);
+    --shadow-lg: 0 12px 32px rgba(35, 31, 32, 0.20);
 }
 
 * { box-sizing: border-box; }
@@ -59,7 +65,19 @@
 body {
     margin: 0;
     font-family: "PT Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    background: var(--cream);
+    /* Пергамент: фірмовий мотив кілець-бульбашок, дрібне зерно паперу і три
+       м'які світлові плями, закріплені за вікном — світло лишається на місці,
+       сторінка їде під ним. */
+    background-color: var(--cream);
+    background-image:
+        url("../img/brand/pattern.svg"),
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.055'/%3E%3C/svg%3E"),
+        radial-gradient(920px 580px at 6% -12%, rgba(151, 105, 75, 0.16), rgba(151, 105, 75, 0) 70%),
+        radial-gradient(780px 540px at 97% -6%, rgba(151, 105, 75, 0.24), rgba(151, 105, 75, 0) 68%),
+        radial-gradient(1150px 680px at 50% 110%, rgba(151, 105, 75, 0.14), rgba(151, 105, 75, 0) 70%);
+    background-repeat: repeat, repeat, no-repeat, no-repeat, no-repeat;
+    background-size: 460px 460px, 180px 180px, auto, auto, auto;
+    background-attachment: scroll, scroll, fixed, fixed, fixed;
     color: var(--ink);
     line-height: 1.55;
     -webkit-font-smoothing: antialiased;
@@ -70,11 +88,21 @@ body {
 }
 body > main { flex: 1; }
 
+/* background-attachment: fixed капризний на мобільних (особливо iOS Safari) —
+   там плями просто лишаються прив'язані до сторінки. */
+@media (hover: none) {
+    body { background-attachment: scroll, scroll, scroll, scroll, scroll; }
+}
+
 h1, h2, h3, h4 {
     font-family: "Lora", Georgia, "Times New Roman", serif;
     font-weight: 600;
     line-height: 1.25;
 }
+h1 { font-size: var(--h1); line-height: 1.05; text-wrap: pretty; }
+h2 { font-size: var(--h2); line-height: 1.14; text-wrap: pretty; }
+h3 { font-size: var(--h3); }
+h4 { font-size: var(--h4); }
 
 .container {
     max-width: var(--wrap);
@@ -85,9 +113,10 @@ h1, h2, h3, h4 {
 a { color: var(--copper); text-underline-offset: 3px; }
 .muted { color: var(--muted); }
 
-/* Images carry a soft wash so illustrations sit inside the palette. */
-.washed { filter: saturate(0.6) contrast(0.85) brightness(1.1) opacity(0.94); }
-
+/* Атрибути width/height у розмітці задають CLS-підказку, але як
+   презентаційні хінти вони ж перебивають aspect-ratio. Скидаємо висоту —
+   правила нижче самі задають пропорції. */
+img { max-width: 100%; height: auto; }
 /* Scroll reveal — elements start shifted, JS clears it when they enter view. */
 [data-reveal] { opacity: 0; transform: translateY(22px); transition: opacity .7s cubic-bezier(.2,.7,.3,1), transform .7s cubic-bezier(.2,.7,.3,1); }
 [data-reveal].is-revealed { opacity: 1; transform: none; }
@@ -118,17 +147,26 @@ a { color: var(--copper); text-underline-offset: 3px; }
     color: var(--ink) !important;
 }
 .brand-mark {
-    width: 38px; height: 38px;
-    border-radius: var(--radius-pill);
-    background: var(--copper);
-    color: var(--cream);
-    font-family: "Lora", Georgia, serif;
-    font-size: 18px;
-    display: grid;
-    place-items: center;
+    width: 46px; height: 46px;
+    object-fit: contain;
     flex: none;
 }
 .brand-name { font-family: "Lora", Georgia, serif; font-size: 17px; line-height: 1.1; }
+
+/* — знак Навчальної платформи: крапля вища за ширину, тож рівняємо по висоті — */
+.brand-mark-platform { width: 34px; height: 42px; object-fit: contain; }
+/* Кнопка, що веде в платформу, несе її знак. */
+.cta-link { display: inline-flex; align-items: center; gap: 8px; }
+.cta-link img { width: 14px; height: 18px; object-fit: contain; }
+.brand-sub {
+    display: block;
+    font-family: "PT Sans", sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.6;
+    margin-top: 2px;
+}
 .main-nav { display: flex; align-items: center; gap: 22px; }
 .main-nav a { color: var(--ink); text-decoration: none; font-size: 15px; transition: color 0.15s ease; }
 .main-nav a:hover { color: var(--copper-dark); }
@@ -163,19 +201,14 @@ a { color: var(--copper); text-underline-offset: 3px; }
     gap: 48px;
     align-items: center;
 }
-.hero h1 {
-    font-size: clamp(40px, 5.2vw, 68px);
-    line-height: 1.02;
-    margin: 18px 0 20px;
-    text-wrap: pretty;
-}
+.hero h1 { margin: 18px 0 20px; }
 .hero-lead { font-size: 18px; line-height: 1.6; max-width: 34em; opacity: 0.85; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 28px; }
 .hero-figure { position: relative; }
 .hero-blob {
     position: absolute;
     inset: -8% -6% 12% 8%;
-    background: var(--accent-2-200);
+    background: var(--accent-200);
     border-radius: var(--radius-pill);
     animation: floaty 9s ease-in-out infinite;
 }
@@ -191,11 +224,25 @@ a { color: var(--copper); text-underline-offset: 3px; }
     width: 100%;
     aspect-ratio: 4 / 5;
     object-fit: cover;
+    object-position: 24% center;
     border-radius: 260px 260px 40px 260px;
     box-shadow: var(--shadow-lg);
 }
+.hero-figure .hero-seal {
+    position: absolute;
+    right: -10px;
+    bottom: 7%;
+    width: 112px;
+    height: 112px;
+    aspect-ratio: auto;
+    padding: 12px;
+    background: var(--cream);
+    border-radius: var(--radius-pill);
+    object-fit: contain;
+    box-shadow: var(--shadow);
+}
 .page-intro { padding: 56px 0 8px; }
-.page-intro h1 { font-size: clamp(38px, 5vw, 60px); line-height: 1.04; margin: 18px 0 16px; max-width: 16em; }
+.page-intro h1 { margin: 18px 0 16px; max-width: 16em; }
 .page-intro p { font-size: 17px; opacity: 0.8; max-width: 40em; }
 
 .btn-primary {
@@ -240,12 +287,14 @@ a { color: var(--copper); text-underline-offset: 3px; }
 .btn-ghost:hover { background: color-mix(in srgb, var(--copper) 10%, transparent); }
 
 section.page-section { padding: 48px 0; }
-.section-surface { background: var(--paper); margin-top: 40px; }
-.section-surface .container { padding-top: 56px; padding-bottom: 56px; }
-.page-section h2 {
-    font-size: clamp(30px, 3.4vw, 42px);
-    margin: 0 0 8px;
+.section-surface {
+    background: var(--paper);
+    margin-top: 40px;
+    border-radius: 52px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
 }
+.section-surface .container { padding-top: 56px; padding-bottom: 56px; }
+.page-section h2 { margin: 0 0 8px; }
 .section-alt { background: var(--paper); }
 
 .card-grid {
@@ -276,7 +325,11 @@ section.page-section { padding: 48px 0; }
     border-radius: calc(var(--radius-lg) * 1.15);
     box-shadow: var(--shadow-lg);
 }
-.form-page h1 { margin-top: 0; text-align: center; font-size: 1.5rem; }
+.form-page h1 { margin-top: 0; text-align: center; font-size: var(--h2); }
+/* Вхід у платформу: замість заголовка — повний кільцевий знак. */
+.form-page-platform { text-align: center; }
+.form-page-platform form, .form-page-platform .errorlist { text-align: left; }
+.platform-badge { width: 240px; height: 240px; margin: 0 auto 20px; display: block; }
 form p { margin-bottom: 18px; }
 label { display: block; margin-bottom: 6px; font-weight: 600; font-size: 0.92rem; color: var(--ink); }
 /* Every text-ish control, so a new input type can't slip through unstyled. */
@@ -584,7 +637,7 @@ body.modal-open { overflow: hidden; }
     justify-content: space-between;
     margin-bottom: 16px;
 }
-.modal-header h3 { margin: 0; font-size: 1.2rem; }
+.modal-header h3 { margin: 0; }
 .modal-close {
     background: none;
     border: none;
@@ -653,7 +706,9 @@ body.modal-open { overflow: hidden; }
     width: fit-content;
 }
 .tag-accent { background: var(--accent-100); color: var(--accent-800); }
-.tag-accent-2 { background: var(--accent-2-100); color: var(--accent-2-800); }
+/* Бренд має лише дві фарби, тож другий тип тегу відрізняється формою —
+   контуром замість заливки. */
+.tag-outline { background: transparent; border: 1px solid var(--border-strong); color: var(--copper-dark); }
 .tag-lg { font-size: 12px; padding: 6px 14px; }
 
 /* — section headers: left aligned, optional trailing link — */
@@ -681,10 +736,10 @@ body.modal-open { overflow: hidden; }
 .card-title { font-family: "Lora", Georgia, serif; font-weight: 600; line-height: 1.2; }
 .card-body { margin: 0; font-size: 14px; opacity: 0.8; }
 .card-stack { display: flex; flex-direction: column; gap: 8px; align-items: start; }
-.card-stack h3 { font-size: 21px; margin: 6px 0 0; }
-.card-tinted-sage { background: var(--accent-2-200); }
+.card-stack h3 { margin: 6px 0 0; }
+.card-tinted-soft { background: var(--accent-100); }
 .card-tinted-copper { background: var(--accent-200); }
-.card-tinted-sage:hover, .card-tinted-copper:hover { transform: none; }
+.card-tinted-soft:hover, .card-tinted-copper:hover { transform: none; }
 
 /* — flagship programme: dark rounded panel with bleed image — */
 .flagship {
@@ -697,56 +752,121 @@ body.modal-open { overflow: hidden; }
 }
 .flagship-body { padding: 48px; }
 .flagship .tag { background: var(--accent-400); color: var(--accent-900); }
-.flagship h2 { font-size: clamp(30px, 3.4vw, 44px); margin: 18px 0 14px; color: var(--neutral-100); }
+.flagship h2 { margin: 18px 0 14px; color: var(--neutral-100); }
 .flagship p.lead { font-size: 17px; line-height: 1.6; max-width: 32em; color: var(--neutral-200); margin: 0; }
-.flagship-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 18px; margin: 32px 0; }
+.flagship-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); gap: 18px 20px; margin: 32px 0; }
+.flagship-facts > div { display: flex; align-items: start; gap: 10px; }
+.flagship-facts .ic { font-size: 23px; margin-top: 1px; color: var(--accent-300); --ic-accent: var(--accent-400); }
 .flagship-facts .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-300); }
 .flagship-facts .value { font-family: "Lora", Georgia, serif; font-size: 19px; margin-top: 4px; }
 .flagship-actions { display: flex; flex-wrap: wrap; gap: 12px; }
 .flagship-actions .btn-outline { border-color: var(--accent-400); color: var(--accent-200); }
 .flagship-actions .btn-outline:hover { background: color-mix(in srgb, var(--accent-200) 12%, transparent); }
 .flagship img { width: 100%; height: 100%; object-fit: cover; }
+.flagship .video-card { background: transparent; border-radius: 0; box-shadow: none; height: 100%; }
+.flagship .video-card .video-play { height: 100%; }
+.flagship .video-card img { aspect-ratio: auto; height: 100%; }
+/* Після кліку iframe стає на місце постера, а не стискається до 16:9. */
+.flagship .video-card iframe { flex: 1; height: 100%; aspect-ratio: auto; }
 .fine-print { margin-top: 16px; font-size: 14px; opacity: 0.7; }
 
 /* — lecturers: circular portraits, no card — */
-.lecturer img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius-pill); }
-.lecturer h3 { font-size: 22px; margin: 18px 0 6px; }
+.lecturer-photo {
+    position: relative;
+    width: 100%;
+    padding-top: 100%;        /* квадрат незалежно від висоти сусідніх карток */
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+}
+.lecturer-photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.lecturer .tag { margin-top: 18px; }
+.lecturer h3 { margin: 8px 0 6px; }
 .lecturer p { font-size: 14px; opacity: 0.75; margin: 0; }
 
-/* — testimonials: video thumbs with corner play badge — */
-.video-thumb {
-    display: block;
+/* — відео: локальний постер, плеєр вантажиться після кліку (js/video.js) — */
+.video-card {
+    display: flex;
+    flex-direction: column;
     border-radius: var(--radius-lg);
     overflow: hidden;
-    position: relative;
+    background: var(--paper);
     box-shadow: var(--shadow-sm);
 }
-.video-thumb img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; }
-.video-thumb .play-badge {
+.video-play {
+    position: relative;
+    display: block;
+    width: 100%;
+    padding: 0;
+    border: 0;
+    background: none;
+    line-height: 0;
+    cursor: pointer;
+}
+.video-play img {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.4s cubic-bezier(.2,.7,.3,1);
+}
+.video-play:hover img { transform: scale(1.03); }
+.video-card .play-badge {
     position: absolute;
     inset: auto auto 14px 14px;
-    width: 42px; height: 42px;
+    width: 48px; height: 48px;
+    font-size: 26px;
     border-radius: var(--radius-pill);
-    background: var(--copper);
-    color: var(--cream);
+    background: var(--cream);
+    color: var(--charcoal);
     display: grid;
     place-items: center;
-    font-size: 15px;
+    box-shadow: var(--shadow);
+    transition: transform 0.15s ease;
+}
+.video-play:hover .play-badge { transform: scale(1.08); }
+.video-card iframe { width: 100%; aspect-ratio: 16 / 9; border: 0; display: block; }
+/* Відгуки зняті вертикально — картка під них теж портретна.
+   Плеєр тримає ту саму пропорцію, тож картка не стрибає після кліку. */
+.video-card-portrait .video-play img,
+.video-card-portrait iframe { aspect-ratio: 3 / 4; }
+.video-meta { padding: 16px 20px 20px; }
+.video-meta h3 { margin: 0 0 4px; }
+.video-meta p { font-size: 13px; opacity: 0.7; margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+    .video-play img, .video-card .play-badge { transition: none; }
+    .video-play:hover img { transform: none; }
 }
 
-/* — partners — */
-.partner-list { display: flex; flex-wrap: wrap; gap: 12px; }
-.partner-chip {
-    padding: 12px 20px;
-    border-radius: var(--radius-pill);
-    background: var(--paper);
-    font-size: 14px;
+/* — partners: сітка логотипів, колір проявляється на наведенні — */
+.partner-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(116px, 1fr));
+    gap: 14px;
+    margin-top: 24px;
 }
+.partner-logo {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    padding: 16px;
+    background: var(--paper);
+    border-radius: var(--radius);
+    transition: background 0.15s ease, transform 0.15s ease;
+}
+.partner-logo img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    filter: grayscale(1);
+    opacity: 0.72;
+    transition: filter 0.2s ease, opacity 0.2s ease;
+}
+.partner-logo:hover { background: var(--accent-200); transform: translateY(-2px); }
+.partner-logo:hover img { filter: none; opacity: 1; }
 
 /* — news — */
 .news-item { text-decoration: none; color: inherit; display: block; }
 .news-item img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-lg); }
-.news-item h3 { font-size: 23px; margin: 18px 0 6px; }
+.news-item h3 { margin: 18px 0 6px; }
 .news-item p { font-size: 14px; opacity: 0.75; margin: 0; }
 
 /* — consultation band: dark, split, cream form card — */
@@ -757,7 +877,7 @@ body.modal-open { overflow: hidden; }
     gap: 48px;
     padding: 64px 0;
 }
-.consult-band h2 { font-size: clamp(32px, 3.6vw, 46px); margin: 0 0 14px; color: var(--neutral-100); }
+.consult-band h2 { margin: 0 0 14px; color: var(--neutral-100); }
 .consult-band > .container > .consult-grid > div > p { font-size: 17px; color: var(--neutral-200); max-width: 30em; }
 .consult-contacts { display: grid; gap: 14px; margin-top: 36px; font-size: 16px; }
 .consult-contacts .label { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent-300); }
@@ -772,7 +892,7 @@ body.modal-open { overflow: hidden; }
     gap: 16px;
     align-content: start;
 }
-.consult-form h3 { font-size: 24px; margin: 0; }
+.consult-form h3 { margin: 0; }
 .consult-form label { font-size: 12px; margin-bottom: 5px; font-weight: 400; color: color-mix(in srgb, var(--ink) 70%, transparent); }
 .consult-form textarea { border-radius: 22px; min-height: 90px; }
 .consent-row {
@@ -793,7 +913,7 @@ body.modal-open { overflow: hidden; }
 .consent-row label { font-size: 13px; margin: 0; font-weight: 400; }
 .btn-block { width: 100%; }
 .thanks-box { padding: 26px 6px; }
-.thanks-box h3 { font-size: 24px; margin: 0 0 8px; }
+.thanks-box h3 { margin: 0 0 8px; }
 .thanks-box p { font-size: 15px; opacity: 0.8; margin: 0; }
 
 /* — footer — */
@@ -804,10 +924,18 @@ body.modal-open { overflow: hidden; }
     flex-wrap: wrap;
     gap: 12px;
     padding: 28px 0;
-    border-top: 1px solid color-mix(in srgb, #f9f4ed 18%, transparent);
+    border-top: 1px solid color-mix(in srgb, var(--neutral-100) 18%, transparent);
     font-size: 14px;
 }
 .footer-note { opacity: 0.75; }
+
+@media (max-width: 720px) {
+    /* Логотип зробив шапку вищою — на вузьких екранах ховаємо навігацію в другий рядок. */
+    .header-row { flex-wrap: wrap; row-gap: 10px; padding: 12px 20px; }
+    .main-nav { width: 100%; flex-wrap: wrap; gap: 16px; }
+    .brand-mark { width: 40px; height: 40px; }
+    .brand-name { font-size: 16px; }
+}
 
 @media (max-width: 860px) {
     .hero-split { grid-template-columns: 1fr; }
@@ -815,4 +943,111 @@ body.modal-open { overflow: hidden; }
     .flagship { grid-template-columns: 1fr; }
     .flagship-body { padding: 32px; }
     .flagship img { aspect-ratio: 16 / 9; }
+    .flagship .video-card img,
+    .flagship .video-card iframe { aspect-ratio: 16 / 9; height: auto; flex: none; }
+    .hero-figure .hero-seal { width: 86px; height: 86px; right: 0; }
 }
+
+
+/* ---- піктограми: вугільний контур + мідний акцент, у стилі логотипа ---- */
+.ic {
+    width: 1em;
+    height: 1em;
+    flex: none;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: -0.125em;
+}
+/* Кругла плашка повторює кільце логотипа. */
+.icon-badge {
+    width: 54px;
+    height: 54px;
+    font-size: 27px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    color: var(--charcoal);
+    background: var(--cream);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+}
+.card-tinted-soft .icon-badge,
+.card-tinted-copper .icon-badge {
+    background: color-mix(in srgb, var(--cream) 70%, transparent);
+    border-color: transparent;
+}
+.icon-badge-float {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    width: 46px;
+    height: 46px;
+    font-size: 23px;
+    border-color: transparent;
+    box-shadow: var(--shadow);
+}
+
+/* ---- картка курсу з фотографією ---- */
+.course-card {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 8px;
+    text-decoration: none;
+    color: inherit;
+}
+.course-media { position: relative; width: 100%; margin-bottom: 8px; }
+.course-media img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.15s ease;
+}
+.course-card h3 { margin: 4px 0 0; }
+a.course-card:hover .course-media img { box-shadow: var(--shadow); }
+a.course-card:hover h3 { color: var(--accent-600); }
+
+/* ---- послуги: фото + текстовий блок ---- */
+.service-card {
+    display: flex;
+    flex-direction: column;
+    background: var(--paper);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+}
+.service-card > img { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; }
+.service-body {
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    gap: 10px;
+    padding: 28px 30px 32px;
+}
+.service-body h3 { margin: 4px 0 0; }
+
+/* ---- смуга фотографій ---- */
+.photo-strip {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+    gap: 14px;
+    margin-top: 28px;
+}
+.photo-strip img {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+}
+
+
+/* ---- підвал ---- */
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; }
+.footer-brand .ic { width: 22px; height: 22px; --ic-accent: var(--accent-400); }

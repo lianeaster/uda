@@ -5,7 +5,7 @@
 
 <section class="page-intro">
     <div class="container">
-        <span class="tag tag-accent-2 tag-lg" data-reveal>Навчальні програми</span>
+        <span class="tag tag-outline tag-lg" data-reveal>Навчальні програми</span>
         <h1 data-reveal>Курси та майстерні Академії</h1>
         <p data-reveal>Онлайн — 980 €, офлайн + онлайн — 1200 €. Членам АКДУ та випускникам Академії знижка 20%.</p>
     </div>
@@ -17,60 +17,37 @@
             <div class="flagship-body">
                 <span class="tag tag-lg">Сертифікаційна програма</span>
                 <h2>Майстер дистиляції</h2>
-                <p class="lead">Повний теоретичний і практичний курс: сировина, бродіння, перегонка, витримка, сенсорика та економіка виробництва. 60 днів, старт {{ next_intake }}.</p>
+                <p class="lead">{{ flagship.lead }}</p>
                 <div class="flagship-facts">
-                    <div><div class="label">Формат</div><div class="value">Онлайн / Офлайн</div></div>
-                    <div><div class="label">Тривалість</div><div class="value">60 днів</div></div>
-                    <div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-screen"></use></svg><div><div class="label">Формат</div><div class="value">Онлайн / Офлайн</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg><div><div class="label">Старт</div><div class="value">{{ next_intake }}</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-clock"></use></svg><div><div class="label">Тривалість</div><div class="value">60 днів</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div></div>
                 </div>
                 <div class="flagship-actions">
                     <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
                 </div>
             </div>
-            <img class="washed" src="{% static 'img/course-master.svg' %}" alt="Майстер дистиляції">
+            <img class="flagship-media" src="{% static 'img/'|add:flagship.image %}" alt="{{ flagship.title }}" width="560" height="560">
         </div>
     </div>
 </section>
 
 <section class="page-section">
     <div class="container">
-        <div class="grid-cards cols-250" style="margin-top:0;">
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent">Курс</span>
-                <h3>Зернові дистиляти й горілка</h3>
-                <p class="card-body">Крохмалевмісна сировина, оцукрювання, бродіння, ректифікація та підготовка води.</p>
+        <div class="grid-cards cols-280" style="margin-top:0;">
+            {% for course in courses %}
+            <article class="course-card" data-reveal>
+                <div class="course-media">
+                    <img src="{% static 'img/'|add:course.image %}" alt="{{ course.title }}" loading="lazy" width="560" height="560">
+                    <span class="icon-badge icon-badge-float"><svg class="ic" aria-hidden="true"><use href="#{{ course.icon }}"></use></svg></span>
+                </div>
+                <span class="tag tag-accent">{{ course.tag }}</span>
+                <h3>{{ course.title }}</h3>
+                <p class="card-body">{{ course.text }}</p>
                 <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent">Курс</span>
-                <h3>Майстерня віскі</h3>
-                <p class="card-body">Солодові дистиляти: затирання, дріжджовий профіль, відбір фракцій, вплив куба.</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent-2">Курс</span>
-                <h3>Майстерня джину</h3>
-                <p class="card-body">Джин і настоянки: композиція ботанікалів, мацерація, парова інфузія, купажування.</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent-2">Курс</span>
-                <h3>Майстерня сенсорного аналізу</h3>
-                <p class="card-body">Дегустаційна методика, мова опису, пошук дефектів і робота панелі.</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent">Курс</span>
-                <h3>Майстерня витримки</h3>
-                <p class="card-body">Бочка, деревина, режими складу і те, як час змінює дистилят.</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <span class="tag tag-accent-2">Курс</span>
-                <h3>Правила спиртового бродіння</h3>
-                <p class="card-body">Хімія й мікробіологія бродіння: дріжджі, поживні речовини, контроль процесу.</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
-            </div>
+            </article>
+            {% endfor %}
         </div>
     </div>
 </section>
@@ -80,18 +57,25 @@
         <h2 data-reveal>Майстер-класи</h2>
         <p class="section-lead" data-reveal>Одноденні формати для тих, хто хоче розібратись у вузькій темі.</p>
         <div class="grid-cards cols-280">
+            {% for item in masterclasses %}
             <div class="card card-stack" data-reveal>
-                <h3>Основи організації виробництва дистилятів</h3>
-                <p class="card-body">Один день: з чого починається дистилерія і які рішення коштують найдорожче.</p>
+                <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>
+                <h3>{{ item.title }}</h3>
+                <p class="card-body">{{ item.text }}</p>
             </div>
-            <div class="card card-stack" data-reveal>
-                <h3>Зброджування крохмалевмісної сировини</h3>
-                <p class="card-body">Зернові культури: підготовка, оцукрювання, типові помилки бродіння.</p>
-            </div>
-            <div class="card card-stack" data-reveal>
-                <h3>Зброджування фруктів та винограду</h3>
-                <p class="card-body">Фруктові дистиляти: зрілість сировини, мацерація, чистота бродіння.</p>
-            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Як це виглядає</h2>
+        <p class="section-lead" data-reveal>Дегустаційні сети, лабораторія та практика на діючих виробництвах.</p>
+        <div class="photo-strip" data-reveal>
+            <img src="{% static 'img/photo/tasting-flight.jpg' %}" alt="Дегустаційний сет" loading="lazy" width="1200" height="750">
+            <img src="{% static 'img/photo/distillery.jpg' %}" alt="Практика на виробництві" loading="lazy" width="1200" height="750">
+            <img src="{% static 'img/photo/barrels.jpg' %}" alt="Витримка в бочках" loading="lazy" width="1200" height="750">
         </div>
     </div>
 </section>

@@ -1,10 +1,11 @@
-{% extends "base.html" %}
+{% extends "platform_base.html" %}
+{% load static %}
 {% block title %}Вхід — Навчальна платформа{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="form-page">
-        <h1>Навчальна платформа</h1>
-        <p style="text-align:center;color:var(--muted);margin-top:-8px;">Українська Академія Дистиляції</p>
+    <div class="form-page form-page-platform">
+        <img class="platform-badge" src="{% static 'img/platform/badge.svg' %}"
+             alt="Навчальна платформа Української Академії Дистиляції" width="400" height="400">
         {% if form.non_field_errors %}
             <ul class="errorlist">
                 {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}

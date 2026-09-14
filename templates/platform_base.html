@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load static %}
+{% comment %}
+Навчальна платформа: власний знак і фавікони з макета — бронзова крапля
+над розгорнутою книгою. Публічний сайт лишається під знаком Академії.
+{% endcomment %}
+
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{% static 'img/platform/tile.svg' %}">
+<link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/platform/favicon-32.png' %}">
+<link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/platform/icon-192.png' %}">
+<link rel="apple-touch-icon" href="{% static 'img/platform/apple-touch-icon.png' %}">
+<meta name="theme-color" content="#97694b">
+{% endblock %}
+
+{% block brand %}
+<a class="brand" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'core:home' %}{% endif %}">
+    <img class="brand-mark brand-mark-platform" src="{% static 'img/platform/mark.svg' %}" alt="" width="40" height="50">
+    <span class="brand-name">Навчальна платформа<span class="brand-sub">Українська Академія Дистиляції</span></span>
+</a>
+{% endblock %}

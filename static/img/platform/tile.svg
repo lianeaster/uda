@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64" role="img" aria-label="Навчальна платформа">
+  <!-- Плитковий знак: джерело для фавіконів. -->
+  <rect width="64" height="64" rx="18" fill="#97694b"/>
+  <path d="M32 10C32 10 45 27 45 36C45 43 39 48 32 48C25 48 19 43 19 36C19 27 32 10 32 10Z" fill="#ffffff"/>
+  <g fill="none" stroke="#ffffff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M32 52C28.5 49 22 47.6 15 48"/>
+    <path d="M32 52C35.5 49 42 47.6 49 48"/>
+  </g>
+  <circle cx="27" cy="37" r="3.4" fill="#97694b"/>
+</svg>

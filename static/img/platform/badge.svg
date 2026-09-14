@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Навчальна платформа Української Академії Дистиляції">
+  <!-- Знак Навчальної платформи з макета: бронзова крапля над розгорнутою
+       книгою, обрамлена кільцевим написом. Дві фірмові фарби гайдлайну. -->
+  <defs>
+    <path id="pf-top" d="M50 200 A150 150 0 1 1 350 200" fill="none"/>
+    <path id="pf-bottom" d="M35 200 A165 165 0 0 0 365 200" fill="none"/>
+  </defs>
+  <g font-family="Helvetica Neue, Helvetica, Arial, sans-serif" font-size="21" font-weight="700" fill="#231f20">
+    <text letter-spacing="4.6"><textPath href="#pf-top" startOffset="50%" text-anchor="middle">НАВЧАЛЬНА ПЛАТФОРМА</textPath></text>
+    <text letter-spacing="1.6"><textPath href="#pf-bottom" startOffset="50%" text-anchor="middle">УКРАЇНСЬКА АКАДЕМІЯ ДИСТИЛЯЦІЇ</textPath></text>
+  </g>
+  <circle cx="42" cy="200" r="4" fill="#97694b"/>
+  <circle cx="358" cy="200" r="4" fill="#97694b"/>
+  <g transform="translate(200,200) scale(4.3) translate(-32,-31)">
+    <path d="M32 10C32 10 45 27 45 36C45 43 39 48 32 48C25 48 19 43 19 36C19 27 32 10 32 10Z" fill="#97694b"/>
+    <circle cx="27" cy="37.5" r="3.4" fill="#ffffff"/>
+    <circle cx="34.5" cy="42.5" r="1.7" fill="#ffffff"/>
+    <g fill="none" stroke="#231f20" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M32 52.2C28.2 49.2 21.8 47.8 15 48.2"/>
+      <path d="M32 52.2C35.8 49.2 42.2 47.8 49 48.2"/>
+    </g>
+  </g>
+</svg>
