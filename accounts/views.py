@@ -26,39 +26,20 @@ class UserListView(UserManagementRequiredMixin, ListView):
     template_name = 'accounts/user_list.html'
     context_object_name = 'users'
 
-    SORT_FIELDS = {
-        'username': ['username'],
-        'name': ['last_name', 'first_name'],
-        'email': ['email'],
-        'role': ['role', 'last_name'],
-        'status': ['is_active', 'last_name'],
-    }
-
     def get_queryset(self):
-        sort = self.request.GET.get('sort', 'name')
-        direction = self.request.GET.get('dir', 'asc')
-        fields = self.SORT_FIELDS.get(sort, self.SORT_FIELDS['name'])
-        if direction == 'desc':
-            fields = [f'-{f}' for f in fields]
-        queryset = User.objects.order_by(*fields)
+        # Сортування й пошук по колонках робить сама таблиця
+        # (`static/js/table.js`). Тут лишається фільтр ролі: на нього ведуть
+        # тайли кабінету, тож він має переживати перезавантаження й посилання.
+        queryset = User.objects.with_roles()
         role = self.request.GET.get('role')
         if role in User.Role.values:
-            queryset = queryset.filter(role=role)
+            queryset = queryset.with_role(role)
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['current_sort'] = self.request.GET.get('sort', 'name')
-        context['current_dir'] = self.request.GET.get('dir', 'asc')
         context['current_role'] = self.request.GET.get('role', '')
         context['role_choices'] = User.Role.choices
-        context['sort_columns'] = [
-            ('username', 'Логін'),
-            ('name', 'ПІБ'),
-            ('email', 'Email'),
-            ('role', 'Роль'),
-            ('status', 'Статус'),
-        ]
         return context
 
 

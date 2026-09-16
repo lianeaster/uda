@@ -1,0 +1,117 @@
+{% extends "platform_base.html" %}
+{% block title %}{{ group.name }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>{{ group.name }}</h1>
+            <p class="muted">{{ group.course.name }} · {% include "schedule/includes/period.html" with obj=group %}</p>
+            {% if group.i_teach or group.i_study %}
+            <p>
+                {% if group.i_teach %}<span class="chip">ви тут викладаєте</span>{% endif %}
+                {% if group.i_study %}<span class="chip">ви тут навчалися</span>{% endif %}
+            </p>
+            {% endif %}
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Усі групи</a>
+            {% if user.is_super_admin %}
+            <a href="{% url 'admin:schedule_group_change' group.pk %}" class="btn">Редагувати</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if group.notes %}<p class="muted">{{ group.notes }}</p>{% endif %}
+
+    <div class="page-header-row">
+        <h2 class="section-title">Предмети та викладачі</h2>
+        {% if subject_form and fillable %}
+        <form method="post" action="{% url 'schedule:group_subjects_fill' group.pk %}"
+              onsubmit="return confirm('Додати {{ fillable }} предмет(ів) курсу до групи?');">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-small btn-secondary">+ Усі предмети курсу ({{ fillable }})</button>
+        </form>
+        {% endif %}
+    </div>
+
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr>
+                <th>№</th><th>Предмет</th><th>Викладач</th><th>Період вивчення</th>
+                {% if subject_form %}<th data-sort="false" data-filter="none"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for gs in group_subjects %}
+            <tr>
+                <td class="muted" data-sort="{{ gs.subject.position }}">{{ gs.subject.code|default:"—" }}</td>
+                <td>{{ gs.subject.name }}</td>
+                <td>{{ gs.teacher.get_full_name|default:gs.teacher.username }}</td>
+                <td data-sort="{{ gs.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=gs %}</td>
+                {% if subject_form %}
+                <td class="row-actions">
+                    <form class="inline-form" method="post" action="{% url 'schedule:group_subject_delete' gs.pk %}"
+                          onsubmit="return confirm('Прибрати «{{ gs.subject.name }}» з групи? Записи розкладу за цим предметом теж зникнуть.');">
+                        {% csrf_token %}
+                        <button type="submit" class="link-button danger-link">Прибрати</button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="{% if subject_form %}5{% else %}4{% endif %}" class="muted">
+                Для цієї групи ще не додано жодного предмету — доки їх немає,
+                у розкладі можна лише забронювати день під курс.
+            </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    {% if subject_form %}
+    <form method="post" action="{% url 'schedule:group_subject_add' group.pk %}" class="inline-add-form">
+        {% csrf_token %}
+        <div class="form-row">
+            <div style="flex:2;">
+                <label for="{{ subject_form.subject.id_for_label }}">{{ subject_form.subject.label }}</label>
+                {{ subject_form.subject }}
+            </div>
+            <div style="flex:2;">
+                <label for="{{ subject_form.teacher.id_for_label }}">{{ subject_form.teacher.label }}</label>
+                {{ subject_form.teacher }}
+            </div>
+            <div>
+                <label for="{{ subject_form.start_date.id_for_label }}">{{ subject_form.start_date.label }}</label>
+                {{ subject_form.start_date }}
+            </div>
+            <div>
+                <label for="{{ subject_form.end_date.id_for_label }}">{{ subject_form.end_date.label }}</label>
+                {{ subject_form.end_date }}
+            </div>
+        </div>
+        <button type="submit" class="btn btn-small">+ Додати предмет</button>
+    </form>
+    {% endif %}
+
+    <h2 class="section-title">Студенти</h2>
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr><th>ПІБ</th><th>Логін</th><th>Навчання в групі</th></tr>
+        </thead>
+        <tbody>
+        {% for e in enrollments %}
+            <tr>
+                <td>{{ e.student.get_full_name|default:"—" }}</td>
+                <td>{{ e.student.username }}</td>
+                <td data-sort="{{ e.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=e %}</td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="3" class="muted">До цієї групи ще нікого не зараховано.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

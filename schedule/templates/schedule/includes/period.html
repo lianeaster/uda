@@ -1,0 +1,8 @@
+{% comment %}
+Період + статус. Однаковий вигляд для групи, предмета в групі та студента
+в групі — усі три успадковують DatedRange, тож мають ті самі поля.
+{% endcomment %}
+<span class="period" title="{{ obj.status_label }}">
+    <span class="status-dot status-{{ obj.status }}"></span>{{ obj.start_date|date:"d.m.Y" }} —
+    {% if obj.end_date %}{{ obj.end_date|date:"d.m.Y" }}{% else %}<span class="muted">триває</span>{% endif %}
+</span>

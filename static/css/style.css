@@ -35,12 +35,14 @@
 
     /* Статуси розкладу лишаються сигнальними — вони несуть зміст,
        а не стиль (див. README). */
+    /* Блакитний — день під курс, синій — предмет, зелений — пропозиція
+       викладача. Помаранчевий (перетин) деприкейтнуто разом із механікою. */
+    --sky: #7bb0dd;
+    --sky-bg: #eef5fc;
     --blue: #2f6fb0;
     --blue-bg: #e5f0fb;
     --green: #2f8f52;
     --green-bg: #e6f6ec;
-    --orange: #c8660a;
-    --orange-bg: #fdead2;
     --red: #b3261e;
     --red-bg: #fbe2e0;
 
@@ -49,6 +51,9 @@
     --h1: clamp(38px, 4.8vw, 58px);
     --h2: clamp(28px, 3.1vw, 40px);
     --h3: 21px;
+    /* Числовий показник на тайлі — не заголовок, тому власний щабель
+       шкали, а не довільний розмір усередині компонента. */
+    --stat: 30px;
     --h4: 17px;
 
     --radius-sm: 10px;
@@ -428,7 +433,66 @@ input:focus, select:focus, textarea:focus {
     transition: box-shadow 0.15s ease, transform 0.15s ease, border-color 0.15s ease;
 }
 .tile:hover { border-color: var(--copper); box-shadow: var(--shadow); transform: translateY(-2px); }
-.tile h3 { color: var(--copper-dark); margin-top: 0; }
+.tile h3 { color: var(--copper-dark); margin: 0 0 6px; }
+/* Кругла плашка під піктограмою — те саме кільце, що й .icon-badge, лише дрібніше. */
+.tile-icon {
+    width: 42px;
+    height: 42px;
+    font-size: 21px;
+    display: grid;
+    place-items: center;
+    color: var(--charcoal);
+    background: var(--cream);
+    border: 1.5px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    margin-bottom: 14px;
+}
+.tile-count { margin: 0; color: var(--muted); }
+.tile-count strong { font-size: var(--stat); font-weight: 700; color: var(--ink); line-height: 1.1; }
+.tile-meta { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+/* Новина в тайлі — єдине, що на дашборді має тягнути око. */
+.tile-news {
+    margin: 10px 0 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--copper-dark);
+}
+.row-news { background: color-mix(in srgb, var(--copper) 8%, transparent); }
+.news-badge {
+    display: inline-block;
+    background: var(--copper);
+    color: var(--cream);
+    border-radius: 10px;
+    padding: 0 7px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    margin-left: 6px;
+}
+.tile-lead { margin: 0; color: var(--muted); }
+
+/* ---- період і його статус ---- */
+/* Три стани дат однакові для групи, предмета в групі та студента в групі. */
+.period { white-space: nowrap; }
+.status-planned { background: var(--copper-light); }
+.status-finished { background: var(--muted); }
+/* Стани пропозиції — ті самі сигнали, що й у календарі. */
+.status-proposed { background: var(--green); }
+.status-accepted { background: var(--blue); }
+.status-rejected { background: var(--muted); }
+
+.btn-small { padding: 7px 18px; font-size: 0.85rem; }
+/* Форма-рядок під таблицею: додати запис, не йдучи зі сторінки. */
+.inline-add-form {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    margin-top: 14px;
+}
+.inline-add-form label { font-size: 0.82rem; }
+.inline-add-form .form-row { align-items: flex-end; margin-bottom: 12px; }
+/* Заголовок секції в середині сторінки — сусідній щабель шкали, не новий розмір. */
+.section-title { font-size: var(--h3); margin: 34px 0 14px; color: var(--copper-dark); }
 
 /* ---- filter bar ---- */
 .filter-bar {
@@ -469,9 +533,36 @@ th {
     background: var(--cream);
     border-bottom: 2px solid var(--border-strong);
 }
-.sort-link { color: var(--muted); text-decoration: none; display: inline-flex; align-items: center; gap: 5px; }
-.sort-link:hover { color: var(--ink); }
-.sort-arrow { font-size: 0.65rem; color: var(--copper); }
+/* ---- сортування й фільтрація в таблицях (static/js/table.js) ---- */
+th.is-sortable { cursor: pointer; user-select: none; }
+th.is-sortable:hover { color: var(--ink); }
+th.is-sortable::after {
+    content: '\2195';           /* ↕ — колонку можна впорядкувати */
+    margin-left: 6px;
+    font-size: 0.7rem;
+    opacity: 0.35;
+}
+th[aria-sort="ascending"]::after { content: '\25B2'; opacity: 1; color: var(--copper); }
+th[aria-sort="descending"]::after { content: '\25BC'; opacity: 1; color: var(--copper); }
+th.is-sorted { color: var(--ink); }
+th.is-sortable:focus-visible { outline: 2px solid var(--copper); outline-offset: -2px; }
+
+.filter-row th, .filter-row td {
+    padding: 8px 10px;
+    background: var(--cream);
+    border-bottom: 1px solid var(--border-strong);
+}
+.filter-row input, .filter-row select {
+    width: 100%;
+    min-width: 0;
+    padding: 5px 8px;
+    font-size: 0.82rem;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-sm);
+    background: var(--paper);
+    color: var(--ink);
+}
+.filter-row input::placeholder { color: var(--muted); }
 .row-actions { white-space: nowrap; display: flex; gap: 12px; align-items: center; }
 .inline-form { display: inline; }
 .danger-link { color: var(--red); text-decoration-color: var(--red); }
@@ -508,9 +599,9 @@ th {
 .teacher-select-form select { min-width: 200px; }
 .legend { display: flex; gap: 18px; font-size: 0.85rem; flex-wrap: wrap; color: var(--muted); }
 .legend-swatch { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 5px; vertical-align: middle; }
+.swatch-sky { background: var(--sky); }
 .swatch-blue { background: var(--blue); }
 .swatch-green { background: var(--green); }
-.swatch-orange { background: var(--orange); }
 
 /* ---- month calendar ---- */
 .month-grid {
@@ -590,20 +681,12 @@ th {
     justify-content: center;
     overflow: hidden;
 }
+.day-bar-segment.color-sky { background: var(--sky); }
 .day-bar-segment.color-blue { background: var(--blue); }
 .day-bar-segment.color-green { background: var(--green); }
-.day-bar-segment.color-orange { background: var(--orange); }
+/* Відхилена пропозиція лишається в історії, але не читається як розклад. */
+.day-bar-segment.color-rejected { background: var(--neutral-300); opacity: 0.55; }
 .segment-initials { color: #fff; font-size: 0.65rem; font-weight: 700; letter-spacing: 0.02em; writing-mode: horizontal-tb; }
-.day-bar-overlap {
-    position: absolute;
-    left: 3px; right: 3px;
-    background: var(--orange);
-    border-radius: 3px;
-    z-index: 900;
-    pointer-events: none;
-    box-shadow: 0 0 0 1px rgba(255,255,255,0.6);
-}
-
 .empty-hint { color: var(--muted); font-style: italic; padding: 48px 0; text-align: center; }
 
 /* ---- modal ---- */
@@ -658,9 +741,10 @@ body.modal-open { overflow: hidden; }
     border-radius: var(--radius-sm);
     font-size: 0.88rem;
 }
+.booking-row.color-sky { background: var(--sky-bg); color: var(--blue); }
 .booking-row.color-blue { background: var(--blue-bg); color: var(--blue); }
 .booking-row.color-green { background: var(--green-bg); color: var(--green); }
-.booking-row.color-orange { background: var(--orange-bg); color: var(--orange); }
+.booking-row.color-rejected { background: var(--cream); color: var(--muted); }
 .booking-row .entry-initials {
     display: inline-block;
     background: rgba(0,0,0,0.12);
@@ -672,10 +756,9 @@ body.modal-open { overflow: hidden; }
 .booking-row .link-button { color: inherit; opacity: 0.8; font-size: 0.82rem; white-space: nowrap; }
 .booking-row .link-button:hover { opacity: 1; }
 .booking-actions { display: flex; gap: 10px; flex-shrink: 0; }
-.conflict-badge {
+.status-badge {
     display: inline-block;
-    background: var(--orange);
-    color: #fff;
+    background: rgba(0,0,0,0.12);
     border-radius: 10px;
     padding: 0 7px;
     font-size: 0.72rem;

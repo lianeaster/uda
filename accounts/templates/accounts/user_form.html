@@ -8,8 +8,13 @@
             {% csrf_token %}
             {% for field in form %}
                 <p>
-                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
-                    {{ field }}
+                    <label {% if field.name != 'roles' %}for="{{ field.id_for_label }}"{% endif %}>{{ field.label }}</label>
+                    {% if field.name == 'roles' %}
+                        {# Ролі — набір прапорців: людина може бути і менеджером, і викладачем. #}
+                        <div class="checkbox-list">{{ field }}</div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
                     {{ field.errors }}
                     {% if field.help_text %}<small style="color:var(--muted);">{{ field.help_text|safe }}</small>{% endif %}
                 </p>

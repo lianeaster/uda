@@ -1,29 +1,42 @@
 {% extends "platform_base.html" %}
-{% block title %}Предмети{% endblock %}
+{% block title %}{% if scope == 'mine' %}Мої предмети{% else %}Предмети{% endif %}{% endblock %}
 {% block content %}
 <div class="container">
     <div class="page-header page-header-row">
-        <h1>Предмети</h1>
+        <h1>{% if scope == 'mine' %}Мої предмети{% else %}Предмети{% endif %}</h1>
         <div class="page-header-actions">
             <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
+            <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Групи</a>
+            {% if user.can_manage_users %}
             <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Користувачі</a>
             <a href="{% url 'schedule:subject_add' %}" class="btn">+ Додати предмет</a>
+            {% endif %}
         </div>
     </div>
 
+    {% if is_teacher %}
+    <div class="filter-bar">
+        <span class="filter-label">Показати:</span>
+        <a class="btn btn-small {% if scope != 'mine' %}btn-secondary{% endif %}" href="?scope=mine">Мої ({{ mine_count }})</a>
+        <a class="btn btn-small {% if scope != 'all' %}btn-secondary{% endif %}" href="?scope=all">Усі ({{ total_count }})</a>
+    </div>
+    {% endif %}
+
     <div class="table-card">
-    <table>
+    <table data-table>
         <thead>
             <tr>
+                <th>№</th>
                 <th>Назва</th>
                 <th>Курс</th>
                 <th>Викладачі</th>
-                <th></th>
+                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
         {% for subject in subjects %}
             <tr>
+                <td class="muted" data-sort="{{ subject.position }}">{{ subject.code|default:"—" }}</td>
                 <td>{{ subject.name }}</td>
                 <td>{{ subject.course.name|default:"—" }}</td>
                 <td>
@@ -33,15 +46,20 @@
                         <span class="muted">— не призначено —</span>
                     {% endfor %}
                 </td>
+                {% if user.can_manage_users %}
                 <td class="row-actions">
                     <form class="inline-form" method="post" action="{% url 'schedule:subject_delete' subject.pk %}" onsubmit="return confirm('Видалити предмет {{ subject.name }}?');">
                         {% csrf_token %}
                         <button type="submit" class="link-button danger-link">Видалити</button>
                     </form>
                 </td>
+                {% endif %}
             </tr>
         {% empty %}
-            <tr><td colspan="4" class="muted">Ще немає жодного предмету.</td></tr>
+            <tr data-empty><td colspan="{% if user.can_manage_users %}5{% else %}4{% endif %}" class="muted">
+                {% if scope == 'mine' %}Вам іще не призначили жодного предмету — зверніться до менеджера.
+                {% else %}Ще немає жодного предмету.{% endif %}
+            </td></tr>
         {% endfor %}
         </tbody>
     </table>

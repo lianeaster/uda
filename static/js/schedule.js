@@ -10,17 +10,21 @@
     var addForm = document.getElementById('day-modal-form');
     var dateField = document.getElementById('id_date');
     var notesField = document.getElementById('id_notes');
-    var teacherField = document.getElementById('id_teacher');
     var startHourField = document.getElementById('id_start_hour');
     var endHourField = document.getElementById('id_end_hour');
-    var courseSelect = document.getElementById('id_course');
-    var subjectSelect = document.getElementById('id_subject');
+    var subjectSelect = document.getElementById('id_group_subject');
     var submitBtn = document.getElementById('day-modal-submit');
     var cancelEditBtn = document.getElementById('day-modal-cancel-edit');
     var addUrl = addForm ? addForm.getAttribute('data-add-url') : null;
+    var addLabel = submitBtn ? submitBtn.textContent.trim() : '';
     var editUrlTemplate = addForm ? addForm.getAttribute('data-edit-url-template') : null;
-    var deleteForm = document.getElementById('delete-entry-form');
-    var deleteUrlTemplate = deleteForm ? deleteForm.getAttribute('data-url-template') : null;
+
+    // Дії над окремим записом — приховані форми, JS лише підставляє id.
+    var actionForms = {
+        remove: document.getElementById('delete-entry-form'),
+        accept: document.getElementById('accept-entry-form'),
+        reject: document.getElementById('reject-entry-form')
+    };
 
     var monthNames = ['січня', 'лютого', 'березня', 'квітня', 'травня', 'червня',
         'липня', 'серпня', 'вересня', 'жовтня', 'листопада', 'грудня'];
@@ -32,24 +36,20 @@
         return day + ' ' + monthNames[month] + ' ' + parts[0];
     }
 
-    function filterSubjectsByCourse() {
-        if (!courseSelect || !subjectSelect) return;
-        var courseId = courseSelect.value;
-        Array.prototype.forEach.call(subjectSelect.options, function (opt) {
-            if (!opt.value) return;
-            opt.hidden = !!courseId && opt.getAttribute('data-course') !== courseId;
-        });
+    function submitAction(name, entryId) {
+        var form = actionForms[name];
+        if (!form) return;
+        form.action = form.getAttribute('data-url-template').replace('/0/', '/' + entryId + '/');
+        form.hidden = false;
+        form.submit();
     }
 
     function startEdit(entry) {
         if (!addForm || !editUrlTemplate) return;
         addForm.action = editUrlTemplate.replace('/0/', '/' + entry.id + '/');
-        if (courseSelect) {
-            courseSelect.value = entry.course_id ? String(entry.course_id) : '';
-            filterSubjectsByCourse();
+        if (subjectSelect) {
+            subjectSelect.value = entry.group_subject_id ? String(entry.group_subject_id) : '';
         }
-        if (subjectSelect) subjectSelect.value = entry.subject_id ? String(entry.subject_id) : '';
-        if (teacherField) teacherField.value = entry.teacher_id ? String(entry.teacher_id) : '';
         if (startHourField) startHourField.value = String(entry.start_hour);
         if (endHourField) endHourField.value = String(entry.end_hour);
         if (notesField) notesField.value = entry.notes || '';
@@ -61,9 +61,17 @@
         if (!addForm || !addUrl) return;
         addForm.action = addUrl;
         addForm.reset();
-        filterSubjectsByCourse();
-        if (submitBtn) submitBtn.textContent = 'Забронювати час';
+        if (submitBtn) submitBtn.textContent = addLabel;
         if (cancelEditBtn) cancelEditBtn.hidden = true;
+    }
+
+    function actionButton(label, className, onClick) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = className;
+        button.textContent = label;
+        button.addEventListener('click', onClick);
+        return button;
     }
 
     function renderBookings(iso) {
@@ -82,38 +90,40 @@
 
             var info = document.createElement('span');
             info.className = 'booking-info';
+            var badge = entry.is_proposal
+                ? ' <span class="status-badge">' + escapeHtml(entry.status_label) + '</span>'
+                : '';
             info.innerHTML = '<strong>' + entry.start + '–' + entry.end + '</strong> ' +
                 escapeHtml(entry.title) +
                 (entry.initials ? ' <span class="entry-initials">' + escapeHtml(entry.initials) + '</span>' : '') +
-                (entry.conflict ? ' <span class="conflict-badge">перетин</span>' : '');
+                badge;
+            if (entry.is_proposal) {
+                info.title = 'Запропонував(ла): ' + entry.proposed_by;
+            }
             row.appendChild(info);
 
             var actions = document.createElement('span');
             actions.className = 'booking-actions';
 
-            if (entry.editable && editUrlTemplate) {
-                var edit = document.createElement('button');
-                edit.type = 'button';
-                edit.className = 'link-button';
-                edit.textContent = 'Редагувати';
-                edit.addEventListener('click', function () {
-                    startEdit(entry);
-                });
-                actions.appendChild(edit);
+            if (entry.reviewable) {
+                actions.appendChild(actionButton('Прийняти', 'link-button', function () {
+                    submitAction('accept', entry.id);
+                }));
+                actions.appendChild(actionButton('Відхилити', 'link-button danger-link', function () {
+                    if (confirm('Відхилити пропозицію?')) submitAction('reject', entry.id);
+                }));
             }
 
-            if (entry.deletable && deleteUrlTemplate) {
-                var del = document.createElement('button');
-                del.type = 'button';
-                del.className = 'link-button danger-link';
-                del.textContent = 'Видалити';
-                del.addEventListener('click', function () {
-                    if (!confirm('Видалити запис?')) return;
-                    deleteForm.action = deleteUrlTemplate.replace('/0/', '/' + entry.id + '/');
-                    deleteForm.hidden = false;
-                    deleteForm.submit();
-                });
-                actions.appendChild(del);
+            if (entry.editable && editUrlTemplate) {
+                actions.appendChild(actionButton('Редагувати', 'link-button', function () {
+                    startEdit(entry);
+                }));
+            }
+
+            if (entry.deletable && actionForms.remove) {
+                actions.appendChild(actionButton('Видалити', 'link-button danger-link', function () {
+                    if (confirm('Видалити запис?')) submitAction('remove', entry.id);
+                }));
             }
 
             row.appendChild(actions);
@@ -164,11 +174,4 @@
     });
 
     if (cancelEditBtn) cancelEditBtn.addEventListener('click', resetToAddMode);
-    if (courseSelect && subjectSelect) {
-        courseSelect.addEventListener('change', function () {
-            filterSubjectsByCourse();
-            var selected = subjectSelect.options[subjectSelect.selectedIndex];
-            if (selected && selected.hidden) subjectSelect.value = '';
-        });
-    }
 })();

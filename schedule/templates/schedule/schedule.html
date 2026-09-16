@@ -5,43 +5,48 @@
 <div class="container">
     <div class="page-header page-header-row">
         <h1>Розклад</h1>
-        {% if viewed_teacher %}
-            <p class="muted" style="margin:0;">{{ viewed_teacher.get_full_name|default:viewed_teacher.username }}</p>
-        {% elif viewing_unassigned %}
-            <p class="muted" style="margin:0;">Без викладача — нерозподілені резервації</p>
+        {% if viewed_group %}
+            <p class="muted" style="margin:0;">
+                {{ viewed_group.name }} · {{ viewed_group.course.name }}
+                · {% include "schedule/includes/period.html" with obj=viewed_group %}
+            </p>
         {% endif %}
     </div>
 
     <div class="schedule-toolbar">
         <div class="month-nav">
-            <a class="icon-btn" href="?month={{ prev_month|date:'Y-m-d' }}{% if teacher_param %}&teacher={{ teacher_param }}{% endif %}" aria-label="Попередній місяць">&larr;</a>
+            <a class="icon-btn" href="?month={{ prev_month|date:'Y-m-d' }}&group={{ group_param }}" aria-label="Попередній місяць">&larr;</a>
             <strong class="month-label">{{ month_label }}</strong>
-            <a class="icon-btn" href="?month={{ next_month|date:'Y-m-d' }}{% if teacher_param %}&teacher={{ teacher_param }}{% endif %}" aria-label="Наступний місяць">&rarr;</a>
+            <a class="icon-btn" href="?month={{ next_month|date:'Y-m-d' }}&group={{ group_param }}" aria-label="Наступний місяць">&rarr;</a>
         </div>
 
-        {% if not user.is_teacher and teachers %}
+        {% if groups|length > 1 %}
         <form method="get" class="teacher-select-form">
             <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
-            <select name="teacher" onchange="this.form.submit()">
-                {% for t in teachers %}
-                    <option value="{{ t.pk }}" {% if teacher_param == t.pk|stringformat:"s" %}selected{% endif %}>{{ t.get_full_name|default:t.username }}</option>
+            <select name="group" onchange="this.form.submit()">
+                {% for g in groups %}
+                    <option value="{{ g.pk }}" {% if group_param == g.pk|stringformat:"s" %}selected{% endif %}>{{ g.name }} — {{ g.course.name }}</option>
                 {% endfor %}
-                {% if user.is_manager or user.is_super_admin %}
-                    <option value="unassigned" {% if viewing_unassigned %}selected{% endif %}>— Без викладача —</option>
-                {% endif %}
             </select>
         </form>
         {% endif %}
 
         <div class="legend">
-            <span><span class="legend-swatch swatch-blue"></span>Курс заброньовано</span>
-            <span><span class="legend-swatch swatch-green"></span>Курс, предмет і викладач визначені</span>
-            <span><span class="legend-swatch swatch-orange"></span>Перетин у часі</span>
+            <span><span class="legend-swatch swatch-sky"></span>День під курс</span>
+            <span><span class="legend-swatch swatch-blue"></span>Предмет від Академії</span>
+            <span><span class="legend-swatch swatch-green"></span>Пропозиція викладача</span>
         </div>
     </div>
 
     {% if not has_view %}
-        <p class="empty-hint">У системі ще немає жодного викладача — розклад буде доступний після додавання викладачів.</p>
+        <p class="empty-hint">
+            {% if user.can_manage_users %}
+                Ще немає жодної групи — <a href="{% url 'schedule:group_list' %}">створіть групу</a>,
+                і її розклад з'явиться тут.
+            {% else %}
+                Вас іще не призначили в жодну групу — зверніться до менеджера.
+            {% endif %}
+        </p>
     {% else %}
 
         <div class="month-grid">
@@ -58,11 +63,8 @@
                                 <div class="day-bar-track">
                                     {% for entry in day.entries %}
                                         <div class="day-bar-segment color-{{ entry.color }}" style="top:{{ entry.top_pct }}%;height:{{ entry.height_pct }}%;z-index:{{ entry.z_index }};" title="{{ entry.start_time|time:'H:i' }}–{{ entry.end_time|time:'H:i' }} {{ entry.title }}">
-                                            {% if entry.teacher_id %}<span class="segment-initials">{{ entry.teacher.initials }}</span>{% endif %}
+                                            {% if entry.teacher %}<span class="segment-initials">{{ entry.teacher.initials }}</span>{% endif %}
                                         </div>
-                                    {% endfor %}
-                                    {% for overlap in day.overlaps %}
-                                        <div class="day-bar-overlap" style="top:{{ overlap.top_pct }}%;height:{{ overlap.height_pct }}%;" title="Перетин у часі"></div>
                                     {% endfor %}
                                 </div>
                             {% endif %}
@@ -88,26 +90,27 @@
                       data-add-url="{% url 'schedule:add' %}" data-edit-url-template="{% url 'schedule:edit' 0 %}">
                     {% csrf_token %}
                     <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
+                    <input type="hidden" name="group" value="{{ group_param }}">
                     {{ form.date }}
 
-                    {% if form.course %}
-                        <p>
-                            <label for="{{ form.course.id_for_label }}">{{ form.course.label }}</label>
-                            {{ form.course }}
-                        </p>
-                    {% endif %}
-
                     <p>
-                        <label for="{{ form.subject.id_for_label }}">{{ form.subject.label }}</label>
-                        {{ form.subject }}
+                        <label for="{{ form.group_subject.id_for_label }}">{{ form.group_subject.label }}</label>
+                        {{ form.group_subject }}
+                        {% if not form.fields.group_subject.queryset %}
+                            <small class="muted">
+                                У групі «{{ viewed_group.name }}» ще немає предметів, тож обирати нема з чого.
+                                {% if user.can_manage_users %}
+                                    Додайте їх на <a href="{% url 'schedule:group_detail' viewed_group.pk %}">сторінці групи</a>.
+                                {% else %}
+                                    Зверніться до менеджера.
+                                {% endif %}
+                            </small>
+                        {% elif proposing %}
+                            <small class="muted">Ви пропонуєте слот — менеджмент його розгляне.</small>
+                        {% else %}
+                            <small class="muted">Без предмета день буде заброньовано під курс цілком.</small>
+                        {% endif %}
                     </p>
-
-                    {% if form.teacher %}
-                        <p>
-                            <label for="{{ form.teacher.id_for_label }}">{{ form.teacher.label }}</label>
-                            {{ form.teacher }}
-                        </p>
-                    {% endif %}
 
                     <div class="form-row">
                         <div>
@@ -124,7 +127,9 @@
                         {{ form.notes }}
                     </p>
                     <div class="form-row">
-                        <button type="submit" class="btn" id="day-modal-submit" style="flex:1;">Забронювати час</button>
+                        <button type="submit" class="btn" id="day-modal-submit" style="flex:1;">
+                            {% if proposing %}Запропонувати слот{% else %}Забронювати час{% endif %}
+                        </button>
                         <button type="button" class="btn btn-secondary" id="day-modal-cancel-edit" style="flex:0 0 auto;" hidden>Скасувати</button>
                     </div>
                 </form>
@@ -132,10 +137,21 @@
             </div>
         </div>
 
+        {% comment %}
+        Приховані форми для дій над окремим записом — JS підставляє в action
+        потрібний id. Так кожна дія лишається звичайним POST із CSRF.
+        {% endcomment %}
         <form method="post" id="delete-entry-form" action="{% url 'schedule:delete' 0 %}" data-url-template="{% url 'schedule:delete' 0 %}" hidden>
             {% csrf_token %}
             <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
-            <input type="hidden" name="teacher" value="{{ teacher_param }}">
+        </form>
+        <form method="post" id="accept-entry-form" action="{% url 'schedule:accept' 0 %}" data-url-template="{% url 'schedule:accept' 0 %}" hidden>
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
+        </form>
+        <form method="post" id="reject-entry-form" action="{% url 'schedule:reject' 0 %}" data-url-template="{% url 'schedule:reject' 0 %}" hidden>
+            {% csrf_token %}
+            <input type="hidden" name="month" value="{{ anchor|date:'Y-m-d' }}">
         </form>
     {% endif %}
 </div>

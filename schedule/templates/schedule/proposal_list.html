@@ -1,0 +1,65 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if reviewing %}Пропозиції{% else %}Мої пропозиції{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>{% if reviewing %}Пропозиції{% else %}Мої пропозиції{% endif %}</h1>
+            <p class="muted">
+                {% if reviewing %}Слоти, які запропонували викладачі.
+                {% else %}Слоти, які ви запропонували, і рішення по них.{% endif %}
+            </p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:home' %}" class="btn btn-secondary">Розклад</a>
+        </div>
+    </div>
+
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr>
+                <th>Коли</th>
+                <th>Група</th>
+                <th>Предмет</th>
+                {% if reviewing %}<th>Запропонував(ла)</th>{% endif %}
+                <th>Рішення</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in proposals %}
+            <tr class="{% if p.decision_is_news and p.created_by_id == user.pk %}row-news{% endif %}">
+                <td data-sort="{{ p.date|date:'Y-m-d' }} {{ p.start_time|time:'H:i' }}">
+                    {{ p.date|date:"d.m.Y" }}
+                    <span class="muted">{{ p.start_time|time:"H:i" }}–{{ p.end_time|time:"H:i" }}</span>
+                </td>
+                <td><a href="{% url 'schedule:group_detail' p.group_id %}">{{ p.group.name }}</a></td>
+                <td>{{ p.title }}</td>
+                {% if reviewing %}
+                <td>{{ p.created_by.get_full_name|default:p.created_by.username }}</td>
+                {% endif %}
+                <td>
+                    <span class="status-dot status-{{ p.status }}"></span>{{ p.get_status_display }}
+                    {% if p.reviewed_at %}
+                        <span class="muted">
+                            — {{ p.reviewed_by.get_full_name|default:p.reviewed_by.username|default:"менеджмент" }},
+                            {{ p.reviewed_at|date:"d.m.Y" }}
+                        </span>
+                        {% if p.decision_is_news and p.created_by_id == user.pk %}
+                            <span class="news-badge">нове</span>
+                        {% endif %}
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="{% if reviewing %}5{% else %}4{% endif %}" class="muted">
+                {% if reviewing %}Викладачі ще не пропонували слотів.
+                {% else %}Ви ще не пропонували жодного слоту — це робиться в розкладі,
+                  кліком на потрібний день.{% endif %}
+            </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

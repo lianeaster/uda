@@ -1,0 +1,67 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if own_only %}Мої групи{% else %}Групи{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <h1>{% if own_only %}Мої групи{% else %}Групи{% endif %}</h1>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:student_list' %}" class="btn btn-secondary">Студенти</a>
+            <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
+            {% if user.is_super_admin %}
+            <a href="{% url 'admin:schedule_group_add' %}" class="btn">+ Додати групу</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if can_switch_who %}
+    <div class="filter-bar">
+        <span class="filter-label">Чиї:</span>
+        <a class="btn btn-small {% if who != 'all' %}btn-secondary{% endif %}" href="?who=all">Усі по Академії</a>
+        <a class="btn btn-small {% if who != 'mine' %}btn-secondary{% endif %}" href="?who=mine">Де я викладаю</a>
+    </div>
+    {% endif %}
+
+    <div class="filter-bar">
+        <span class="filter-label">Показати:</span>
+        <a class="btn btn-small {% if scope != 'all' %}btn-secondary{% endif %}" href="?scope=active&who={{ who }}">Активні ({{ active_count }})</a>
+        <a class="btn btn-small {% if scope == 'all' %}btn-secondary{% endif %}" href="?scope=all&who={{ who }}">Усі ({{ total_count }})</a>
+    </div>
+
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr>
+                <th>Група</th>
+                <th>Курс</th>
+                <th>Період навчання</th>
+                <th>Предмети</th>
+                <th>Викладачі</th>
+                <th>Студенти</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+            <tr>
+                <td>
+                    <a href="{% url 'schedule:group_detail' group.pk %}">{{ group.name }}</a>
+                    {% if group.i_teach %}<span class="chip">викладаю</span>{% endif %}
+                    {% if group.i_study %}<span class="chip">навчаюсь</span>{% endif %}
+                </td>
+                <td>{{ group.course.name }}</td>
+                <td data-sort="{{ group.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=group %}</td>
+                <td>{{ group.subject_count }}</td>
+                <td>{{ group.teacher_count }}</td>
+                <td>{{ group.student_count }}</td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="6" class="muted">
+                {% if own_only %}Вас іще не призначили в жодну групу — зверніться до менеджера.
+                {% elif scope == 'all' %}Ще немає жодної групи.
+                {% else %}Немає активних груп.{% endif %}
+            </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

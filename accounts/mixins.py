@@ -10,7 +10,8 @@ class RoleRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
 
     def test_func(self):
         user = self.request.user
-        return user.is_authenticated and user.role in self.allowed_roles
+        # Ролі — набір: достатньо мати хоч одну з дозволених.
+        return user.is_authenticated and bool(user.roles & set(self.allowed_roles))
 
     def handle_no_permission(self):
         from django.contrib import messages

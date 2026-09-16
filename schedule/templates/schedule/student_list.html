@@ -1,0 +1,60 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if own_only %}Мої студенти{% else %}Студенти{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>{% if own_only %}Мої студенти{% else %}Студенти{% endif %}</h1>
+            <p class="muted">
+                {% if own_only %}Студенти груп, де ви ведете предмет.
+                {% else %}Кожен рядок — навчання студента в одній групі.{% endif %}
+            </p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Групи</a>
+            {% if user.can_manage_users %}
+            <a href="{% url 'accounts:user_list' %}?role=student" class="btn btn-secondary">Облікові записи</a>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if can_switch_who %}
+    <div class="filter-bar">
+        <span class="filter-label">Чиї:</span>
+        <a class="btn btn-small {% if who != 'all' %}btn-secondary{% endif %}" href="?who=all">Усі по Академії</a>
+        <a class="btn btn-small {% if who != 'mine' %}btn-secondary{% endif %}" href="?who=mine">Де я викладаю</a>
+    </div>
+    {% endif %}
+
+    <div class="filter-bar">
+        <span class="filter-label">Показати:</span>
+        <a class="btn btn-small {% if scope != 'all' %}btn-secondary{% endif %}" href="?scope=active&who={{ who }}">Хто навчається зараз</a>
+        <a class="btn btn-small {% if scope == 'all' %}btn-secondary{% endif %}" href="?scope=all&who={{ who }}">Уся історія</a>
+        <span class="muted">Студентів: {{ student_count }}</span>
+    </div>
+
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr><th>ПІБ</th><th>Логін</th><th>Група</th><th>Курс</th><th>Навчання в групі</th></tr>
+        </thead>
+        <tbody>
+        {% for e in enrollments %}
+            <tr>
+                <td>{{ e.student.get_full_name|default:"—" }}</td>
+                <td>{{ e.student.username }}</td>
+                <td><a href="{% url 'schedule:group_detail' e.group.pk %}">{{ e.group.name }}</a></td>
+                <td>{{ e.group.course.name }}</td>
+                <td data-sort="{{ e.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=e %}</td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="5" class="muted">
+                {% if own_only %}У ваших групах іще немає студентів.
+                {% else %}Ще нікого не зараховано до жодної групи.{% endif %}
+            </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

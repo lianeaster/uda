@@ -4,65 +4,86 @@
 <div class="container">
     <div class="page-header">
         <h1>Вітаємо, {{ user.get_full_name|default:user.username }}</h1>
-        <span class="role-badge role-{{ user.role }}">{{ user.get_role_display }}</span>
+        {% for value, label in user.role_labels %}
+            <span class="role-badge role-{{ value }}">{{ label }}</span>
+        {% endfor %}
     </div>
 
     <div class="tile-grid">
         <a class="tile" href="{% url 'schedule:home' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg></span>
             <h3>Розклад</h3>
-            <p>
-                {% if user.is_teacher %}
-                    Перегляд і внесення власних пропозицій занять.
-                {% elif user.is_student %}
-                    Перегляд розкладу занять.
-                {% else %}
-                    Перегляд і керування розкладом Академії.
-                {% endif %}
+            <p class="tile-lead">
+                {% if user.is_teacher %}Ваші заняття й бронювання Академії.
+                {% elif user.is_student %}Розклад ваших занять.
+                {% else %}Заняття та бронювання по всій Академії.{% endif %}
             </p>
         </a>
 
-        {% if user.can_manage_users %}
-        <a class="tile" href="{% url 'accounts:user_list' %}">
-            <h3>Користувачі</h3>
-            <p>Керування обліковими записами та правами доступу.</p>
-        </a>
-        <a class="tile" href="{% url 'schedule:course_list' %}">
-            <h3>Курси</h3>
-            <p>Освітні програми Академії, наприклад «Майстер дистиляції».</p>
-        </a>
-        <a class="tile" href="{% url 'schedule:subject_list' %}">
-            <h3>Предмети</h3>
-            <p>Предмети в межах курсів і прив'язка викладачів до них.</p>
+        {% if student_tiles %}
+        <a class="tile" href="{% url 'schedule:group_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
+            <h3>Моє навчання</h3>
+            <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
+            <p class="tile-meta">груп зараз / за весь час</p>
         </a>
         {% endif %}
 
-        {% if user.is_teacher %}
-        <div class="tile">
-            <h3>Мої предмети</h3>
-            <p>
-                {% with subjects=user.subjects.all %}
-                    {% if subjects %}
-                        {% for s in subjects %}<span class="chip">{{ s.name }}</span>{% endfor %}
-                    {% else %}
-                        Вам ще не призначили жодного предмету — зверніться до менеджера.
-                    {% endif %}
-                {% endwith %}
-            </p>
-        </div>
+        {% if show_tiles %}
+        <a class="tile" href="{% url 'schedule:group_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
+            <h3>{% if own_scope %}Мої групи{% else %}Групи{% endif %}</h3>
+            <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
+            <p class="tile-meta">активні / усі</p>
+        </a>
+
+        {% if user.can_manage_users %}
+        <a class="tile" href="{% url 'accounts:user_list' %}?role=teacher">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-diploma"></use></svg></span>
+            <h3>Викладачі</h3>
+            <p class="tile-count"><strong>{{ teacher_count }}</strong></p>
+            <p class="tile-meta">на платформі</p>
+        </a>
+        {% endif %}
+
+        <a class="tile" href="{% url 'schedule:student_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-cap"></use></svg></span>
+            <h3>{% if own_scope %}Мої студенти{% else %}Студенти{% endif %}</h3>
+            <p class="tile-count"><strong>{{ student_count }}</strong></p>
+            <p class="tile-meta">{% if own_scope %}у ваших групах зараз{% else %}зараз навчаються{% endif %}</p>
+        </a>
+
+        <a class="tile" href="{% url 'schedule:proposal_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-clock"></use></svg></span>
+            <h3>{% if own_scope %}Мої пропозиції{% else %}Пропозиції{% endif %}</h3>
+            <p class="tile-count"><strong>{{ proposals_pending }}</strong></p>
+            <p class="tile-meta">{% if own_scope %}чекають на рішення{% else %}чекають на ваш розгляд{% endif %}</p>
+            {% if proposals_news %}
+                <p class="tile-news">Є нові рішення: {{ proposals_news }}</p>
+            {% endif %}
+        </a>
+
+        <a class="tile" href="{% url 'schedule:course_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg></span>
+            <h3>Курси</h3>
+            <p class="tile-count"><strong>{{ course_count }}</strong></p>
+            <p class="tile-meta">у каталозі</p>
+        </a>
+
+        <a class="tile" href="{% url 'schedule:subject_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-lab"></use></svg></span>
+            <h3>{% if own_scope %}Мої предмети{% else %}Предмети{% endif %}</h3>
+            <p class="tile-count"><strong>{{ subject_count }}</strong>{% if own_scope %} / {{ subject_total }}{% endif %}</p>
+            <p class="tile-meta">{% if own_scope %}ваші / усі в каталозі{% else %}у каталозі{% endif %}</p>
+        </a>
         {% endif %}
 
         {% if user.is_super_admin %}
         <a class="tile" href="{% url 'admin:index' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-screen"></use></svg></span>
             <h3>Системне адміністрування</h3>
-            <p>Розширені налаштування платформи (Django admin).</p>
+            <p class="tile-lead">Створення груп, розширені налаштування (Django admin).</p>
         </a>
-        {% endif %}
-
-        {% if user.is_student %}
-        <div class="tile">
-            <h3>Мої курси</h3>
-            <p>Розділ курсів студента з'явиться на наступному етапі розробки платформи.</p>
-        </div>
         {% endif %}
     </div>
 </div>
