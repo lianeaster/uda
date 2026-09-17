@@ -12,20 +12,26 @@
 
 | | |
 |---|---|
-| Інстанс | Lightsail, Frankfurt (eu-central-1), Ubuntu 24.04 LTS, план 4 GB / 2 vCPU / 80 GB |
-| База | PostgreSQL на тому ж інстансі |
-| Застосунок | gunicorn під systemd, сокет у `/run/uda/` |
+| Інстанс | Lightsail, Frankfurt (eu-central-1), Debian 12 (bookworm), план 2 GB / 2 vCPU / 60 GB |
+| База | PostgreSQL 15 на тому ж інстансі, підтюнений під 2 GB |
+| Застосунок | gunicorn під systemd (2 воркери), сокет у `/run/uda/` |
 | Фронт | nginx: TLS, статика, медіа |
 | Медіа | локальний диск (бакет — пізніше, код до цього готовий) |
+| Доступ | поки без домену, по http на IP; `DJANGO_SECURE_SSL="0"` |
 
 ---
 
 ## 1. Інстанс у консолі Lightsail
 
 1. **Create instance** → регіон **Frankfurt (eu-central-1)**.
-2. **Linux/Unix** → **OS Only** → **Ubuntu 24.04 LTS**.
+2. **Linux/Unix** → **OS Only** → **Debian 12** (або Ubuntu 24.04 LTS).
    Не брати готовий Django/Bitnami образ: там нестандартна структура каталогів.
-3. План **$20/міс (4 GB RAM, 2 vCPU, 80 GB SSD)**.
+   Системний Python у Debian 12 — 3.11, і всі зафіксовані пакети його
+   підтримують (кожен вимагає ≥3.10).
+3. План **$10/міс (2 GB RAM, 2 vCPU, 60 GB SSD)**.
+   Запасу памʼяті тут майже немає, тому swap і тюнінг Postgres нижче —
+   не побажання, а умова стабільної роботи. На $20 (4 GB / 80 GB) було б
+   вільніше, і збільшувати план завжди дешевше до того, як зʼявились дані.
 4. Імʼя: `uda-prod`. Create.
 5. **Networking → Create static IP** → прикріпити до інстансу.
    Поки прикріплений — безкоштовний. Без нього IP злетить при перезапуску.
@@ -39,7 +45,8 @@
 
 ## 2. Базова підготовка сервера
 
-Зайти: консольний SSH у Lightsail або `ssh -i ключ.pem ubuntu@<IP>`.
+Зайти: консольний SSH у Lightsail або `ssh -i ключ.pem admin@<IP>`.
+У Debian-образах Lightsail користувач за замовчуванням — `admin`, а не `ubuntu`.
 
 ```bash
 sudo apt update && sudo apt upgrade -y
@@ -100,6 +107,23 @@ ALTER ROLE uda SET timezone TO 'UTC';
 ```
 
 Postgres слухає лише `localhost` за замовчуванням — так і лишаємо.
+
+### Тюнінг під 2 GB
+
+Типові налаштування розраховані на виділений сервер. Тут на машині ще
+gunicorn і nginx, тож Postgres треба вкоротити:
+
+```bash
+sudo cp /srv/uda/deploy/postgresql-tuning.conf \
+        /etc/postgresql/15/main/conf.d/10-uda.conf
+sudo systemctl restart postgresql
+```
+
+Перевірити, що застосувалось:
+
+```bash
+sudo -u postgres psql -c "SHOW shared_buffers;" -c "SHOW max_connections;"
+```
 
 ---
 
@@ -165,7 +189,7 @@ sudo -u uda /srv/uda/deploy/manage.sh migrate
 Залити на сервер і прийняти:
 
 ```bash
-scp dump.json ubuntu@<IP>:/tmp/dump.json
+scp dump.json admin@<IP>:/tmp/dump.json
 sudo mv /tmp/dump.json /srv/uda/dump.json && sudo chown uda:uda /srv/uda/dump.json
 sudo -u uda /srv/uda/deploy/manage.sh loaddata dump.json
 sudo rm /srv/uda/dump.json
@@ -177,8 +201,8 @@ sudo rm /srv/uda/dump.json
 Зараз це 19 файлів, десь мегабайт. З локальної машини:
 
 ```bash
-rsync -avz --rsync-path="sudo rsync" media/ ubuntu@<IP>:/srv/uda/media/
-ssh ubuntu@<IP> "sudo chown -R uda:www-data /srv/uda/media"
+rsync -avz --rsync-path="sudo rsync" media/ admin@<IP>:/srv/uda/media/
+ssh admin@<IP> "sudo chown -R uda:www-data /srv/uda/media"
 ```
 
 ### Суперкористувач

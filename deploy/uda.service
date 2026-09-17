@@ -20,11 +20,13 @@ EnvironmentFile=/etc/uda.env
 RuntimeDirectory=uda
 RuntimeDirectoryMode=0750
 
-# 3 воркери — обережний старт для 2 vCPU / 4 GB, де поруч живе Postgres.
-# Формула 2 × vCPU + 1 дала б 5; піднімати варто, подивившись на `free -m`
-# під навантаженням. Логи йдуть у stdout, звідти їх забирає journald.
+# 2 воркери — під інстанс на 2 GB, де поруч живуть Postgres і nginx.
+# Формула 2 × vCPU + 1 дала б 5, але кожен воркер із Pillow тримає ~180 МБ,
+# і на такій машині це зʼїло б увесь запас. Піднімати лише разом із памʼяттю
+# і подивившись на `free -m` під навантаженням.
+# Логи йдуть у stdout, звідти їх забирає journald.
 ExecStart=/srv/uda/.venv/bin/gunicorn \
-    --workers 3 \
+    --workers 2 \
     --bind unix:/run/uda/gunicorn.sock \
     --timeout 60 \
     --access-logfile - \
