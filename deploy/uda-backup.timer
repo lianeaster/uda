@@ -1,0 +1,24 @@
+# Щоденний бекап о 03:17. Таймер systemd замість cron: пакета cron на
+# мінімальних образах може не бути, а systemd є завжди.
+#
+#   sudo cp deploy/uda-backup.{service,timer} /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now uda-backup.timer
+#   systemctl list-timers uda-backup.timer
+
+[Unit]
+Description=Щоденний бекап УАД
+
+[Timer]
+OnCalendar=*-*-* 03:17:00
+
+# Якщо машина в цей час була вимкнена — виконати при наступному запуску,
+# а не пропустити добу.
+Persistent=true
+
+# Рознести запуск у межах пʼяти хвилин, щоб бекап не збігався секунда в
+# секунду з іншими нічними задачами.
+RandomizedDelaySec=300
+
+[Install]
+WantedBy=timers.target

@@ -1,0 +1,13 @@
+# Одноразовий запуск бекапу. Сам по собі нічого не планує — його викликає
+# uda-backup.timer. Копіювати в /etc/systemd/system/ разом із таймером.
+
+[Unit]
+Description=УАД — бекап бази й медіа
+After=postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/uda-backup
+# Скрипт читає /etc/uda.env і пише в /var/backups — обидва доступні лише root.
+User=root

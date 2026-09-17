@@ -332,19 +332,23 @@ sudo certbot renew --dry-run
 sudo cp /srv/uda/deploy/backup.sh /usr/local/bin/uda-backup
 sudo chmod +x /usr/local/bin/uda-backup
 sudo /usr/local/bin/uda-backup        # прогнати руками, переконатися що працює
-sudo crontab -e
 ```
 
-Рядок у crontab:
+Планування — таймером systemd. Через `cron` теж можна, але на мінімальних
+образах цього пакета може не бути, а systemd є завжди:
 
+```bash
+sudo cp /srv/uda/deploy/uda-backup.service /etc/systemd/system/
+sudo cp /srv/uda/deploy/uda-backup.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now uda-backup.timer
+systemctl list-timers uda-backup.timer --no-pager
 ```
-17 3 * * * /usr/local/bin/uda-backup >> /var/log/uda-backup.log 2>&1
-```
+
+Остання команда має показати дату наступного запуску.
 
 Раз на квартал — тестове відновлення. Бекап, який жодного разу не
 відновлювали, бекапом вважати не можна.
-
----
 
 ## Оновлення версії
 

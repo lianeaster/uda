@@ -3,7 +3,10 @@
 #
 #   sudo cp deploy/backup.sh /usr/local/bin/uda-backup
 #   sudo chmod +x /usr/local/bin/uda-backup
-#   sudo crontab -e   →   17 3 * * * /usr/local/bin/uda-backup
+#
+# Планує запуск uda-backup.timer (див. deploy/uda-backup.timer). Через cron
+# теж можна, але пакета cron на мінімальних образах може не бути — systemd є
+# завжди, тож таймер надійніший.
 #
 # Увага: це локальні копії на тому ж диску. Вони рятують від «видалили не те»,
 # але не від втрати інстансу. Автоснапшоти Lightsail треба ввімкнути окремо,
