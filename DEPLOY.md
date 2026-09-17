@@ -239,22 +239,46 @@ systemctl status uda
 
 ## 10. nginx
 
+Спершу зʼясувати, якої розкладки тут nginx — вона залежить від того, з якого
+репозиторію він прийшов:
+
 ```bash
-sudo cp /srv/uda/deploy/nginx.conf /etc/nginx/sites-available/uda
-sudo nano /etc/nginx/sites-available/uda        # підставити свої домени
-sudo ln -s /etc/nginx/sites-available/uda /etc/nginx/sites-enabled/uda
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t && sudo systemctl reload nginx
+grep -E "^\s*include" /etc/nginx/nginx.conf
 ```
 
-nginx має читати сокет — дати йому право зайти в каталог проєкту:
+**Якщо в include є `conf.d/*.conf`, а `sites-enabled` немає** (так у пакетах
+з nginx.org):
 
 ```bash
-sudo chmod o+x /srv/uda
+sudo cp /srv/uda/deploy/nginx.conf /etc/nginx/conf.d/uda.conf
+sudo mv /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/default.conf.disabled
+```
+
+**Якщо є `sites-enabled`** (пакети Debian/Ubuntu):
+
+```bash
+sudo cp /srv/uda/deploy/nginx.conf /etc/nginx/sites-available/uda
+sudo ln -s /etc/nginx/sites-available/uda /etc/nginx/sites-enabled/uda
+sudo rm -f /etc/nginx/sites-enabled/default
+```
+
+Далі в обох випадках:
+
+```bash
+sudo nginx -t && sudo systemctl reload nginx
+sudo -u uda mkdir -p /srv/uda/media
 sudo chown -R uda:www-data /srv/uda/staticfiles /srv/uda/media
 ```
 
----
+Покласти конфіг у каталог, якого немає в `include`, — найтихіша з можливих
+помилок: `nginx -t` пройде, `reload` пройде, а сайт і далі показуватиме
+дефолтну сторінку, бо server-блок просто не завантажився.
+
+Перевірити, що підхопилось саме наше:
+
+```bash
+curl -s http://127.0.0.1/ | grep -o '<title>[^<]*'
+```
 
 ## 11. HTTPS
 
@@ -345,6 +369,7 @@ sudo systemctl reload uda
 | 502 Bad Gateway | `journalctl -u uda -n 50` — застосунок не піднявся або nginx не дістає сокет |
 | 400 Bad Request | домен не вписаний у `DJANGO_ALLOWED_HOSTS` |
 | Сайт без стилів | не робили `collectstatic`, або права на `staticfiles/` |
+| Дефолтна сторінка nginx | конфіг лежить у каталозі, якого немає в `include` — див. крок 10 |
 | Фото 404 | права на `media/`, або файли не скопійовані (крок 7) |
 | 403 на формах | `DJANGO_CSRF_TRUSTED_ORIGINS` — але зазвичай виводиться сам з `ALLOWED_HOSTS` |
 | Нескінченний редирект | `DJANGO_SECURE_SSL="1"` без сертифіката — поставити `"0"` і перезапустити |
