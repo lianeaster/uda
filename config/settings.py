@@ -182,6 +182,18 @@ LOGOUT_REDIRECT_URL = 'core:home'
 # Усе нижче вмикається лише при DJANGO_DEBUG=0, щоб локальна розробка по http
 # не ламалася на редиректах і secure-куках.
 if not DEBUG:
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+# Усе, що нижче, має сенс лише за наявності сертифіката. Поки сайт стоїть на
+# голому IP, увімкнений редирект на https дав би петлю, а secure-куки зламали
+# б логін: браузер не віддає їх по http. Тому TLS-частина винесена в окремий
+# перемикач — DJANGO_SECURE_SSL=0 на час життя без домену.
+#
+# Повернути в 1 одразу після certbot: це і є цільовий стан.
+SECURE_SSL = not DEBUG and os.environ.get('DJANGO_SECURE_SSL', '1') == '1'
+
+if SECURE_SSL:
     # TLS терминує nginx, тож про https Django дізнається з цього заголовка.
     # Виставляти його має лише наш nginx — інакше його можна підробити ззовні.
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -196,9 +208,6 @@ if not DEBUG:
     SECURE_HSTS_INCLUDE_SUBDOMAINS = True
     SECURE_HSTS_PRELOAD = True
 
-    SECURE_CONTENT_TYPE_NOSNIFF = True
-    X_FRAME_OPTIONS = 'DENY'
-
 # Для небезпечних методів Django звіряє Origin, і домени тут потрібні зі схемою.
 # Якщо змінної немає — збираємо з ALLOWED_HOSTS, щоб не дублювати той самий
 # список і не ловити 403 на формах через забуту змінну.
@@ -207,7 +216,7 @@ CSRF_TRUSTED_ORIGINS = [
     for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
     if origin.strip()
 ] or [
-    f'https://{host}'
+    f'{"https" if SECURE_SSL else "http"}://{host}'
     for host in ALLOWED_HOSTS
     if host not in ('localhost', '127.0.0.1', 'testserver', '*')
 ]
