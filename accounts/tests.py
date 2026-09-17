@@ -1,6 +1,7 @@
 import datetime as dt
 import os
 import tempfile
+from html.parser import HTMLParser
 
 from django.contrib.auth.models import AnonymousUser
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -306,8 +307,68 @@ class AccountSettingsTests(TestCase):
         self.assertEqual(self.client.get(reverse('accounts:account')).status_code, 200)
 
 
+class HeaderParser(HTMLParser):
+    """Витягує з шапки посилання: адресу, текст і класи.
+
+    Тести шапки раніше звірялися з рядком розмітки (`class="brand" href=...`),
+    і будь-який рестайл ламав їх, хоч поведінка лишалася та сама. Дизайн тут
+    змінюється часто, тож перевіряємо те, що не залежить від оформлення: куди
+    веде посилання і що на ньому написано.
+    """
+
+    def __init__(self):
+        super().__init__()
+        self.in_header = False
+        self.links = []          # [{'href': ..., 'text': ..., 'classes': {...}}]
+        self.markers = set()     # атрибути-зачіпки, як data-menu-toggle
+        self._open = None
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == 'header':
+            self.in_header = True
+        if not self.in_header:
+            return
+        self.markers |= {name for name, _ in attrs.items() if name.startswith('data-')}
+        if tag == 'a':
+            self._open = {
+                'href': attrs.get('href', ''),
+                'classes': set((attrs.get('class') or '').split()),
+                'text': '',
+            }
+            self.links.append(self._open)
+
+    def handle_endtag(self, tag):
+        if tag == 'a':
+            self._open = None
+        if tag == 'header':
+            self.in_header = False
+
+    def handle_data(self, data):
+        if self._open is not None:
+            self._open['text'] += data
+
+
+def header_of(html):
+    parser = HeaderParser()
+    parser.feed(html)
+    return parser
+
+
+def link_texts(parser):
+    return {link['text'].strip() for link in parser.links if link['text'].strip()}
+
+
+def hrefs(parser):
+    return {link['href'] for link in parser.links}
+
+
 class PlatformMenuTests(TestCase):
-    """Шапка платформи: що в ній є, а чого свідомо немає."""
+    """Шапка платформи: що в ній є, а чого свідомо немає.
+
+    Перевіряємо адреси, підписи й зачіпки — не класи й не порядок атрибутів:
+    оформлення шапки переробляється часто, а домовленості лишаються ті самі.
+    """
 
     def setUp(self):
         self.teacher = User.objects.create_user(
@@ -316,26 +377,38 @@ class PlatformMenuTests(TestCase):
     def header(self, user=None):
         if user is not None:
             self.client.force_login(user)
-        return self.client.get(reverse('dashboard:home')).content.decode()
+        page = self.client.get(reverse('dashboard:home'))
+        self.assertEqual(page.status_code, 200)
+        return header_of(page.content.decode())
 
     def test_the_menu_leads_to_the_account_and_back_to_the_public_site(self):
         header = self.header(self.teacher)
-        self.assertIn(reverse('accounts:account'), header)
-        self.assertIn('Сайт академії', header)
-        self.assertIn('Меню акаунту', header)
+        self.assertIn(reverse('accounts:account'), hrefs(header))
+        self.assertIn(reverse('core:home'), hrefs(header))
+        self.assertIn('Сайт академії', link_texts(header))
+
+    def test_the_sandwich_is_there_and_has_a_name_for_readers(self):
+        """Кнопка меню — іконка, тож її сенс несе лише підпис для читачки
+        екрана; без нього меню для неї просто безіменне."""
+        self.client.force_login(self.teacher)
+        body = self.client.get(reverse('dashboard:home')).content.decode()
+        self.assertIn('data-menu-toggle', body)
+        self.assertIn('Меню акаунту', body)
 
     def test_there_is_no_cabinet_link_because_the_mark_leads_there(self):
         header = self.header(self.teacher)
         # «Кабінет» лишається назвою сторінки, але не пунктом меню
-        self.assertNotIn('>Кабінет</a>', header)
-        self.assertIn('class="brand" href="%s"' % reverse('dashboard:home'), header)
+        self.assertNotIn('Кабінет', link_texts(header))
+        brand = [link for link in header.links if 'brand' in link['classes']]
+        self.assertEqual(len(brand), 1, 'у шапці має бути рівно один знак-посилання')
+        self.assertEqual(brand[0]['href'], reverse('dashboard:home'))
 
     def test_users_stay_out_of_the_menu_for_those_who_cannot_manage_them(self):
-        self.assertNotIn(reverse('accounts:user_list'), self.header(self.teacher))
+        self.assertNotIn(reverse('accounts:user_list'), hrefs(self.header(self.teacher)))
         manager = User.objects.create_user(
             username='boss4', password='pw', roles=[User.Role.MANAGER])
         self.client.logout()
-        self.assertIn(reverse('accounts:user_list'), self.header(manager))
+        self.assertIn(reverse('accounts:user_list'), hrefs(self.header(manager)))
 
 
 class CardVisibilityTests(TestCase):
