@@ -716,6 +716,19 @@ python manage.py import_program
 | `DJANGO_DEBUG` | `1` | `0` вимикає режим налагодження |
 | `DJANGO_ALLOWED_HOSTS` | `localhost,127.0.0.1,testserver` | список доменів через кому |
 
+## Деплой
+
+Продакшн живе на AWS Lightsail: Ubuntu 24.04, PostgreSQL, gunicorn під systemd,
+nginx попереду. Покрокова інструкція для чистого інстансу, оновлення версії та
+розбір типових помилок — у [DEPLOY.md](DEPLOY.md).
+
+Файли конфігурації лежать у [deploy/](deploy/), зразок оточення — у
+[.env.example](.env.example).
+
+Локальна розробка нічого з цього не потребує: без змінної `DJANGO_DB_NAME`
+проєкт і далі працює на SQLite, а налаштування безпеки вмикаються лише при
+`DJANGO_DEBUG=0`.
+
 ## Наступні етапи
 
 - **Студенти в групу — досі тільки через Django admin.** Предмети вже можна

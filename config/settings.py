@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 import os
 from pathlib import Path
 
+from django.core.exceptions import ImproperlyConfigured
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -30,9 +32,20 @@ SECRET_KEY = os.environ.get(
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.environ.get('DJANGO_DEBUG', '1') == '1'
 
-ALLOWED_HOSTS = os.environ.get(
-    'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver'
-).split(',')
+# Ключ за замовчуванням годиться лише для розробки, тож на проді його немає
+# сенсу мовчки приймати: краще не стартувати, ніж піднятися з відомим ключем.
+if not DEBUG and 'DJANGO_SECRET_KEY' not in os.environ:
+    raise ImproperlyConfigured(
+        'DJANGO_SECRET_KEY обовʼязковий, коли DJANGO_DEBUG=0.'
+    )
+
+ALLOWED_HOSTS = [
+    host.strip()
+    for host in os.environ.get(
+        'DJANGO_ALLOWED_HOSTS', 'localhost,127.0.0.1,testserver'
+    ).split(',')
+    if host.strip()
+]
 
 
 # Application definition
@@ -86,12 +99,29 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Прод працює на PostgreSQL, локальна розробка — на SQLite. Перемикає сам факт
+# наявності DJANGO_DB_NAME: є змінна — беремо Postgres, немає — файл поруч.
+if os.environ.get('DJANGO_DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ['DJANGO_DB_NAME'],
+            'USER': os.environ.get('DJANGO_DB_USER', 'uda'),
+            'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD', ''),
+            'HOST': os.environ.get('DJANGO_DB_HOST', '127.0.0.1'),
+            'PORT': os.environ.get('DJANGO_DB_PORT', '5432'),
+            # З'єднання живе хвилину, а не відкривається на кожен запит.
+            'CONN_MAX_AGE': 60,
+            'CONN_HEALTH_CHECKS': True,
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -144,3 +174,74 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'accounts:login'
 LOGIN_REDIRECT_URL = 'dashboard:home'
 LOGOUT_REDIRECT_URL = 'core:home'
+
+
+# Безпека на проді
+# https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
+#
+# Усе нижче вмикається лише при DJANGO_DEBUG=0, щоб локальна розробка по http
+# не ламалася на редиректах і secure-куках.
+if not DEBUG:
+    # TLS терминує nginx, тож про https Django дізнається з цього заголовка.
+    # Виставляти його має лише наш nginx — інакше його можна підробити ззовні.
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HSTS вмикати тоді, коли сертифікат уже працює: браузер запамʼятовує це
+    # надовго, і відкотитися на http швидко не вийде.
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    SECURE_CONTENT_TYPE_NOSNIFF = True
+    X_FRAME_OPTIONS = 'DENY'
+
+# Для небезпечних методів Django звіряє Origin, і домени тут потрібні зі схемою.
+# Якщо змінної немає — збираємо з ALLOWED_HOSTS, щоб не дублювати той самий
+# список і не ловити 403 на формах через забуту змінну.
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get('DJANGO_CSRF_TRUSTED_ORIGINS', '').split(',')
+    if origin.strip()
+] or [
+    f'https://{host}'
+    for host in ALLOWED_HOSTS
+    if host not in ('localhost', '127.0.0.1', 'testserver', '*')
+]
+
+
+# Логування
+#
+# Типова конфігурація Django при DEBUG=0 шле помилки листом адмінам, а консоль
+# глушить. Пошти тут немає, тож без цього блоку 500-ті були б невидимі. Пишемо
+# у stdout — його підбирає gunicorn, а далі journald.
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django.request': {
+            'handlers': ['console'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}

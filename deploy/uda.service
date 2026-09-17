@@ -1,0 +1,44 @@
+# Юніт gunicorn. Копіювати в /etc/systemd/system/uda.service
+#
+#   sudo cp deploy/uda.service /etc/systemd/system/uda.service
+#   sudo systemctl daemon-reload && sudo systemctl enable --now uda
+
+[Unit]
+Description=УАД — Django під gunicorn
+# Стартувати після бази, інакше перші запити впадуть на підключенні.
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+User=uda
+# Група www-data потрібна, щоб nginx дістав до сокета.
+Group=www-data
+WorkingDirectory=/srv/uda
+EnvironmentFile=/etc/uda.env
+
+# systemd сам створює /run/uda і прибирає його після зупинки.
+RuntimeDirectory=uda
+RuntimeDirectoryMode=0750
+
+# 3 воркери — обережний старт для 2 vCPU / 4 GB, де поруч живе Postgres.
+# Формула 2 × vCPU + 1 дала б 5; піднімати варто, подивившись на `free -m`
+# під навантаженням. Логи йдуть у stdout, звідти їх забирає journald.
+ExecStart=/srv/uda/.venv/bin/gunicorn \
+    --workers 3 \
+    --bind unix:/run/uda/gunicorn.sock \
+    --timeout 60 \
+    --access-logfile - \
+    --error-logfile - \
+    config.wsgi:application
+
+ExecReload=/bin/kill -s HUP $MAINPID
+Restart=always
+RestartSec=3
+
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=full
+ProtectHome=true
+
+[Install]
+WantedBy=multi-user.target
