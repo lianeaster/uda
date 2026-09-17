@@ -4,15 +4,38 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Українська Академія Дистиляції{% endblock %}</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    {% comment %}
+    Опис і прев'ю посилання: без них лінк у Telegram чи Facebook показує
+    голий URL. Заголовок і опис сторінки дає в'юшка (`page_title`,
+    `page_description`) — один рядок і в <title>, і в прев'ю.
+    {% endcomment %}
+    <meta name="description" content="{{ page_description|default:site_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Українська Академія Дистиляції">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:title" content="{{ page_title|default:'Українська Академія Дистиляції' }}">
+    <meta property="og:description" content="{{ page_description|default:site_description }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/brand/og-image.jpg' %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+    
+    <!-- Performance: preload critical assets -->
+    <link rel="preload" as="style" href="{% static 'css/style.css' %}">
+    <link rel="preload" as="image" href="{% static 'img/photo/hero-new.png' %}" type="image/png">
+    
+    <!-- Fonts: self-hosted via @font-face in CSS (woff2 with font-display: swap) -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400..700;1,400..700&family=PT+Sans:wght@400;700&display=swap">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/lora/v32/0QIvMX1D_JOuGQbT0gvTJPa787z5vb_C.woff2">
+    <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/ptsans/v17/jizfRExUiTo99u79D0KEwA.woff2">
+    
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block favicon %}
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/brand/icon-192.png' %}">
     <link rel="apple-touch-icon" href="{% static 'img/brand/apple-touch-icon.png' %}">
-    <meta name="theme-color" content="#f5ead8">
+    <meta name="theme-color" content="#faf6ef">
     {% endblock %}
 </head>
 <body>
@@ -27,25 +50,20 @@
             </a>
             {% endblock %}
             <nav class="main-nav">
-                {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard:home' %}">Кабінет</a>
-                    <a href="{% url 'schedule:home' %}">Розклад</a>
-                    {% if user.can_manage_users %}
-                        <a href="{% url 'accounts:user_list' %}">Користувачі</a>
-                    {% endif %}
-                    <form class="logout-form" method="post" action="{% url 'accounts:logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="link-button">Вийти ({{ user.username }})</button>
-                    </form>
-                {% else %}
-                    <a href="{% url 'core:home' %}">Головна</a>
-                    <a href="{% url 'core:courses' %}">Курси</a>
-                    <a href="{% url 'core:lecturers' %}">Лектори</a>
-                    <a href="{% url 'accounts:login' %}" class="cta-link">
-                        <img src="{% static 'img/platform/mark-light.svg' %}" alt="" width="40" height="50">
-                        Навчальна платформа
-                    </a>
-                {% endif %}
+            {% comment %}
+            Меню публічного сайту. Платформа перекриває цей блок у
+            `platform_base.html` — свої сторінки плюс сендвіч-меню акаунту.
+            {% endcomment %}
+            {% block nav %}
+                <a href="{% url 'core:home' %}">Головна</a>
+                <a href="{% url 'core:courses' %}">Курси</a>
+                <a href="{% url 'core:lecturers' %}">Лектори</a>
+                {# Хто вже увійшов, того кнопка веде одразу в кабінет, а не на вхід. #}
+                <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="cta-link">
+                    <img src="{% static 'img/platform/mark-light.svg' %}" alt="" width="40" height="50">
+                    Навчальна платформа
+                </a>
+            {% endblock %}
             </nav>
         </div>
     </header>
@@ -64,17 +82,54 @@
     {% block outro %}{% endblock %}
 
     <footer class="site-footer">
-        <div class="container footer-row">
-            <span class="footer-brand">
-                <svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg>
-                &copy; 2021—{% now "Y" %} Українська Академія Дистиляції
-            </span>
-            <span class="footer-note">Споживай відповідально</span>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <img class="footer-mark" src="{% static 'img/brand/logo-inverse.png' %}" alt="" width="64" height="64">
+                    <p class="footer-lead">
+                        Курси для крафтових виробників і професіоналів галузі: технологія,
+                        обладнання, сенсорика та практика на діючих виробництвах.
+                    </p>
+                </div>
+
+                <nav class="footer-col" aria-label="Сайт">
+                    <h2>Академія</h2>
+                    <a href="{% url 'core:home' %}">Головна</a>
+                    <a href="{% url 'core:courses' %}">Курси</a>
+                    <a href="{% url 'core:lecturers' %}">Лектори</a>
+                    <a href="{% url 'core:lecturers' %}#zayavka">Консультація</a>
+                </nav>
+
+                <div class="footer-col">
+                    <h2>Контакти</h2>
+                    <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
+                    <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                    <span class="footer-plain">{{ contacts.address }}</span>
+                </div>
+
+                <div class="footer-col">
+                    <h2>Соцмережі</h2>
+                    {% for social in socials %}
+                        <a href="{{ social.url }}" target="_blank" rel="noopener">{{ social.name }}</a>
+                    {% endfor %}
+                    <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
+                </div>
+            </div>
+
+            <div class="footer-base">
+                <span class="footer-brand">
+                    <svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg>
+                    &copy; 2021—{% now "Y" %} Українська Академія Дистиляції
+                </span>
+                <span class="footer-note">18+ · Споживай відповідально</span>
+            </div>
         </div>
     </footer>
     {% endblock %}
+    <script src="{% static 'js/menu.js' %}"></script>
     <script src="{% static 'js/reveal.js' %}"></script>
     <script src="{% static 'js/table.js' %}"></script>
     <script src="{% static 'js/video.js' %}"></script>
+    <script src="{% static 'js/images.js' %}"></script>
 </body>
 </html>

@@ -18,6 +18,10 @@ class HomeView(View):
 
     def get(self, request):
         return render(request, self.template_name, {
+            # Заголовок і опис — тут, а не в шаблоні: той самий рядок іде і в
+            # <title>, і в прев'ю посилання (див. `templates/base.html`).
+            'page_title': 'Українська Академія Дистиляції',
+            'page_description': content.DESCRIPTION,
             'next_intake': _next_intake(),
             'audience': content.AUDIENCE,
             'flagship': content.FLAGSHIP,
@@ -36,6 +40,11 @@ class CoursesView(View):
 
     def get(self, request):
         return render(request, self.template_name, {
+            'page_title': 'Курси та майстерні — Українська Академія Дистиляції',
+            'page_description': (
+                'Сертифікаційна програма «Майстер дистиляції» та майстерні: зернові '
+                'дистиляти, віскі, джин, витримка, сенсорний аналіз і хімія бродіння.'
+            ),
             'next_intake': _next_intake(),
             'flagship': content.FLAGSHIP,
             'promo_video': content.PROMO_VIDEO,
@@ -48,7 +57,15 @@ class LecturersView(View):
     template_name = 'core/lecturers.html'
 
     def _context(self, **extra):
-        ctx = {'lecturers': content.LECTURERS, 'form': ContactRequestForm()}
+        ctx = {
+            'page_title': 'Лектори — Українська Академія Дистиляції',
+            'page_description': (
+                'Технологи, науковці, крафтові виробники, сомельє та юристи галузі — '
+                'ті, хто читає курси Академії.'
+            ),
+            'lecturers': content.LECTURERS,
+            'form': ContactRequestForm(),
+        }
         ctx.update(extra)
         return ctx
 

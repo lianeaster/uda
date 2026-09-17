@@ -128,7 +128,7 @@ MASTERCLASSES = [
 # --- лектори ---------------------------------------------------------------
 
 LECTURERS = [
-    {'photo': 'lecturers/bc-kateryna-lavrenova.jpg', 'name': 'Катерина Лавренова',
+    {'photo': 'lecturers/kateryna-kamysheva.jpg', 'name': 'Катерина Камишева',
      'role': 'Засновниця Академії',
      'bio': 'Голова Асоціації крафтових дистилерів України, CEO & founder платформи '
             'Craft Beverage Ukrainian Spirits, засновниця UCDA.'},
@@ -206,6 +206,31 @@ LECTURERS = [
 ]
 
 FEATURED_LECTURERS = LECTURERS[:3]
+
+# --- контакти й соцмережі --------------------------------------------------
+# Одне джерело для підвалу (на кожній сторінці, включно з платформою) і для
+# смуги заявки на /lecturers/. Підвал бере їх через контекст-процесор
+# `core.context.site`, бо рендериться і там, де немає в'юшки core.
+
+CONTACTS = {
+    'phone': '067 751 11 10',
+    'phone_href': 'tel:+380677511110',
+    'email': 'distillation.academy.ua@gmail.com',
+    'address': 'Київ, вулиця Радунська, 20',
+}
+
+SOCIALS = [
+    {'name': 'Telegram', 'url': 'https://t.me/distillingacademy'},
+    {'name': 'Facebook', 'url': 'https://www.facebook.com/UkrainianDistillationAcademy'},
+    {'name': 'YouTube', 'url': 'https://www.youtube.com/channel/UCj0aNvONBd_UIPCIwGsI_jw'},
+]
+
+# Опис для пошуку й прев'ю посилань; сторінки можуть перекрити своїм.
+DESCRIPTION = (
+    'Українська Академія Дистиляції — курси для крафтових виробників і '
+    'професіоналів галузі: технологія, обладнання, сенсорика та практика на '
+    'діючих виробництвах.'
+)
 
 # --- партнери --------------------------------------------------------------
 

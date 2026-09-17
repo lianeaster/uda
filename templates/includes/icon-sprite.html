@@ -9,6 +9,10 @@
 Використання:  <svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg>
 {% endcomment %}
 <svg xmlns="http://www.w3.org/2000/svg" width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <!-- Global icon accent color (copper) - inherited by all icons unless overridden -->
+  <style><![CDATA[
+    :root { --ic-accent: #a67c52; }
+  ]]></style>
 
 <symbol id="ic-flask" viewBox="0 0 24 24">
   <path d="M9.4 3h5.2"/>
@@ -128,6 +132,13 @@
 <symbol id="ic-play" viewBox="0 0 24 24">
   <circle cx="12" cy="12" r="8.8"/>
   <path fill="var(--ic-accent,#97694b)" stroke="none" d="M9.9 7.9v8.2l6.5-4.1Z"/>
+</symbol>
+
+<symbol id="ic-card" viewBox="0 0 24 24">
+  <rect x="2.6" y="4.4" width="18.8" height="15.2" rx="2.4"/>
+  <circle cx="8.6" cy="10.4" r="2.3"/>
+  <path d="M4.9 16.9c.45-2 1.85-3.2 3.7-3.2s3.25 1.2 3.7 3.2"/>
+  <path d="M15.2 9.9h3.6M15.2 13.1h3.6" stroke="var(--ic-accent,#97694b)" stroke-width="1.7"/>
 </symbol>
 
 <symbol id="ic-diploma" viewBox="0 0 24 24">

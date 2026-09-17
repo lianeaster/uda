@@ -1,5 +1,9 @@
 from django import forms
-from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.contrib.auth.forms import (
+    AuthenticationForm,
+    PasswordChangeForm,
+    UserCreationForm,
+)
 
 from .models import User
 
@@ -93,3 +97,51 @@ class UserRoleForm(RolesFieldMixin, forms.ModelForm):
         if commit:
             self.save_roles(user)
         return user
+
+
+class AccountForm(forms.ModelForm):
+    """Власна картка «Про мене»: ПІБ, фото й розділи про себе.
+
+    Ні логіна, ні ролей тут немає свідомо — їх змінює менеджер у
+    «Користувачах». Інакше кожен, хто дістався платформи, міг би підняти
+    собі права, просто відкривши свої налаштування.
+    """
+
+    class Meta:
+        model = User
+        fields = [
+            'last_name', 'first_name', 'patronymic', 'email', 'photo',
+            'about', 'education', 'interests', 'experience',
+        ]
+        labels = {
+            'first_name': "Ім'я",
+            'last_name': 'Прізвище',
+            'email': 'Email',
+        }
+        help_texts = {
+            'photo': 'Портрет краще квадратний — у картці й списку він обрізається в коло.',
+            'about': 'Кілька рядків про себе — з чим працюєте і чим ділитеся в Академії.',
+        }
+        widgets = {
+            'about': forms.Textarea(attrs={'rows': 4}),
+            'education': forms.Textarea(attrs={'rows': 3}),
+            'interests': forms.Textarea(attrs={'rows': 3}),
+            'experience': forms.Textarea(attrs={'rows': 4}),
+        }
+
+
+class AccountPasswordChangeForm(PasswordChangeForm):
+    """Django вже вміє все потрібне — лишаємо свої підписи полів."""
+
+    old_password = forms.CharField(
+        label='Поточний пароль',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password', 'autofocus': True}),
+    )
+    new_password1 = forms.CharField(
+        label='Новий пароль',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+    )
+    new_password2 = forms.CharField(
+        label='Новий пароль ще раз',
+        widget=forms.PasswordInput(attrs={'autocomplete': 'new-password'}),
+    )

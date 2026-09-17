@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Лектори Академії{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
 {% block content %}
 
 <section class="page-intro">
@@ -32,7 +32,7 @@
             <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
             <h3 style="margin:0;">Хочете читати в Академії?</h3>
             <p class="card-body" style="font-size:16px;max-width:40em;">Ми відкриті до технологів, науковців і практиків, які готові ділитись досвідом зі студентами.</p>
-            <a class="btn-primary" href="mailto:distillation.academy.ua@gmail.com">Написати нам</a>
+            <a class="btn-primary" href="mailto:{{ contacts.email }}">Написати нам</a>
         </div>
     </div>
 </section>
@@ -48,15 +48,15 @@
                 <div class="consult-contacts">
                     <div>
                         <div class="label">Телефон</div>
-                        <a href="tel:+380677511110">067 751 11 10</a>
+                        <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
                     </div>
                     <div>
                         <div class="label">Пошта</div>
-                        <a href="mailto:distillation.academy.ua@gmail.com">distillation.academy.ua@gmail.com</a>
+                        <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
                     </div>
                     <div>
                         <div class="label">Адреса</div>
-                        Київ, вулиця Радунська, 20
+                        {{ contacts.address }}
                     </div>
                 </div>
             </div>

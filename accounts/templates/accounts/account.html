@@ -1,0 +1,72 @@
+{% extends "platform_base.html" %}
+{% block title %}Моя картка{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>Моя картка</h1>
+            <p class="muted">Про мене та доступ до платформи. Логін і ролі змінює менеджер Академії.</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'accounts:person_detail' user.pk %}" class="btn btn-secondary">Як її бачать інші</a>
+        </div>
+    </div>
+
+    <div class="settings-grid">
+        <section class="card">
+            <h3>Про мене</h3>
+            {# Фото — тож форма multipart, інакше файл просто не доїде. #}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="photo-field">
+                    {% include "includes/avatar.html" with person=user size="avatar-lg" %}
+                    <p>
+                        <label for="{{ form.photo.id_for_label }}">{{ form.photo.label }}</label>
+                        {{ form.photo }}
+                        {{ form.photo.errors }}
+                        <small class="muted">{{ form.photo.help_text }}</small>
+                    </p>
+                </div>
+                {% for field in form %}
+                    {% if field.name != 'photo' %}
+                    <p>
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {{ field.errors }}
+                        {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+                    </p>
+                    {% endif %}
+                {% endfor %}
+                <button type="submit" class="btn btn-block">Зберегти</button>
+            </form>
+        </section>
+
+        <section class="card">
+            <h3>Обліковий запис</h3>
+            <dl class="settings-facts">
+                <dt>Логін</dt>
+                <dd>{{ user.username }}</dd>
+                <dt>Ролі</dt>
+                <dd>
+                    {% for value, label in user.role_labels %}
+                        <span class="role-badge role-{{ value }}">{{ label }}</span>
+                    {% empty %}
+                        <span class="muted">ролей ще немає</span>
+                    {% endfor %}
+                </dd>
+                <dt>Пароль</dt>
+                <dd class="muted">Змінюйте його самі — ніхто інший вашого пароля не бачить.</dd>
+            </dl>
+            <a class="btn btn-secondary" href="{% url 'accounts:password_change' %}">Змінити пароль</a>
+
+            <h3 class="settings-subtitle">Хто бачить мою картку</h3>
+            <p class="muted settings-note">
+                {% if user.can_manage_users %}Ви бачите всі картки на платформі, і вашу теж бачить керівництво.
+                {% elif user.is_teacher and user.is_student %}Керівництво Академії, ваші студенти та викладачі ваших груп.
+                {% elif user.is_teacher %}Керівництво Академії та студенти груп, де ви ведете предмет.
+                {% else %}Керівництво Академії та викладачі ваших груп.{% endif %}
+            </p>
+        </section>
+    </div>
+</div>
+{% endblock %}

@@ -216,3 +216,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# Фото карток «Про мене» — їх вантажать люди;
+# фото лекторів відновлює `manage.py import_lecturer_cards`.
+/media/

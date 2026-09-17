@@ -41,7 +41,7 @@
         <tbody>
         {% for e in enrollments %}
             <tr>
-                <td>{{ e.student.get_full_name|default:"—" }}</td>
+                <td><a href="{% url 'accounts:person_detail' e.student.pk %}">{{ e.student.display_name }}</a></td>
                 <td>{{ e.student.username }}</td>
                 <td><a href="{% url 'schedule:group_detail' e.group.pk %}">{{ e.group.name }}</a></td>
                 <td>{{ e.group.course.name }}</td>

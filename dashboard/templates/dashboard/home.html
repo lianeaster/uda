@@ -20,6 +20,13 @@
             </p>
         </a>
 
+        <a class="tile" href="{% url 'accounts:person_list' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-card"></use></svg></span>
+            <h3>Картки</h3>
+            <p class="tile-count"><strong>{{ people_count }}</strong></p>
+            <p class="tile-meta">{% if user.can_manage_users %}людей на платформі{% else %}карток вам видно{% endif %}</p>
+        </a>
+
         {% if student_tiles %}
         <a class="tile" href="{% url 'schedule:group_list' %}">
             <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>

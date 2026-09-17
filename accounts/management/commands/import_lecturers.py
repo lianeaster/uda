@@ -11,20 +11,50 @@ from ...models import User
 
 
 def username_for(lecturer):
-    """Логін береться зі слага файлу фотографії.
+    """Логін-кандидат: слаг файлу фотографії.
 
     Це вже вивірена вручну транслітерація («Олександр Рябцев» →
-    `olexandr-ryabtsev`), тож надійніше за автоматичну. Префікс `bc-` у
-    файлі засновниці — назва теки оригіналу, до імені він стосунку не має.
+    `olexandr-ryabtsev`), тож надійніше за автоматичну.
     """
-    slug = os.path.splitext(os.path.basename(lecturer['photo']))[0]
-    return slug.removeprefix('bc-')
+    return os.path.splitext(os.path.basename(lecturer['photo']))[0]
+
+
+def matching_accounts(lecturer):
+    """Облікові записи, які можуть належати цьому лекторові.
+
+    Спершу за логіном-слагом. Якщо такого немає — за ПІБ серед викладачів:
+    та сама людина могла бути заведена вручну під робочим логіном (Катерина
+    Камишева — `manager`), і тоді імпорт мусить її знайти, а не створити
+    двійника під слагом. Кількох однофамільців не вибираємо навмання —
+    повертаємо всіх, а команда про це скаже.
+    """
+    by_login = User.objects.filter(username=username_for(lecturer))
+    if by_login.exists():
+        return list(by_login)
+    first_name, last_name = split_name(lecturer['name'])
+    return list(User.objects.with_role(User.Role.TEACHER).filter(
+        first_name=first_name, last_name=last_name))
 
 
 def split_name(full_name):
     """Список подано як «Ім'я Прізвище» — саме в такому порядку."""
     first, _, last = full_name.partition(' ')
     return first, last
+
+
+def is_the_lecturer(user, lecturer):
+    """Чи належить знайдений під слагом запис саме цьому лекторові.
+
+    Роль «Викладач» тут не вирішує: лектор публічного сайту може працювати на
+    платформі керівницею й лишатися без цієї ролі — так у Ольги Бурканової,
+    арт-директорки Академії. Тому питаємо інакше: збіглося ПІБ **або** людина
+    таки викладає. Перше пускає керівницю, друге — викладачку, чиє прізвище
+    змінилося з часу останнього імпорту; сторонню людину, яка просто зайняла
+    логін, не пускає ні те, ні те.
+    """
+    first_name, last_name = split_name(lecturer['name'])
+    same_name = (user.first_name, user.last_name) == (first_name, last_name)
+    return same_name or user.is_teacher
 
 
 class Command(BaseCommand):
@@ -46,7 +76,14 @@ class Command(BaseCommand):
         for lecturer in content.LECTURERS:
             username = username_for(lecturer)
             first_name, last_name = split_name(lecturer['name'])
-            existing = User.objects.filter(username=username).first()
+            found = matching_accounts(lecturer)
+
+            if len(found) > 1:
+                logins = ', '.join(sorted(person.username for person in found))
+                skipped.append(f'{username} — на це ПІБ кілька акаунтів ({logins}), '
+                               f'зведіть їх: `manage.py merge_users`')
+                continue
+            existing = found[0] if found else None
 
             if existing is None:
                 if not dry_run:
@@ -63,22 +100,37 @@ class Command(BaseCommand):
                 created.append(f'{username} — {lecturer["name"]}')
                 continue
 
-            if not existing.is_teacher:
+            if not is_the_lecturer(existing, lecturer):
                 roles = ', '.join(label for _, label in existing.role_labels) or 'без ролі'
-                skipped.append(f'{username} — логін уже зайнятий, ролі: {roles}')
+                skipped.append(f'{username} — логін зайнятий іншою людиною '
+                               f'({existing.display_name}, {roles})')
                 continue
 
-            changes = []
+            # Зміни — те, що команда справді записує; примітки лише
+            # пояснюють, що вона побачила. Змішувати їх не варто, інакше
+            # «Оновлено» показує людей, яких ніхто не змінював.
+            changes, notes = [], []
+            if existing.username != username:
+                notes.append(f'під логіном {existing.username}')
+            if not existing.is_teacher:
+                # Ролей наявному записові не додаємо: як розподілені ролі —
+                # рішення керівництва, а не списку лекторів на сайті.
+                roles = ', '.join(label for _, label in existing.role_labels) or 'без ролі'
+                notes.append(f'ролі лишаємо як є: {roles}')
             if existing.first_name != first_name:
                 changes.append(f"ім'я {existing.first_name or '—'} → {first_name}")
                 existing.first_name = first_name
             if existing.last_name != last_name:
                 changes.append(f'прізвище {existing.last_name or "—"} → {last_name}')
                 existing.last_name = last_name
+
             if changes:
                 if not dry_run:
                     existing.save(update_fields=['first_name', 'last_name'])
-                updated.append(f'{username} — {", ".join(changes)}')
+                updated.append(f'{username} — {", ".join(changes + notes)}')
+            else:
+                skipped.append(f'{username} — уже є' + (
+                    f' ({", ".join(notes)})' if notes else ''))
 
         self._report('Створено', created, self.style.SUCCESS)
         self._report('Оновлено', updated, self.style.WARNING)

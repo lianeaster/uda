@@ -6,6 +6,35 @@ class UserQuerySet(models.QuerySet):
     def with_role(self, role):
         return self.filter(role_links__role=role).distinct()
 
+    def visible_to(self, user):
+        """Картки, які ця людина має право бачити.
+
+        Керівництво бачить усі. Решта — свою плюс тих, з кем реально
+        перетинається в групах: викладач — своїх студентів, студент — своїх
+        викладачів. Обидва боки додаються, а не обираються гілкою if/else:
+        випускниця, яка стала викладачкою, мусить бачити і своїх студентів, і
+        викладачів групи, де вчилася сама.
+
+        `on=False` — тобто без обмеження датами: закінчена група не забирає
+        людей, з якими разом навчалися чи яких навчали. Хто кому «свій»,
+        рахує розклад (`teacher_students` / `student_teachers`) — тут лишається
+        тільки додати свою картку.
+        """
+        # Локальний імпорт: `accounts` не має залежати від `schedule` на етапі
+        # завантаження моделей.
+        from schedule.models import student_teachers, teacher_students
+
+        if not user.is_authenticated:
+            return self.none()
+        if user.can_manage_users:
+            return self
+        visible = models.Q(pk=user.pk)
+        if user.is_teacher:
+            visible |= models.Q(pk__in=teacher_students(user, on=False))
+        if user.is_student:
+            visible |= models.Q(pk__in=student_teachers(user, on=False))
+        return self.filter(visible)
+
     def with_roles(self):
         """Prefetch the role set so `user.roles` costs no extra query per row."""
         return self.prefetch_related('role_links')
@@ -48,6 +77,17 @@ class User(AbstractUser):
         TEACHER = 'teacher', 'Викладач'
         STUDENT = 'student', 'Студент'
 
+    # --- картка «Про мене» --------------------------------------------
+    # Поля лежать на самому користувачі, а не в окремій моделі: вони всі
+    # необов'язкові й описують ту саму людину, тож окрема таблиця додала б
+    # лише зв'язок, який доводилося б щоразу створювати.
+    patronymic = models.CharField('По батькові', max_length=150, blank=True)
+    photo = models.ImageField('Фото', upload_to='profiles/', blank=True)
+    about = models.TextField('Про мене', blank=True)
+    education = models.TextField('Освіта', blank=True)
+    interests = models.TextField('Інтереси', blank=True)
+    experience = models.TextField('Робочий досвід', blank=True)
+
     objects = UserAccountManager()
 
     class Meta(AbstractUser.Meta):
@@ -56,6 +96,32 @@ class User(AbstractUser):
     def __str__(self):
         full_name = self.get_full_name()
         return full_name or self.username
+
+    @property
+    def full_name(self):
+        """ПІБ, якщо по батькові відоме, інакше просто ім'я з прізвищем."""
+        parts = [self.last_name, self.first_name, self.patronymic]
+        return ' '.join(part for part in parts if part).strip()
+
+    @property
+    def display_name(self):
+        return self.full_name or self.get_full_name() or self.username
+
+    @property
+    def card_facts(self):
+        """Заповнені розділи картки — підписи й тексти, у порядку показу."""
+        fields = ['about', 'education', 'interests', 'experience']
+        return [
+            (self._meta.get_field(name).verbose_name, getattr(self, name))
+            for name in fields if getattr(self, name)
+        ]
+
+    @property
+    def card_is_empty(self):
+        return not self.photo and not self.card_facts
+
+    def can_see_card(self, target):
+        return type(self).objects.visible_to(self).filter(pk=target.pk).exists()
 
     @property
     def initials(self):

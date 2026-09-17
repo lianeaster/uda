@@ -47,7 +47,7 @@
             <tr>
                 <td class="muted" data-sort="{{ gs.subject.position }}">{{ gs.subject.code|default:"—" }}</td>
                 <td>{{ gs.subject.name }}</td>
-                <td>{{ gs.teacher.get_full_name|default:gs.teacher.username }}</td>
+                <td><a href="{% url 'accounts:person_detail' gs.teacher.pk %}">{{ gs.teacher.display_name }}</a></td>
                 <td data-sort="{{ gs.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=gs %}</td>
                 {% if subject_form %}
                 <td class="row-actions">
@@ -103,7 +103,7 @@
         <tbody>
         {% for e in enrollments %}
             <tr>
-                <td>{{ e.student.get_full_name|default:"—" }}</td>
+                <td><a href="{% url 'accounts:person_detail' e.student.pk %}">{{ e.student.display_name }}</a></td>
                 <td>{{ e.student.username }}</td>
                 <td data-sort="{{ e.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=e %}</td>
             </tr>

@@ -1,0 +1,9 @@
+{% comment %}
+Портрет людини: фото, а поки його немає — ініціали в кільці, як на логотипі.
+Використання: {% include "includes/avatar.html" with person=p size="avatar-lg" %}
+{% endcomment %}
+{% if person.photo %}
+    <img class="avatar {{ size }}" src="{{ person.photo.url }}" alt="{{ person.display_name }}" loading="lazy">
+{% else %}
+    <span class="avatar avatar-empty {{ size }}" aria-hidden="true">{{ person.initials }}</span>
+{% endif %}

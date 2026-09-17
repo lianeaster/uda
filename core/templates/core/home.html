@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}Українська Академія Дистиляції{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
 {% block content %}
 
 <section class="hero">
@@ -10,18 +10,17 @@
             <h1>Вчимо робити дистиляти, які не соромно ставити на полицю</h1>
             <p class="hero-lead">Технологи, науковці, крафтові виробники та сомельє — під одним дахом. Теорія, практика на діючих виробництвах і власний рецепт на виході.</p>
             <div class="hero-actions">
-                <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Обрати курс</a>
-                <a class="btn-outline" href="{% url 'core:courses' %}">Програми навчання</a>
+                <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Обрати курс</a>
+                <a class="btn btn-outline" href="{% url 'core:courses' %}">Програми навчання</a>
             </div>
-            <div class="hero-stats">
-                <div><div class="stat-number">8</div><div class="stat-label">курсів і майстерень</div></div>
-                <div><div class="stat-number">60</div><div class="stat-label">днів флагманської програми</div></div>
-                <div><div class="stat-number">12</div><div class="stat-label">партнерів галузі</div></div>
+            <div class="hero-stats" data-reveal>
+                <div class="hero-stat"><div class="stat-number">8</div><div class="stat-label">курсів і майстерень</div></div>
+                <div class="hero-stat"><div class="stat-number">60</div><div class="stat-label">днів флагманської програми</div></div>
+                <div class="hero-stat"><div class="stat-number">12</div><div class="stat-label">партнерів галузі</div></div>
             </div>
         </div>
         <div class="hero-figure" data-reveal>
-            <div class="hero-blob"></div>
-            <img src="{% static 'img/photo/academy-hero.jpg' %}" alt="Дегустаційний сет Української Академії Дистиляції" width="1600" height="1067">
+            <img src="{% static 'img/photo/hero-new.png' %}" alt="Дегустаційний сет Української Академії Дистиляції" width="1600" height="1067" loading="eager">
             <img class="hero-seal" src="{% static 'img/brand/logo.png' %}" alt="" width="120" height="120">
         </div>
     </div>
@@ -29,8 +28,11 @@
 
 <section class="page-section">
     <div class="container">
-        <h2 data-reveal>Кому це потрібно</h2>
-        <p class="section-lead" data-reveal>Академія працює з тими, хто вже виробляє, і з тими, хто тільки шукає перший куб.</p>
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Кому це потрібно</span>
+            <h2 data-reveal>Академія працює з тими, хто вже виробляє, і з тими, хто тільки шукає перший куб</h2>
+        </div>
+        <p class="section-lead" data-reveal>Ми будуємо програми для практиків усіх рівнів — від початківця до технолога великого заводу.</p>
         <div class="grid-cards cols-230">
             {% for item in audience %}
             <div class="card card-stack" data-reveal>
@@ -58,15 +60,17 @@
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div></div>
                 </div>
                 <div class="flagship-actions">
-                    <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
-                    <a class="btn-outline" href="{% url 'core:courses' %}">Усі програми</a>
+                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
+                    <a class="btn btn-outline" href="{% url 'core:courses' %}">Усі програми</a>
                 </div>
             </div>
-            <div class="video-card video-card-lg" data-video="{{ promo_video.id }}">
-                <button class="video-play" type="button" aria-label="Відтворити відео: {{ promo_video.title }}">
-                    <img src="{% static 'img/video/'|add:promo_video.id|add:'.jpg' %}" alt="{{ promo_video.title }}" loading="lazy" width="800" height="450">
-                    <span class="play-badge"><svg class="ic" aria-hidden="true"><use href="#ic-play"></use></svg></span>
-                </button>
+            <div class="flagship-media">
+                <div class="video-card video-card-lg" data-video="{{ promo_video.id }}">
+                    <button class="video-play" type="button" aria-label="Відтворити відео: {{ promo_video.title }}">
+                        <img src="{% static 'img/video/'|add:promo_video.id|add:'.jpg' %}" alt="{{ promo_video.title }}" loading="lazy" width="800" height="450">
+                        <span class="play-badge"><svg class="ic" aria-hidden="true"><use href="#ic-play"></use></svg></span>
+                    </button>
+                </div>
             </div>
         </div>
         <p class="fine-print" data-reveal>Членам Асоціації крафтових дистилерів України та випускникам Академії — знижка 20%.</p>
@@ -75,53 +79,66 @@
 
 <section class="page-section">
     <div class="container">
-        <div class="section-bar">
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Навчання</span>
             <h2 data-reveal>Що ще можна вивчити</h2>
-            <a class="btn-ghost" href="{% url 'core:courses' %}">Усі курси →</a>
         </div>
-        <div class="grid-cards cols-250">
+        <div class="courses-grid">
             {% for course in courses %}
-            <a class="course-card" data-reveal href="{% url 'core:courses' %}">
+            <a class="course-card{% if forloop.first %} course-card--featured{% endif %}" data-reveal href="{% url 'core:courses' %}">
                 <div class="course-media">
                     <img src="{% static 'img/'|add:course.image %}" alt="{{ course.title }}" loading="lazy" width="560" height="560">
                     <span class="icon-badge icon-badge-float"><svg class="ic" aria-hidden="true"><use href="#{{ course.icon }}"></use></svg></span>
                 </div>
-                <span class="tag tag-accent">{{ course.tag }}</span>
-                <h3>{{ course.title }}</h3>
-                <p class="card-body">{{ course.short }}</p>
+                <div class="course-content">
+                    <span class="tag tag-accent">{{ course.tag }}</span>
+                    <h3>{{ course.title }}</h3>
+                    <p class="card-body">{{ course.short }}</p>
+                </div>
             </a>
             {% endfor %}
+        </div>
+        <div style="text-align: center; margin-top: 32px;" data-reveal>
+            <a class="btn btn-ghost" href="{% url 'core:courses' %}">Усі курси →</a>
         </div>
     </div>
 </section>
 
 <section class="page-section">
     <div class="container">
-        <div class="section-bar">
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Експерти</span>
             <h2 data-reveal>Лектори</h2>
-            <a class="btn-ghost" href="{% url 'core:lecturers' %}">Усі лектори →</a>
         </div>
         <p class="section-lead" data-reveal>Практики галузі: технологи, науковці та сомельє, які щодня працюють із напоями.</p>
         <div class="grid-cards cols-250">
             {% for person in lecturers %}
             <div class="lecturer" data-reveal>
                 <div class="lecturer-photo"><img src="{% static 'img/'|add:person.photo %}" alt="{{ person.name }}" loading="lazy" width="480" height="480"></div>
-                <span class="tag tag-outline">{{ person.role }}</span>
-                <h3>{{ person.name }}</h3>
-                <p>{{ person.bio }}</p>
+                <div class="lecturer-overlay">
+                    <span class="tag tag-outline">{{ person.role }}</span>
+                    <h3>{{ person.name }}</h3>
+                    <p>{{ person.bio }}</p>
+                </div>
             </div>
             {% endfor %}
+        </div>
+        <div style="text-align: center; margin-top: 32px;" data-reveal>
+            <a class="btn btn-ghost" href="{% url 'core:lecturers' %}">Усі лектори →</a>
         </div>
     </div>
 </section>
 
 <section class="section-surface">
     <div class="container">
-        <h2 data-reveal>Відгуки випускників</h2>
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Відгуки</span>
+            <h2 data-reveal>Відгуки випускників</h2>
+        </div>
         <p class="section-lead" data-reveal>Короткі відео про те, що дав курс і що змінилось на виробництві.</p>
         <div class="grid-cards cols-230">
             {% for video in testimonial_videos %}
-            <div class="video-card video-card-portrait" data-reveal data-video="{{ video.id }}">
+            <div class="video-card video-card-portrait" data-reveal data-video="{{ video.id }}" data-ambient>
                 <button class="video-play" type="button" aria-label="Відтворити відео: {{ video.title }}">
                     <img src="{% static 'img/video/'|add:video.id|add:'.jpg' %}" alt="{{ video.title }}" loading="lazy">
                     <span class="play-badge"><svg class="ic" aria-hidden="true"><use href="#ic-play"></use></svg></span>
@@ -138,7 +155,10 @@
 
 <section class="page-section">
     <div class="container">
-        <h2 data-reveal>Консалтинг і лабораторія</h2>
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Послуги</span>
+            <h2 data-reveal>Консалтинг і лабораторія</h2>
+        </div>
         <div class="grid-cards cols-280">
             {% for service in services %}
             <div class="service-card" data-reveal>
@@ -147,7 +167,7 @@
                     <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#{{ service.icon }}"></use></svg></span>
                     <h3>{{ service.title }}</h3>
                     <p class="card-body">{{ service.text }}</p>
-                    <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зробити заявку</a>
+                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зробити заявку</a>
                 </div>
             </div>
             {% endfor %}
@@ -157,22 +177,32 @@
 
 <section class="page-section">
     <div class="container">
-        <h2 data-reveal>Партнери</h2>
-        <div class="partner-grid" data-reveal>
-            {% for partner in partners %}
-            <div class="partner-logo">
-                <img src="{% static 'img/'|add:partner.logo %}" alt="{{ partner.name }}" title="{{ partner.name }}" loading="lazy" width="260" height="260">
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Партнери</span>
+            <h2 data-reveal>Партнери академії</h2>
+        </div>
+        <div class="partner-section" data-reveal>
+            <div class="partner-marquee" aria-hidden="true">
+                {% for partner in partners %}
+                <div class="partner-logo">
+                    <img src="{% static 'img/'|add:partner.logo %}" alt="{{ partner.name }}" title="{{ partner.name }}" loading="lazy" width="260" height="260">
+                </div>
+                {% endfor %}
+                {% for partner in partners %}
+                <div class="partner-logo">
+                    <img src="{% static 'img/'|add:partner.logo %}" alt="{{ partner.name }}" title="{{ partner.name }}" loading="lazy" width="260" height="260">
+                </div>
+                {% endfor %}
             </div>
-            {% endfor %}
         </div>
     </div>
 </section>
 
 <section class="page-section">
     <div class="container">
-        <div class="section-bar">
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Новини</span>
             <h2 data-reveal>Новини галузі</h2>
-            <a class="btn-ghost" href="https://distillingacademy.com.ua/blog" target="_blank" rel="noopener">Весь блог →</a>
         </div>
         <div class="grid-cards cols-280">
             {% for item in news %}
@@ -182,6 +212,9 @@
                 <p>{{ item.text }}</p>
             </a>
             {% endfor %}
+        </div>
+        <div style="text-align: center; margin-top: 32px;" data-reveal>
+            <a class="btn btn-ghost" href="https://distillingacademy.com.ua/blog" target="_blank" rel="noopener">Весь блог →</a>
         </div>
     </div>
 </section>

@@ -1,0 +1,52 @@
+{% extends "platform_base.html" %}
+{% block title %}{{ person.display_name }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>{% if is_self %}Моя картка{% else %}Картка{% endif %}</h1>
+            <p class="muted">Про мене: освіта, інтереси, робочий досвід.</p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'accounts:person_list' %}" class="btn btn-secondary">Усі картки</a>
+            {% if is_self %}
+                <a href="{% url 'accounts:account' %}" class="btn">Редагувати</a>
+            {% elif can_edit_account %}
+                <a href="{% url 'accounts:user_edit' person.pk %}" class="btn btn-secondary">Обліковий запис</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="person-page">
+        <div class="person-page-head">
+            {% include "includes/avatar.html" with person=person size="avatar-lg" %}
+            <div>
+                <h2>{{ person.display_name }}</h2>
+                <p class="person-page-roles">
+                    {% for value, label in person.role_labels %}
+                        <span class="role-badge role-{{ value }}">{{ label }}</span>
+                    {% empty %}
+                        <span class="muted">— без ролі —</span>
+                    {% endfor %}
+                </p>
+                <p class="muted person-page-contact">
+                    {{ person.username }}{% if person.email %} · <a href="mailto:{{ person.email }}">{{ person.email }}</a>{% endif %}
+                </p>
+            </div>
+        </div>
+
+        {% for label, text in person.card_facts %}
+            <section class="person-page-fact">
+                <h3>{{ label }}</h3>
+                <p>{{ text|linebreaksbr }}</p>
+            </section>
+        {% empty %}
+            <p class="muted">
+                {% if is_self %}Ви ще нічого про себе не написали —
+                    <a href="{% url 'accounts:account' %}">заповніть картку</a>.
+                {% else %}Ця людина ще нічого про себе не написала.{% endif %}
+            </p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

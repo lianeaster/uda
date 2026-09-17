@@ -1,0 +1,43 @@
+{% extends "platform_base.html" %}
+{% block title %}Картки{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>Картки</h1>
+            <p class="muted">
+                {% if user.can_manage_users %}Усі, хто є на платформі.
+                {% elif user.is_teacher and user.is_student %}Ваша картка, ваші студенти й викладачі ваших груп.
+                {% elif user.is_teacher %}Ваша картка та студенти груп, де ви ведете предмет.
+                {% else %}Ваша картка та викладачі ваших груп.{% endif %}
+            </p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'accounts:account' %}" class="btn btn-secondary">Моя картка</a>
+        </div>
+    </div>
+
+    <div class="person-grid">
+        {% for p in people %}
+        <a class="person-card" href="{% url 'accounts:person_detail' p.pk %}">
+            {% include "includes/avatar.html" with person=p %}
+            <span class="person-card-body">
+                <strong>{{ p.display_name }}</strong>
+                <span class="person-card-roles">
+                    {% for value, label in p.role_labels %}
+                        <span class="role-badge role-{{ value }}">{{ label }}</span>
+                    {% endfor %}
+                </span>
+                {% if p.about %}
+                    <span class="person-card-lead">{{ p.about|truncatewords:14 }}</span>
+                {% elif p.card_is_empty %}
+                    <span class="person-card-lead muted">Картка ще не заповнена.</span>
+                {% endif %}
+            </span>
+        </a>
+        {% empty %}
+        <p class="muted">Поки що видно лише вашу картку — вона з'явиться тут разом із групою.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

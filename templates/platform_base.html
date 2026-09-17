@@ -19,3 +19,51 @@
     <span class="brand-name">Навчальна платформа<span class="brand-sub">Українська Академія Дистиляції</span></span>
 </a>
 {% endblock %}
+
+{% comment %}
+Меню платформи. Робочі розділи лишаються в рядку, а все про саму людину —
+під сендвічем: своя картка, пароль, вихід і шлях назад на публічний сайт.
+«Кабінету» в меню немає свідомо — туди веде знак платформи.
+{% endcomment %}
+{% block nav %}
+{% if user.is_authenticated %}
+    <a href="{% url 'schedule:home' %}">Розклад</a>
+    <a href="{% url 'accounts:person_list' %}">Картки</a>
+    {% if user.can_manage_users %}
+        <a href="{% url 'accounts:user_list' %}">Користувачі</a>
+    {% endif %}
+    <div class="account-menu" data-menu>
+        <button class="account-menu-toggle" type="button"
+                data-menu-toggle aria-expanded="false" aria-controls="account-menu-panel">
+            <span class="account-menu-bars" aria-hidden="true"></span>
+            <span class="visually-hidden">Меню акаунту</span>
+        </button>
+        <div class="account-menu-panel" id="account-menu-panel" data-menu-panel hidden>
+            <div class="account-menu-who">
+                <strong>{{ user.display_name }}</strong>
+                <span class="account-menu-login">{{ user.username }}</span>
+                {% if user.role_labels %}
+                    <span class="account-menu-roles">
+                        {% for value, label in user.role_labels %}
+                            <span class="role-badge role-{{ value }}">{{ label }}</span>
+                        {% endfor %}
+                    </span>
+                {% endif %}
+            </div>
+            <a href="{% url 'accounts:account' %}">Моя картка</a>
+            <a href="{% url 'accounts:password_change' %}">Зміна пароля</a>
+            {% if user.is_super_admin %}
+                <a href="{% url 'admin:index' %}">Системне адміністрування</a>
+            {% endif %}
+            <a href="{% url 'core:home' %}">Сайт академії</a>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="account-menu-exit">Вийти</button>
+            </form>
+        </div>
+    </div>
+{% else %}
+    {# Сторінка входу: єдиний вихід звідси — назад на публічний сайт. #}
+    <a href="{% url 'core:home' %}">Сайт академії</a>
+{% endif %}
+{% endblock %}

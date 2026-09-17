@@ -19,7 +19,9 @@ class DashboardView(LoginRequiredMixin, View):
 
     def get(self, request):
         user = request.user
-        context = {}
+        # Картка є в кожного, тож тайл бачать усі роли — відрізняється лише
+        # те, скільки чужих карток людині видно (`User.objects.visible_to`).
+        context = {'people_count': User.objects.visible_to(user).count()}
 
         if user.is_student and not (user.can_manage_users or user.is_teacher):
             # Група — єдиний шлях студента до своїх предметів і викладачів.
