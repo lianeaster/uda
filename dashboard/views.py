@@ -1,7 +1,9 @@
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import render
 from django.views import View
+from django.views.generic import TemplateView
 
+from accounts.mixins import UserManagementRequiredMixin
 from accounts.models import User
 from schedule.models import Course, Enrollment, Group, ScheduleEntry, Subject
 
@@ -72,3 +74,13 @@ class DashboardView(LoginRequiredMixin, View):
                 context['teacher_count'] = User.objects.with_role(User.Role.TEACHER).count()
 
         return render(request, self.template_name, context)
+
+
+class CompetencyMatrixView(UserManagementRequiredMixin, TemplateView):
+    """Матриця компетенцій — спільна база для всіх курсів Академії.
+
+    Лише для керування (супер-адмін, менеджер): з неї складають курси, а не
+    навчаються. Уся схема живе в static/js/competencies.js, сторінка — оболонка.
+    """
+
+    template_name = 'dashboard/competencies.html'

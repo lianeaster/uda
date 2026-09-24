@@ -63,6 +63,20 @@ class RoleVisibilityTests(TestCase):
         for tile in ('Розклад', 'Мої групи', 'Мої студенти', 'Курси', 'Мої предмети'):
             self.assertIn(f'<h3>{tile}</h3>', page)
 
+    def test_competency_matrix_is_for_management_only(self):
+        """Супер-адмін і менеджер мають тайл і сторінку; решта — ні те, ні інше."""
+        url = reverse('dashboard:competencies')
+        for who in (self.admin, self.manager):
+            with self.subTest(user=who.username):
+                self.assertIn(f'href="{url}"', self.dashboard(who).content.decode())
+                page = self.client.get(url)
+                self.assertEqual(page.status_code, 200)
+                self.assertContains(page, 'js/competencies.js')
+        for who in (self.teacher, self.student):
+            with self.subTest(user=who.username):
+                self.assertNotIn(f'href="{url}"', self.dashboard(who).content.decode())
+                self.assertRedirects(self.client.get(url), reverse('dashboard:home'))
+
     def test_tile_counts_are_scoped_to_the_role(self):
         admin_ctx = self.dashboard(self.admin).context
         self.assertEqual(admin_ctx['group_total'], 2)

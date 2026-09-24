@@ -1,0 +1,63 @@
+{% extends "platform_base.html" %}
+{% load static %}
+{% block title %}Матриця компетенцій{% endblock %}
+{% block content %}
+<link rel="stylesheet" href="{% static 'css/competencies.css' %}">
+<div class="cm">
+    {# Шапка в тій самій ширині, що й схема, щоб краї збігалися. #}
+    <div class="cm-wide"><div class="page-header">
+        <div class="page-header-row">
+            <div>
+                <h1>Матриця компетенцій</h1>
+                <p class="cm-summary" id="summary"></p>
+            </div>
+            <div class="page-header-actions">
+                <div class="seg" role="group" aria-label="Вигляд">
+                    <button type="button" id="view-graph" aria-pressed="true">Схема</button>
+                    <button type="button" id="view-table" aria-pressed="false">Матриця</button>
+                </div>
+                <button type="button" class="cm-btn" id="reset">Скинути розташування</button>
+            </div>
+        </div>
+    </div></div>
+
+    <div class="cm-wide">
+        <nav class="modules" id="modules" aria-label="Модулі програми">
+          <span class="modules-label">Модулі «Майстра»:</span>
+        </nav>
+
+        <div class="stage">
+          <section id="graph-view" aria-label="Схема компетенцій">
+            <div class="viewport-wrap">
+              <div class="zoom" aria-label="Масштаб">
+                <button type="button" id="zoom-out" aria-label="Зменшити">−</button>
+                <output id="zoom-val">100%</output>
+                <button type="button" id="zoom-in" aria-label="Збільшити">+</button>
+                <button type="button" id="zoom-fit" aria-label="Вмістити по ширині" title="Вмістити по ширині">↔</button>
+              </div>
+            <div class="viewport" id="viewport">
+              <div class="sizer" id="sizer">
+                <div class="canvas" id="canvas">
+                  <svg class="edges" id="edges" aria-hidden="true">
+                    <defs>
+                      <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker>
+                      <marker id="arrow-on" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker>
+                      <marker id="arrow-req" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z"/></marker>
+                    </defs>
+                  </svg>
+                </div>
+              </div>
+            </div>
+            </div>
+          </section>
+
+          <section id="table-view" hidden aria-label="Таблиця компетенцій">
+            <div class="matrix-wrap"><table id="matrix"></table></div>
+          </section>
+
+          <aside class="panel" id="panel" aria-live="polite"></aside>
+        </div>
+    </div>
+</div>
+<script src="{% static 'js/competencies.js' %}"></script>
+{% endblock %}

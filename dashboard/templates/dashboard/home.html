@@ -83,6 +83,14 @@
             <p class="tile-count"><strong>{{ subject_count }}</strong>{% if own_scope %} / {{ subject_total }}{% endif %}</p>
             <p class="tile-meta">{% if own_scope %}ваші / усі в каталозі{% else %}у каталозі{% endif %}</p>
         </a>
+
+        {% if user.can_manage_users %}
+        <a class="tile" href="{% url 'dashboard:competencies' %}">
+            <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-still"></use></svg></span>
+            <h3>Матриця компетенцій</h3>
+            <p class="tile-lead">Компетентності всіх курсів, зв'язки між ними й рівні.</p>
+        </a>
+        {% endif %}
         {% endif %}
 
         {% if user.is_super_admin %}
