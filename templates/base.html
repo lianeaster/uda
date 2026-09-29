@@ -41,6 +41,21 @@
 <body>
     {% include "includes/icon-sprite.html" %}
     {% block body %}
+    {% comment %}
+    Академія — підрозділ Українського центру харчових інновацій. Смуга над шапкою
+    веде на сайт Центру; платформа її прибирає (`platform_base.html`).
+    {% endcomment %}
+    {% block umbrella %}
+    <div class="umbrella">
+        <div class="container umbrella-row">
+            <a href="{% url 'center:home' %}">
+                <img src="{% static 'img/center/logo-inverse.png' %}" alt="" width="28" height="28">
+                {{ center_name }}
+            </a>
+            <span class="umbrella-here"><span aria-hidden="true">›</span> Академія дистиляції</span>
+        </div>
+    </div>
+    {% endblock %}
     <header class="site-header">
         <div class="container header-row">
             {% block brand %}
@@ -98,6 +113,7 @@
                     <a href="{% url 'core:courses' %}">Курси</a>
                     <a href="{% url 'core:lecturers' %}">Лектори</a>
                     <a href="{% url 'core:lecturers' %}#zayavka">Консультація</a>
+                    <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
                 </nav>
 
                 <div class="footer-col">

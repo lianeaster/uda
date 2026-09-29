@@ -1,0 +1,112 @@
+{% load static %}<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}{{ page_title }}{% endblock %}</title>
+    {% comment %}
+    Сайт Центру — окремий бренд від Академії: власні знак, палітра й шрифт
+    за гайдлайном UFIC, тож і база своя, а не `templates/base.html`.
+    Опис і прев'ю посилання дає в'юшка (`page_title`, `page_description`).
+    {% endcomment %}
+    <meta name="description" content="{{ page_description }}">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="{{ center_name }}">
+    <meta property="og:locale" content="uk_UA">
+    <meta property="og:title" content="{{ page_title }}">
+    <meta property="og:description" content="{{ page_description }}">
+    <meta property="og:url" content="{{ request.build_absolute_uri }}">
+    <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/center/og-image.jpg' %}">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta name="twitter:card" content="summary_large_image">
+
+    {% comment %}
+    Фірмовий шрифт — Gill Sans. Вбудовувати його на сайт ліцензія не дає,
+    тож стек бере системний (на Mac та iPhone він є з кирилицею), а решта
+    отримує близький за характером гуманістичний Alegreya Sans. Файл шрифту
+    браузер тягне, лише якщо Gill Sans не знайшовся.
+    {% endcomment %}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700&display=swap">
+    <link rel="stylesheet" href="{% static 'css/center.css' %}">
+    {% comment %}
+    Анімації вмикаються класом `motion` ще до першого кадру — інакше
+    логотип і лічильники спершу блимнули б готовими, а тоді почали б
+    спочатку. Хто просив у системі менше руху, отримує статичний сайт.
+    {% endcomment %}
+    <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');</script>
+
+    <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/center/favicon-32.png' %}">
+    <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/center/icon-192.png' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/center/apple-touch-icon.png' %}">
+    <meta name="theme-color" content="#39552d">
+</head>
+<body class="ufic">
+    {% include "center/includes/icons.html" %}
+    <a class="skip-link" href="#main">До змісту</a>
+
+    <header class="u-header">
+        <div class="u-wrap u-header-row">
+            <a class="u-brand" href="{% url 'center:home' %}">
+                <img src="{% static 'img/center/logo.png' %}" alt="" width="56" height="56">
+                <span class="u-brand-name">{{ center_name }}</span>
+            </a>
+            <nav class="u-nav" aria-label="Головне меню">
+                <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
+                <a href="{% url 'center:home' %}#karta">Карта</a>
+                <a href="{% url 'center:directions' %}"{% if request.resolver_match.url_name == 'directions' %} aria-current="page"{% endif %}>Академії</a>
+                <a href="{% url 'center:home' %}#prostir">Простір</a>
+                <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
+                <a class="u-btn u-btn-sm" href="{% url 'center:home' %}#zayavka">Зв'язатися</a>
+            </nav>
+        </div>
+    </header>
+
+    <main id="main">
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="u-footer">
+        <div class="u-wrap">
+            <div class="u-footer-grid">
+                <div class="u-footer-about">
+                    <img src="{% static 'img/center/logo-inverse.png' %}" alt="Ukrainian Food Innovation Center" width="112" height="112">
+                    <p>Практичний центр, де сільськогосподарська сировина стає готовим продуктом — від ідеї до виходу на ринок.</p>
+                </div>
+
+                <nav class="u-footer-col" aria-label="Центр">
+                    <h2>Центр</h2>
+                    <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
+                    <a href="{% url 'center:home' %}#karta">Карта Центру</a>
+                    <a href="{% url 'center:directions' %}#base">Спільна база</a>
+                    <a href="{% url 'center:home' %}#prostir">Простір</a>
+                    <a href="{% url 'center:home' %}#zayavka">Заявка</a>
+                </nav>
+
+                <nav class="u-footer-col" aria-label="Академії">
+                    <h2>Академії</h2>
+                    <a href="{% url 'core:home' %}">Академія дистиляції</a>
+                    <a href="{% url 'center:directions' %}#academies">Усі напрями</a>
+                    <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
+                </nav>
+
+                <div class="u-footer-col">
+                    <h2>Контакти</h2>
+                    <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
+                    <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                    <span>{{ contacts.address }}</span>
+                </div>
+            </div>
+
+            <div class="u-footer-base">
+                <span>&copy; {% now "Y" %} UFIC · Ukrainian Food Innovation Center</span>
+                <span class="u-leaves" aria-hidden="true"><i></i><i></i></span>
+            </div>
+        </div>
+    </footer>
+    <script src="{% static 'js/center.js' %}"></script>
+    <script src="{% static 'js/reveal.js' %}"></script>
+</body>
+</html>

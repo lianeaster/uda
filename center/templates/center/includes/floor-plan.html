@@ -1,0 +1,72 @@
+{% comment %}
+План приміщення Центру, перемальований з креслення концепції у фірмових
+кольорах. Приміщення спільні для академій: у кімнаті підписано, кому вона
+служить, а перемикач над планом (static/js/center.js) підсвічує, де
+працює обрана академія. Без JS перемикач схований — лишаються підписи
+й список приміщень під планом.
+
+Кімнати й підписи — з `center.content.PLAN`. Координати дробові, тож
+локалізацію вимкнено: українська кома в атрибутах SVG зламала б план.
+На вузькому екрані план прокручується вбік у своїй рамці.
+{% endcomment %}
+{% load l10n static %}
+<figure class="u-plan" data-reveal data-plan>
+    <div class="u-plan-filter" role="group" aria-label="Показати приміщення академії" data-plan-filter hidden>
+        <button type="button" class="u-plan-chip" data-academy="" aria-pressed="true">Усі академії</button>
+        {% for a in academies %}
+        <button type="button" class="u-plan-chip" data-academy="{{ a.slug }}" data-name="{{ a.name }}" aria-pressed="false">
+            <svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>{{ a.title }}
+        </button>
+        {% endfor %}
+    </div>
+    <p class="u-plan-status" aria-live="polite" data-plan-status></p>
+
+    <div class="u-plan-scroll" tabindex="0" role="group" aria-label="План приміщення, прокручується вбік">
+        {% localize off %}
+        <svg viewBox="0 0 1390 508" role="img" aria-labelledby="plan-title" data-play=".u-room">
+            <title id="plan-title">План приміщення Центру: склади, цехи, лабораторія, навчальний зал — спільні для всіх академій</title>
+            {% for room in plan %}
+            <g class="u-room u-room-{{ room.kind }}"{% if room.uses %} data-uses="{{ room.uses|join:' ' }}"{% endif %}>
+                <title>{{ room.name }}{% if room.area %}, {{ room.area }} м²{% endif %}. {{ room.purpose }}{% if room.uses_label %} Для: {{ room.uses_label }}.{% endif %}</title>
+                <rect x="{{ room.x }}" y="{{ room.y }}" width="{{ room.w }}" height="{{ room.h }}"/>
+                {% if room.narrow %}
+                    <text class="u-room-area" x="{{ room.cx }}" y="{{ room.cy }}" transform="rotate(-90 {{ room.cx }} {{ room.cy }})" text-anchor="middle" dominant-baseline="middle">{{ room.area }} м²</text>
+                {% else %}
+                    <text x="{{ room.cx }}" y="{{ room.text_y }}" text-anchor="middle">
+                        {% for line in room.lines %}<tspan x="{{ room.cx }}"{% if not forloop.first %} dy="28"{% endif %}>{{ line }}</tspan>{% endfor %}
+                        {% if room.area %}<tspan class="u-room-area" x="{{ room.cx }}"{% if room.lines %} dy="28"{% endif %}>{{ room.area }} м²</tspan>{% endif %}
+                        {% if room.uses_label %}<tspan class="u-room-uses" x="{{ room.cx }}" dy="28">{{ room.uses_label }}</tspan>{% endif %}
+                    </text>
+                {% endif %}
+            </g>
+            {% endfor %}
+        </svg>
+        {% endlocalize %}
+    </div>
+    <figcaption>
+        <ul class="u-plan-legend">
+            {% for item in plan_kinds %}<li><i class="u-swatch u-room-{{ item.kind }}"></i>{{ item.label }}</li>{% endfor %}
+        </ul>
+        <span class="u-plan-note">Робочий проєкт · {{ plan_area }} м² без побутових приміщень</span>
+    </figcaption>
+</figure>
+
+<ul class="u-rooms" data-play="li">
+    {% for room in plan_rooms %}
+    <li class="u-room-card u-room-{{ room.kind }}" data-uses="{{ room.uses|join:' ' }}">
+        <div class="u-room-card-head">
+            <i class="u-swatch u-room-{{ room.kind }}"></i>
+            <strong>{{ room.name }}</strong>
+            <span>{{ room.area }} м²</span>
+        </div>
+        <p>{{ room.purpose }}</p>
+        <div class="u-room-card-uses">
+            {% if room.uses_label == 'усі академії' %}
+                <span class="u-room-all">Усі академії</span>
+            {% else %}
+                {% for a in room.academies %}<span class="u-room-acad" title="{{ a.name }}"><svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>{{ a.title }}</span>{% endfor %}
+            {% endif %}
+        </div>
+    </li>
+    {% endfor %}
+</ul>

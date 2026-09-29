@@ -203,6 +203,35 @@ img { max-width: 100%; height: auto; }
 .reveal-slide-right { transform: translateX(30px); }
 
 /* ---- header ---- */
+/* Смуга «парасольки»: Академія — підрозділ Українського центру
+   агропереробки. Вугільна, як підвал, щоб не вносити в гаму Академії
+   зелений Центру; кольорові в ній лише листки на знаку UFIC. */
+.umbrella {
+  background: var(--charcoal);
+  color: var(--copper-light);
+  font-size: var(--small);
+}
+.umbrella-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 40px;
+  padding-top: 4px;
+  padding-bottom: 4px;
+}
+.umbrella a {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--cream);
+  text-decoration: none;
+}
+.umbrella a:hover { text-decoration: underline; text-underline-offset: 3px; }
+.umbrella img { width: 28px; height: 28px; }
+@media (max-width: 480px) {
+  .umbrella-here { display: none; }
+}
+
 .site-header {
   position: sticky;
   top: 0;

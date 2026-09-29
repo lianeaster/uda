@@ -1,0 +1,163 @@
+{% extends "center/base.html" %}
+{% load static %}
+{% block content %}
+
+<section class="u-intro">
+    <div class="u-wrap">
+        <span class="u-kicker" data-reveal>Напрями</span>
+        <h1 data-reveal>Академії Центру</h1>
+        <p class="u-lead" data-reveal>Центр росте напрямами. Кожен має свою академію, а навчальна платформа, лабораторія й виробництво — спільні для всіх. Першою вже працює Академія дистиляції, решта розбудовуються.</p>
+        <nav class="u-jump" aria-label="Розділи сторінки" data-play="a">
+            <a href="#academies">Академії</a>
+            <a href="#platform">Навчальна платформа</a>
+            {% for unit in units %}<a href="#{{ unit.slug }}">{{ unit.title }}</a>{% endfor %}
+            <a href="#{{ incubator.slug }}">Інкубатор</a>
+        </nav>
+    </div>
+</section>
+
+<section class="u-section u-section-tint u-map-section">
+    <div class="u-wrap">
+        {% include "center/includes/map.html" with academy_href="" %}
+    </div>
+</section>
+
+<section class="u-section" id="academies">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Академії за напрямами</span>
+            <h2 data-reveal>Чого вчать і що розбудовують</h2>
+            <p class="u-lead" data-reveal>Програми нових академій ще складаються. Якщо хочете вчитися чи викладати в якомусь напрямі — напишіть: перші групи збираємо з тих, хто відгукнувся.</p>
+        </div>
+        <div class="u-acad-list" data-stagger>
+            {% for a in academies %}
+            <article class="u-acad-card{% if a.live %} u-acad-card-live{% endif %}" id="{{ a.slug }}" data-reveal>
+                <header>
+                    <svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>
+                    <span class="u-acad-status">{% if a.live %}Працює{% else %}Розбудовується{% endif %}</span>
+                </header>
+                <span class="u-acad-kicker">Напрям «{{ a.title }}»</span>
+                <h3>{{ a.name }}</h3>
+                <p>{{ a.lead }}</p>
+                <ul>{% for topic in a.topics %}<li>{{ topic }}</li>{% endfor %}</ul>
+                {% if a.url_name %}
+                    <a class="u-more" href="{% url a.url_name %}">Сайт Академії <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a>
+                {% else %}
+                    <a class="u-more" href="{% url 'center:home' %}#zayavka">Хочу вчитися чи викладати <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a>
+                {% endif %}
+            </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="u-section u-section-tint" id="platform">
+    <div class="u-wrap u-platform">
+        <div data-reveal>
+            <span class="u-kicker">Спільне для всіх</span>
+            <h2>{{ platform.title }}</h2>
+            <p class="u-lead">{{ platform.text }} Нова академія не будує своєї — вона підключається до тієї, що вже працює в Академії дистиляції.</p>
+            <div class="u-actions">
+                <a class="u-btn" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Увійти на платформу</a>
+            </div>
+        </div>
+        <ul class="u-platform-list" data-play="li">
+            {% for feature in platform.features %}<li><svg class="ic" aria-hidden="true"><use href="#u-screen"></use></svg>{{ feature }}</li>{% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-section u-base-head" id="base">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Спільна база</span>
+            <h2 data-reveal>Лабораторії, виробництво й служби для всіх академій</h2>
+            <p class="u-lead" data-reveal>Те, на чому стоїть кожен напрям: дослідити сировину, зробити пілотну партію, розробити продукт і вивести його на ринок.</p>
+        </div>
+    </div>
+</section>
+
+{% for unit in units %}
+<section class="u-dir{% cycle '' ' u-section-tint' %}" id="{{ unit.slug }}">
+    <div class="u-wrap">
+        <div class="u-dir-grid{% if not unit.image and not unit.gallery %} u-dir-grid-wide{% endif %}">
+            <div class="u-dir-body" data-reveal>
+                <span class="u-dir-no">
+                    <svg class="ic" aria-hidden="true"><use href="#{{ unit.icon }}"></use></svg>
+                    {{ forloop.counter|stringformat:"02d" }}
+                </span>
+                <h2>{{ unit.title }}</h2>
+                <p class="u-lead">{{ unit.lead }}</p>
+
+                {% if unit.quote %}<blockquote class="u-quote">«{{ unit.quote }}»</blockquote>{% endif %}
+
+                {% if unit.contrast %}
+                <div class="u-contrast">
+                    <p><span>Не</span>«{{ unit.contrast.not }}»</p>
+                    <p><span>А</span>«{{ unit.contrast.but }}»</p>
+                </div>
+                {% endif %}
+
+                {% if unit.steps %}
+                <ol class="u-chain u-chain-light" aria-label="Шлях" data-play="li">
+                    {% for step in unit.steps %}<li>{{ step }}</li>{% endfor %}
+                </ol>
+                {% endif %}
+
+                {% if unit.groups %}
+                <div class="u-groups" data-play="li">
+                    {% for group in unit.groups %}
+                    <div>
+                        <h3>{{ group.title }}</h3>
+                        <ul>{% for item in group.items %}<li>{{ item }}</li>{% endfor %}</ul>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% if unit.note %}<p class="u-note">{{ unit.note }}</p>{% endif %}
+
+            </div>
+
+            {% if unit.image %}
+            <figure class="u-dir-media" data-reveal>
+                <img src="{% static 'img/center/'|add:unit.image %}" alt="{{ unit.title }}" loading="lazy">
+            </figure>
+            {% elif unit.gallery %}
+            <div class="u-gallery" data-reveal>
+                {% for img in unit.gallery %}<img src="{% static 'img/center/'|add:img %}" alt="" width="250" height="250" loading="lazy">{% endfor %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endfor %}
+
+<section class="u-dir u-incubator" id="{{ incubator.slug }}">
+    <div class="u-wrap">
+        <div class="u-dir-grid">
+            <div class="u-dir-body" data-reveal>
+                <span class="u-dir-no">
+                    <svg class="ic" aria-hidden="true"><use href="#{{ incubator.icon }}"></use></svg>
+                    <span class="u-badge">Перспектива</span>
+                </span>
+                <h2>{{ incubator.title }}</h2>
+                <p class="u-lead">{{ incubator.lead }}</p>
+                <blockquote class="u-quote">«{{ incubator.quote }}»</blockquote>
+                <ol class="u-stages" data-play="li">
+                    {% for stage in incubator.stages %}
+                    <li><strong>{{ stage.title }}</strong><span>{{ stage.text }}</span></li>
+                    {% endfor %}
+                </ol>
+                <p class="u-note">{{ incubator.note }}</p>
+                <div class="u-actions">
+                    <a class="u-btn u-btn-light" href="{% url 'center:home' %}#zayavka">Прийти з ідеєю</a>
+                </div>
+            </div>
+            <figure class="u-dir-media" data-reveal>
+                <img src="{% static 'img/center/'|add:incubator.image %}" alt="Робоча зустріч над запуском продукту" loading="lazy">
+            </figure>
+        </div>
+    </div>
+</section>
+{% endblock %}

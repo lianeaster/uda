@@ -13,10 +13,14 @@
 <meta name="theme-color" content="#97694b">
 {% endblock %}
 
+{# Платформа — робочий простір, а не вітрина: смуги Центру тут немає. #}
+{% block umbrella %}{% endblock %}
+
+{# Платформа одна на всі академії Центру, тож під назвою — Центр, а не Академія. #}
 {% block brand %}
 <a class="brand" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'core:home' %}{% endif %}">
     <img class="brand-mark brand-mark-platform" src="{% static 'img/platform/mark.svg' %}" alt="" width="40" height="50">
-    <span class="brand-name">Навчальна платформа<span class="brand-sub">Українська Академія Дистиляції</span></span>
+    <span class="brand-name">Навчальна платформа<span class="brand-sub">{{ center_name }}</span></span>
 </a>
 {% endblock %}
 

@@ -1,0 +1,32 @@
+{% load static %}
+{% comment %}
+Логотип, що збирається сам: зерно падає в колбу, колба наповнюється,
+з горлечка проростають два листки, збоку проявляється UFIC, а довкола
+закручується напис.
+
+Шари — це справжній логотип, розрізаний на частини
+(`static/img/center/emblem/`), тож останній кадр збігається з ним піксель
+у піксель. SVG поверх — лише помічники (зерно, контур колби, бульбашки),
+які до кінця зникають. Координати SVG — у сітці вихідного логотипа 616×616.
+
+Без JS чи з «менше руху» в системі видно одразу готовий логотип:
+анімації вмикає клас `motion` на <html> (див. `center/base.html`).
+Клік програє складання ще раз (`static/js/center.js`).
+{% endcomment %}
+<button type="button" class="u-emblem is-playing{% if extra_class %} {{ extra_class }}{% endif %}" data-emblem aria-label="Логотип UFIC — програти анімацію ще раз">
+    <img class="e-layer e-ring" src="{% static 'img/center/emblem/ring.png' %}" alt="" width="440" height="440">
+    <img class="e-layer e-letters" src="{% static 'img/center/emblem/letters.png' %}" alt="" width="440" height="440">
+    <img class="e-layer e-flask" src="{% static 'img/center/emblem/flask.png' %}" alt="" width="440" height="440">
+    <img class="e-layer e-leaf e-leaf-o" src="{% static 'img/center/emblem/leaf-o.png' %}" alt="" width="440" height="440">
+    <img class="e-layer e-leaf e-leaf-b" src="{% static 'img/center/emblem/leaf-b.png' %}" alt="" width="440" height="440">
+    <svg class="e-layer e-fx" viewBox="0 0 616 616" aria-hidden="true" focusable="false">
+        <path class="e-outline" pathLength="1" d="M349 215V348.1A77.5 77.5 0 1 0 421 348.1V215"/>
+        <circle class="e-bubble" cx="370" cy="468" r="8"/>
+        <circle class="e-bubble" cx="398" cy="452" r="5.5"/>
+        <circle class="e-bubble" cx="384" cy="482" r="4.5"/>
+        <g class="e-grain">
+            <path d="M385 78c23 12 26 52 0 70-26-18-23-58 0-70Z"/>
+            <path class="e-grain-crease" d="M385 91v46"/>
+        </g>
+    </svg>
+</button>
