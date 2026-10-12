@@ -1,10 +1,12 @@
 import datetime as dt
 
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.templatetags.static import static
+from django.urls import reverse
 from django.views import View
 
 from . import content
-from .forms import ContactRequestForm
+from .forms import ConstructorRequestForm, ContactRequestForm
 
 
 def _next_intake():
@@ -51,6 +53,59 @@ class CoursesView(View):
             'courses': content.COURSES,
             'masterclasses': content.MASTERCLASSES,
         })
+
+
+class ConstructorView(View):
+    """Конструктор курсів — публічний, без входу.
+
+    Підбір рахує скрипт на матриці компетенцій (static/js/course-engine.js);
+    звідси сторінка бере лише картки курсів із сайту й приймає заявку.
+    """
+
+    template_name = 'core/constructor.html'
+
+    @staticmethod
+    def _catalog():
+        """Картки готових курсів за id з матриці: назва, опис, фото."""
+        def card(item, kind, text):
+            return {
+                'id': item['id'], 'kind': kind, 'title': item['title'], 'text': text,
+                'image': static('img/' + item['image']) if item.get('image') else '',
+                'icon': item.get('icon', ''),
+            }
+        flagship = content.FLAGSHIP
+        return (
+            [card(flagship, 'program', flagship['lead'])]
+            + [card(c, 'workshop', c['short']) for c in content.COURSES]
+            + [card(m, 'masterclass', m['text']) for m in content.MASTERCLASSES]
+        )
+
+    def _context(self, **extra):
+        ctx = {
+            'page_title': 'Конструктор курсів — Українська Академія Дистиляції',
+            'page_description': (
+                'Зберіть свій курс за хвилину: три запитання — і ви бачите '
+                'індивідуальну програму та готові курси Академії з відсотком, '
+                'наскільки вони вам підходять.'
+            ),
+            'catalog': self._catalog(),
+            'form': ConstructorRequestForm(),
+        }
+        ctx.update(extra)
+        return ctx
+
+    def get(self, request):
+        return render(request, self.template_name,
+                      self._context(submitted='done' in request.GET))
+
+    def post(self, request):
+        form = ConstructorRequestForm(request.POST)
+        if form.is_valid():
+            form.save()
+            # Редирект, а не сторінка у відповідь: оновлення подяки не має
+            # надсилати заявку вдруге.
+            return redirect(reverse('core:constructor') + '?done=1')
+        return render(request, self.template_name, self._context(form=form))
 
 
 class LecturersView(View):

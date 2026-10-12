@@ -10,7 +10,7 @@
             <h1>Вчимо робити дистиляти, які не соромно ставити на полицю</h1>
             <p class="hero-lead">Технологи, науковці, крафтові виробники та сомельє — під одним дахом. Теорія, практика на діючих виробництвах і власний рецепт на виході.</p>
             <div class="hero-actions">
-                <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Обрати курс</a>
+                <a class="btn btn-primary" href="{% url 'core:constructor' %}">Зібрати свій курс</a>
                 <a class="btn btn-outline" href="{% url 'core:courses' %}">Програми навчання</a>
             </div>
             <div class="hero-stats" data-reveal>
@@ -43,6 +43,12 @@
             </div>
             {% endfor %}
         </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        {% include "core/includes/builder.html" %}
     </div>
 </section>
 

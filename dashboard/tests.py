@@ -71,6 +71,8 @@ class RoleVisibilityTests(TestCase):
                 self.assertIn(f'href="{url}"', self.dashboard(who).content.decode())
                 page = self.client.get(url)
                 self.assertEqual(page.status_code, 200)
+                # Дані матриці — окремий файл, спільний із конструктором курсів.
+                self.assertContains(page, 'js/competency-data.js')
                 self.assertContains(page, 'js/competencies.js')
         for who in (self.teacher, self.student):
             with self.subTest(user=who.username):

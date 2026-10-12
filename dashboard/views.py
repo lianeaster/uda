@@ -80,7 +80,9 @@ class CompetencyMatrixView(UserManagementRequiredMixin, TemplateView):
     """Матриця компетенцій — спільна база для всіх курсів Академії.
 
     Лише для керування (супер-адмін, менеджер): з неї складають курси, а не
-    навчаються. Уся схема живе в static/js/competencies.js, сторінка — оболонка.
+    навчаються. Схема живе в static/js/competencies.js, дані — у
+    static/js/competency-data.js (їх же читає конструктор курсів на сайті);
+    сторінка — оболонка.
     """
 
     template_name = 'dashboard/competencies.html'

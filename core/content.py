@@ -29,7 +29,11 @@ TESTIMONIAL_VIDEOS = [
 
 # --- курси -----------------------------------------------------------------
 
+# `id` — ідентифікатор курсу в матриці компетенцій (COURSES у
+# static/js/competency-data.js): за ним конструктор курсів знаходить картку.
+
 FLAGSHIP = {
+    'id': 'master',
     'image': 'courses/distillation-master.jpg',
     'title': 'Курс «Майстер дистиляції»',
     'lead': 'Перший в Україні повний теоретичний і практичний курс. Тримісячна '
@@ -40,6 +44,7 @@ FLAGSHIP = {
 
 COURSES = [
     {
+        'id': 'grain',
         'image': 'courses/grain-distilling.jpg',
         'icon': 'ic-grain',
         'tag': 'Зерно',
@@ -49,6 +54,7 @@ COURSES = [
                 'окремих компонентів дистиляту до різноманітності ароматів і смакових нот.',
     },
     {
+        'id': 'whisky',
         'image': 'courses/whisky-distilling.jpg',
         'icon': 'ic-cask',
         'tag': 'Солод',
@@ -59,6 +65,7 @@ COURSES = [
                 'компонентів дистиляту та виробничих процесів для кожного.',
     },
     {
+        'id': 'gin',
         'image': 'courses/gin-distilling.jpg',
         'icon': 'ic-botanical',
         'tag': 'Ботаніка',
@@ -69,6 +76,7 @@ COURSES = [
                 'на ринку, який швидко розвивається.',
     },
     {
+        'id': 'sensory',
         'image': 'courses/sensor-analysis.jpg',
         'icon': 'ic-nose',
         'tag': 'Смак',
@@ -78,6 +86,7 @@ COURSES = [
                 'смаків і ароматів міцних напоїв, зокрема потенційних нюансів і дефектів.',
     },
     {
+        'id': 'aging',
         'image': 'courses/maturation.jpg',
         'icon': 'ic-cask',
         'tag': 'Час',
@@ -87,6 +96,7 @@ COURSES = [
                 'та дубова продукція для досягнення ефекту витримки — перспективи й інновації.',
     },
     {
+        'id': 'ferm',
         'image': 'courses/alcoholic-fermentation-chemistry.jpg',
         'icon': 'ic-ferment',
         'tag': 'Хімія',
@@ -97,6 +107,7 @@ COURSES = [
                 'практики й досліджень у лабораторії.',
     },
     {
+        'id': 'fruit',
         'image': 'courses/workshop-fruit-distillates-brandy.jpg',
         'icon': 'ic-drop',
         'tag': 'Фрукти',
@@ -106,6 +117,7 @@ COURSES = [
                 'Академії — науковців і досвідчених дистилерів.',
     },
     {
+        'id': 'spirit',
         'image': 'courses/spirit-course.jpg',
         'icon': 'ic-diploma',
         'tag': 'Інтенсив',
@@ -117,11 +129,11 @@ COURSES = [
 ]
 
 MASTERCLASSES = [
-    {'icon': 'ic-factory', 'title': 'Основи організації виробництва дистилятів',
+    {'id': 'mc-org', 'icon': 'ic-factory', 'title': 'Основи організації виробництва дистилятів',
      'text': 'Один день: з чого починається дистилерія і які рішення коштують найдорожче.'},
-    {'icon': 'ic-grain', 'title': 'Зброджування крохмалевмісної сировини',
+    {'id': 'mc-starch', 'icon': 'ic-grain', 'title': 'Зброджування крохмалевмісної сировини',
      'text': 'Зернові культури: підготовка, оцукрювання, типові помилки бродіння.'},
-    {'icon': 'ic-drop', 'title': 'Зброджування фруктів та винограду',
+    {'id': 'mc-fruit', 'icon': 'ic-drop', 'title': 'Зброджування фруктів та винограду',
      'text': 'Фруктові дистиляти: зрілість сировини, мацерація, чистота бродіння.'},
 ]
 

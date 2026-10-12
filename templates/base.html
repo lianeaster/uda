@@ -72,6 +72,7 @@
             {% block nav %}
                 <a href="{% url 'core:home' %}">Головна</a>
                 <a href="{% url 'core:courses' %}">Курси</a>
+                <a href="{% url 'core:constructor' %}">Конструктор</a>
                 <a href="{% url 'core:lecturers' %}">Лектори</a>
                 {# Хто вже увійшов, того кнопка веде одразу в кабінет, а не на вхід. #}
                 <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="cta-link">
@@ -111,6 +112,7 @@
                     <h2>Академія</h2>
                     <a href="{% url 'core:home' %}">Головна</a>
                     <a href="{% url 'core:courses' %}">Курси</a>
+                    <a href="{% url 'core:constructor' %}">Конструктор курсів</a>
                     <a href="{% url 'core:lecturers' %}">Лектори</a>
                     <a href="{% url 'core:lecturers' %}#zayavka">Консультація</a>
                     <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
