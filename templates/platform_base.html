@@ -64,14 +64,16 @@ Alegreya Sans (див. коментар у `center/base.html`).
 Меню платформи. Робочі розділи лишаються в рядку, а все про саму людину —
 під сендвічем: своя картка, пароль, вихід і шлях назад на публічний сайт.
 «Кабінету» в меню немає свідомо — туди веде знак платформи.
+
+На вузькому екрані сендвіч один на все: розділи з рядка переходять у ту саму
+панель акаунту, тож окрема кнопка меню з `base.html` тут потрібна лише до
+входу — для посилань на публічні сайти.
 {% endcomment %}
+{% block nav_toggle %}{% if not user.is_authenticated %}{{ block.super }}{% endif %}{% endblock %}
+{% block nav_attrs %}{% if not user.is_authenticated %}{{ block.super }}{% endif %}{% endblock %}
 {% block nav %}
 {% if user.is_authenticated %}
-    <a href="{% url 'schedule:home' %}">Розклад</a>
-    <a href="{% url 'accounts:person_list' %}">Картки</a>
-    {% if user.can_manage_users %}
-        <a href="{% url 'accounts:user_list' %}">Користувачі</a>
-    {% endif %}
+    {% include "includes/platform-sections.html" with link_class="nav-wide" %}
     <div class="account-menu" data-menu>
         <button class="account-menu-toggle" type="button"
                 data-menu-toggle aria-expanded="false" aria-controls="account-menu-panel">
@@ -89,6 +91,10 @@ Alegreya Sans (див. коментар у `center/base.html`).
                         {% endfor %}
                     </span>
                 {% endif %}
+            </div>
+            {# На вузькому екрані розділи з рядка переїжджають сюди. #}
+            <div class="account-menu-sections">
+                {% include "includes/platform-sections.html" with link_class="nav-narrow" %}
             </div>
             <a href="{% url 'accounts:account' %}">Моя картка</a>
             <a href="{% url 'accounts:password_change' %}">Зміна пароля</a>

@@ -156,6 +156,34 @@ class PlatformBrandTests(TestCase):
         self.assertNotIn('18+', footer)
 
 
+class MobileMenuTests(TestCase):
+    """На вузькому екрані меню кожного сайту ховається під сендвіч.
+
+    Кнопка називає своє меню в `aria-controls` — на цьому тримається і скрипт
+    (static/js/menu.js), і читачка екрана, тож перевіряємо саме цю пару.
+    """
+
+    def test_every_public_header_has_a_sandwich_wired_to_its_menu(self):
+        pages = [
+            (reverse('center:home'), 'u-nav'),
+            (reverse('center:services'), 'u-nav'),
+            (reverse('center:food_academy'), 'u-nav'),
+            (reverse('core:home'), 'main-nav'),
+            (reverse('core:courses'), 'main-nav'),
+            (reverse('accounts:login'), 'main-nav'),
+        ]
+        for url, nav_id in pages:
+            with self.subTest(url=url):
+                html = self.client.get(url).content.decode()
+                header = html[html.index('<header'):html.index('</header>')]
+                self.assertIn('data-nav-toggle', header)
+                self.assertIn(f'aria-controls="{nav_id}"', header)
+                self.assertIn(f'id="{nav_id}"', header)
+                # Без скрипта кнопки немає, а меню лишається розгорнутим.
+                self.assertIn("classList.add('js')", html)
+                self.assertIn('js/menu.js', html)
+
+
 class ServicesTests(TestCase):
     def test_every_section_has_an_anchor(self):
         response = self.client.get(reverse('center:services'))

@@ -395,6 +395,19 @@ class PlatformMenuTests(TestCase):
         self.assertIn('data-menu-toggle', body)
         self.assertIn('Меню акаунту', body)
 
+    def test_on_a_phone_the_one_sandwich_holds_the_sections_too(self):
+        """Після входу сендвіч один: окремої кнопки головного меню немає, а
+        розділи стоять і в рядку, і в панелі — яку з копій видно, вирішує CSS."""
+        self.client.force_login(self.teacher)
+        body = self.client.get(reverse('dashboard:home')).content.decode()
+        self.assertNotIn('data-nav-toggle', body)
+        header = body[body.index('<header'):body.index('</header>')]
+        panel = header[header.index('data-menu-panel'):]
+        for url_name in ('schedule:home', 'accounts:person_list'):
+            with self.subTest(url_name=url_name):
+                self.assertEqual(header.count(f'href="{reverse(url_name)}"'), 2)
+                self.assertIn(f'href="{reverse(url_name)}"', panel)
+
     def test_there_is_no_cabinet_link_because_the_mark_leads_there(self):
         header = self.header(self.teacher)
         # «Кабінет» лишається назвою сторінки, але не пунктом меню

@@ -39,6 +39,8 @@
     спочатку. Хто просив у системі менше руху, отримує статичний сайт.
     {% endcomment %}
     <script>if (!matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion');</script>
+    {# Зі скриптом меню на вузькому екрані згортається під сендвіч — ще до першого кадру. #}
+    <script>document.documentElement.classList.add('js');</script>
 
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/center/favicon-32.png' %}">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/center/icon-192.png' %}">
@@ -58,7 +60,15 @@
                 <span class="u-brand-name">{{ center_name }}</span>
             </a>
             {% endblock %}
-            <nav class="u-nav" aria-label="Головне меню">
+            {% comment %}
+            На вузькому екрані меню ховається під сендвіч (static/js/menu.js).
+            Без скрипта кнопки немає, а меню лишається рядком, що гортається.
+            {% endcomment %}
+            <button class="u-nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="u-nav">
+                <span class="u-nav-bars" aria-hidden="true"></span>
+                <span class="u-visually-hidden">Меню</span>
+            </button>
+            <nav class="u-nav" id="u-nav" aria-label="Головне меню">
             {% comment %}
             Меню Центру — про те, що він робить. Вхід на навчальну платформу
             тут свідомо не в меню: він у шапках академій і в підвалі.
@@ -116,6 +126,7 @@
             </div>
         </div>
     </footer>
+    <script src="{% static 'js/menu.js' %}"></script>
     <script src="{% static 'js/center.js' %}"></script>
     <script src="{% static 'js/reveal.js' %}"></script>
 </body>

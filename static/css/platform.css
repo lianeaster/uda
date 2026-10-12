@@ -162,6 +162,7 @@ html.platform {
 .platform .main-nav a:hover { color: var(--u-green); }
 .platform .main-nav a::after { background: var(--u-orange); }
 
+.platform .nav-toggle,
 .platform .account-menu-toggle { color: var(--u-green); }
 .platform .account-menu-panel a::after { content: none; }
 .platform .account-menu-who strong { font-size: 18px; font-weight: 600; color: var(--u-green); }
@@ -311,8 +312,10 @@ html.platform {
 }
 @media (max-width: 900px) {
   .platform .header-row { min-height: 0; }
-  /* У шапці трьом довгим назвам тісно; ті самі посилання є під карткою входу. */
-  .platform .main-nav .site-link { display: none; }
+  /* Без скрипта сендвіча немає, а трьом довгим назвам у рядку тісно; ті самі
+     посилання є під карткою входу. */
+  .platform:not(.js) .main-nav .site-link { display: none; }
+  .platform.js .main-nav[data-nav] { background: var(--paper); }
   .platform .brand-name { font-size: 17px; }
   .platform .brand-sub { font-size: 10.5px; }
 }

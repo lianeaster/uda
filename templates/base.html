@@ -37,6 +37,8 @@
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
     {% block theme %}{% endblock %}
+    {# Зі скриптом меню на вузькому екрані згортається під сендвіч — ще до першого кадру. #}
+    <script>document.documentElement.classList.add('js');</script>
     {% block favicon %}
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/brand/icon-192.png' %}">
@@ -70,7 +72,18 @@
                 <span class="brand-name">Українська Академія<br>Дистиляції</span>
             </a>
             {% endblock %}
-            <nav class="main-nav">
+            {% comment %}
+            На вузькому екрані меню ховається під сендвіч (static/js/menu.js).
+            Клас `js` на <html> ставить рядок у <head>: без скрипта кнопки
+            немає, а меню лишається розгорнутим, як і було.
+            {% endcomment %}
+            {% block nav_toggle %}
+            <button class="nav-toggle" type="button" data-nav-toggle aria-expanded="false" aria-controls="main-nav">
+                <span class="account-menu-bars" aria-hidden="true"></span>
+                <span class="visually-hidden">Меню</span>
+            </button>
+            {% endblock %}
+            <nav class="main-nav" id="main-nav"{% block nav_attrs %} data-nav{% endblock %}>
             {% comment %}
             Меню публічного сайту. Платформа перекриває цей блок у
             `platform_base.html` — свої сторінки плюс сендвіч-меню акаунту.

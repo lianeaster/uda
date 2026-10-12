@@ -347,8 +347,10 @@ img { max-width: 100%; height: auto; }
   text-underline-offset: 2px;
 }
 
-/* — сендвіч-меню акаунту в шапці платформи — */
+/* — сендвіч-меню акаунту в шапці платформи; так само виглядає кнопка
+   головного меню на вузькому екрані (.nav-toggle) — */
 .account-menu { position: relative; display: flex; margin-left: auto; }
+.nav-toggle,
 .account-menu-toggle {
     display: grid;
     place-items: center;
@@ -361,6 +363,10 @@ img { max-width: 100%; height: auto; }
     cursor: pointer;
     transition: background 0.15s ease, border-color 0.15s ease;
 }
+/* Кнопку головного меню показує лише вузький екран (див. наприкінці файла). */
+.nav-toggle { display: none; flex: none; padding: 0; }
+.nav-toggle:hover,
+.nav-toggle[aria-expanded="true"],
 .account-menu-toggle:hover,
 .account-menu.is-open .account-menu-toggle {
     background: color-mix(in srgb, var(--copper) 12%, transparent);
@@ -381,6 +387,18 @@ img { max-width: 100%; height: auto; }
 .account-menu-bars::after { content: ""; position: absolute; left: 0; }
 .account-menu-bars::before { top: -6px; }
 .account-menu-bars::after { top: 6px; }
+/* Відкрите меню: три смуги складаються в хрестик. */
+.account-menu-bars,
+.account-menu-bars::before,
+.account-menu-bars::after { transition: top 0.2s ease, transform 0.2s ease, background 0.2s ease; }
+[aria-expanded="true"] > .account-menu-bars { background: transparent; }
+[aria-expanded="true"] > .account-menu-bars::before { top: 0; transform: rotate(45deg); }
+[aria-expanded="true"] > .account-menu-bars::after { top: 0; transform: rotate(-45deg); }
+@media (prefers-reduced-motion: reduce) {
+    .account-menu-bars, .account-menu-bars::before, .account-menu-bars::after { transition: none; }
+}
+/* Розділи платформи в панелі сендвіча — лише на вузькому екрані (див. нижче). */
+.account-menu-sections { display: none; }
 
 .account-menu-panel {
     position: absolute;
@@ -2219,6 +2237,31 @@ picture { display: block; width: 100%; }
 picture img { width: 100%; height: auto; display: block; }
 
 /* Print styles */
+/* ---- сендвіч-меню на вузькому екрані ----
+   Діє лише зі скриптом (клас `js` на <html>): шапка лишається в один рядок,
+   меню [data-nav] ховається під кнопку й відкривається панеллю під шапкою.
+   Без скрипта працюють правила вище — меню просто переноситься рядком. */
+@media (max-width: 900px) {
+  .js .header-row { flex-wrap: nowrap; gap: 14px; }
+  .js .nav-toggle { display: grid; }
+  .js .main-nav[data-nav] { display: none; }
+  .js .main-nav[data-nav].is-open {
+    display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 0;
+    position: absolute; top: 100%; left: 0; right: 0; width: auto;
+    max-height: calc(100vh - 130px); max-height: calc(100dvh - 130px); overflow-y: auto;
+    padding: 4px 20px 20px;
+    background: var(--cream); border-bottom: 1px solid var(--border); box-shadow: var(--shadow-lg);
+  }
+  .js .main-nav[data-nav] a { padding: 15px 2px; font-size: 17px; border-bottom: 1px solid var(--border); }
+  .js .main-nav[data-nav] a::after { content: none; }
+  .js .main-nav[data-nav] .cta-link { justify-content: center; margin-top: 18px; padding: 13px 20px; border-bottom: 0; }
+
+  /* Платформа після входу: сендвіч акаунту один на все, розділи — в його панелі. */
+  .js .main-nav:not([data-nav]) { width: auto; flex-wrap: nowrap; margin-left: auto; }
+  .js .main-nav .nav-wide { display: none; }
+  .js .account-menu-sections { display: block; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+}
+
 @media print {
   .site-header, .site-footer, .hero-figure, .video-card, .btn, .tag { display: none !important; }
   body { background: white; color: black; }
