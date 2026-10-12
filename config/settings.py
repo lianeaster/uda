@@ -163,6 +163,19 @@ STATIC_URL = 'static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
+# На проді назви файлів статики несуть хеш вмісту (див. config/storage.py):
+# nginx кешує `/static/` на 30 днів, і без хеша оновлені стилі та скрипти
+# не доходять до тих, хто вже бував на сайті. Локально — звичайні назви.
+STORAGES = {
+    'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
+    'staticfiles': {
+        'BACKEND': (
+            'django.contrib.staticfiles.storage.StaticFilesStorage' if DEBUG
+            else 'config.storage.HashedStaticStorage'
+        ),
+    },
+}
+
 # Фото в картках «Про мене» вантажать самі люди, тож це медіа, а не статика.
 MEDIA_URL = 'media/'
 MEDIA_ROOT = BASE_DIR / 'media'
