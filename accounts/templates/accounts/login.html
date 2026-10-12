@@ -1,11 +1,11 @@
 {% extends "platform_base.html" %}
 {% load static %}
-{% block title %}Вхід — Навчальна платформа{% endblock %}
+{% block title %}Вхід — {{ platform_name }}{% endblock %}
 {% block content %}
 <div class="container">
     <div class="form-page form-page-platform">
         <img class="platform-badge" src="{% static 'img/platform/badge.svg' %}"
-             alt="Навчальна платформа Української Академії Дистиляції" width="400" height="400">
+             alt="{{ platform_name }}" width="400" height="400">
         {% if form.non_field_errors %}
             <ul class="errorlist">
                 {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
@@ -27,5 +27,12 @@
             <button type="submit" class="btn" style="width:100%;">Увійти</button>
         </form>
     </div>
+    {# Хто потрапив сюди випадково або ще не має логіна — ось куди йти. #}
+    <nav class="site-links" aria-label="Сайти Центру">
+        <span class="site-links-label">Перейти на сайт</span>
+        <div class="site-links-row">
+            {% include "includes/site-links.html" with link_class="btn btn-outline btn-sm" %}
+        </div>
+    </nav>
 </div>
 {% endblock %}

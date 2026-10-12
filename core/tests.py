@@ -9,7 +9,7 @@ from django.urls import reverse
 
 from . import content
 from .models import ContactRequest
-from .views import ConstructorView
+from .views import constructor_catalog
 
 
 class ConstructorPageTests(TestCase):
@@ -28,6 +28,14 @@ class ConstructorPageTests(TestCase):
         self.assertEqual(scripts, sorted(scripts))
         self.assertContains(page, 'id="cc-catalog"')
 
+    def test_home_starts_with_the_constructor(self):
+        # Віджет стоїть у героя головної — перед усім іншим, що є на сторінці.
+        html = self.client.get(reverse('core:home')).content.decode()
+        self.assertLess(html.index('id="cc-app"'), html.index('Кому це потрібно'))
+        for part in ('js/constructor.js', 'id="cc-catalog"', 'id="zapys"',
+                     f'action="{self.url}"'):
+            self.assertIn(part, html)
+
     def test_home_and_courses_lead_to_the_constructor(self):
         for name in ('core:home', 'core:courses'):
             with self.subTest(page=name):
@@ -40,7 +48,7 @@ class ConstructorPageTests(TestCase):
         block = source[source.index('const COURSES = ['):source.index('const COVERAGE')]
         matrix = set(re.findall(r"\{ id: '([\w-]+)'", block))
         self.assertEqual(len(matrix), 1 + len(content.COURSES) + len(content.MASTERCLASSES))
-        self.assertEqual({card['id'] for card in ConstructorView._catalog()}, matrix)
+        self.assertEqual({card['id'] for card in constructor_catalog()}, matrix)
 
 
 class ConstructorRequestTests(TestCase):

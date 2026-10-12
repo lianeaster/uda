@@ -1,19 +1,15 @@
 {% load static %}
 {% comment %}
-Карта Центру: парасолька → академії за напрямами → спільне для всіх
-(навчальна платформа і виробнича база). Дані — `center.content.ACADEMIES`,
-`PLATFORM`, `BASE`. Академія, що вже працює, — суцільна; ті, що
-розбудовуються, — з пунктирною рамкою.
-
-`academy_href` — куди ведуть картки академій, що ще розбудовуються:
-на головній — до їхнього опису на /directions/, на /directions/ — до якоря
-на тій самій сторінці.
+Карта Центру: парасолька → що Центр робить (послуги, головне) → навчання
+(дві академії). Дані — `center.content.SERVICES`, `INCUBATOR`, `ACADEMIES`.
+Послуги — суцільні картки; інкубатор — пунктирна: це перспектива. З ним
+карток вісім, тож вони лягають рівно 4×2.
 {% endcomment %}
 <div class="u-map" data-play=".u-map-step">
     <div class="u-map-root u-map-step">
         <img src="{% static 'img/center/logo.png' %}" alt="" width="72" height="72">
         <div>
-            <span class="u-map-label">Парасолька</span>
+            <span class="u-map-label">Центр</span>
             <strong>{{ center_name }}</strong>
         </div>
     </div>
@@ -21,47 +17,49 @@
     <div class="u-map-link u-map-step" aria-hidden="true"></div>
 
     <div class="u-map-group u-map-step">
-        <h3 class="u-map-group-label">Академії за напрямами</h3>
-        <ul class="u-map-academies" data-play="li">
-            {% for a in academies %}
+        <h3 class="u-map-group-label">Послуги Центру</h3>
+        <ul class="u-map-tiles" data-play="li">
+            {% for unit in services %}
             <li>
-                <a class="u-acad{% if a.live %} u-acad-live{% endif %}" href="{% if a.url_name %}{% url a.url_name %}{% else %}{{ academy_href }}#{{ a.slug }}{% endif %}">
-                    <span class="u-acad-top">
-                        <svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>
-                        <span class="u-acad-status">{% if a.live %}Працює{% else %}Розбудовується{% endif %}</span>
+                <a class="u-tile" href="{% url 'center:services' %}#{{ unit.slug }}">
+                    <span class="u-tile-top">
+                        <svg class="ic" aria-hidden="true"><use href="#{{ unit.icon }}"></use></svg>
+                        <span class="u-tile-no">{{ forloop.counter|stringformat:"02d" }}</span>
                     </span>
-                    <span class="u-acad-kicker">Академія</span>
-                    <strong>{{ a.title }}</strong>
-                    <span class="u-acad-short">{{ a.short }}</span>
+                    <strong>{{ unit.title }}</strong>
+                    <span class="u-tile-short">{{ unit.short }}</span>
                 </a>
             </li>
             {% endfor %}
+            <li>
+                <a class="u-tile u-tile-soon" href="{% url 'center:services' %}#{{ incubator.slug }}">
+                    <span class="u-tile-top">
+                        <svg class="ic" aria-hidden="true"><use href="#{{ incubator.icon }}"></use></svg>
+                        <span class="u-status">Перспектива</span>
+                    </span>
+                    <strong>Інкубатор</strong>
+                    <span class="u-tile-short">Прийти з ідеєю — вийти з продуктом і бізнес-моделлю</span>
+                </a>
+            </li>
         </ul>
     </div>
 
     <div class="u-map-fork u-map-step" aria-hidden="true"><i></i><i></i></div>
 
-    <div class="u-map-shared u-map-step">
-        <a class="u-map-node" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">
+    <div class="u-map-shared u-map-step" id="akademii">
+        {% for a in academies %}
+        <a class="u-map-node" href="{% url a.url_name %}">
             <span class="u-map-node-head">
-                <svg class="ic" aria-hidden="true"><use href="#u-screen"></use></svg>
-                <span><span class="u-map-label">Одна на всі академії</span><strong>{{ platform.title }}</strong></span>
+                <img src="{% static a.logo %}" alt="" width="56" height="56">
+                <span><span class="u-map-label">Навчання · академія Центру</span><strong>{{ a.name }}</strong></span>
             </span>
-            <span class="u-map-node-text">{{ platform.text }}</span>
-            <ul class="u-map-chips">
-                {% for feature in platform.features %}<li><span>{{ feature }}</span></li>{% endfor %}
+            <span class="u-status{% if a.live %} u-status-live{% endif %}">{{ a.status }}</span>
+            <span class="u-map-node-text">{{ a.lead }}</span>
+            <ul class="u-chips">
+                {% for topic in a.topics %}<li><span>{{ topic }}</span></li>{% endfor %}
             </ul>
-            <span class="u-more">Увійти <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></span>
+            <span class="u-more">Сайт Академії <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></span>
         </a>
-        <div class="u-map-node">
-            <span class="u-map-node-head">
-                <svg class="ic" aria-hidden="true"><use href="#u-flask"></use></svg>
-                <span><span class="u-map-label">Спільна база</span><strong>Лабораторії та виробництво</strong></span>
-            </span>
-            <span class="u-map-node-text">Усім академіям служать ті самі лабораторія, цехи й команда.</span>
-            <ul class="u-map-chips">
-                {% for unit in base %}<li><a href="{% url 'center:directions' %}#{{ unit.slug }}">{{ unit.title }}</a></li>{% endfor %}
-            </ul>
-        </div>
+        {% endfor %}
     </div>
 </div>

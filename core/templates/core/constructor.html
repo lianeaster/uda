@@ -37,51 +37,11 @@
         {# Усі екрани гри малює static/js/constructor.js. #}
         <div class="cc-app" id="cc-app" data-courses-url="{% url 'core:courses' %}"></div>
 
-        {# Форма запису — з сервера (CSRF, помилки); скрипт показує її під результатом. #}
-        <section class="cc-enroll" id="zapys" hidden>
-            <div class="cc-enroll-text">
-                <span class="section-kicker">Запис</span>
-                <h2>Записатись на курс</h2>
-                <p>Залиште контакти — менеджер Академії зателефонує, уточнить деталі й назве дати та вартість. Заявка ні до чого не зобов'язує.</p>
-                <p class="cc-fine">Членам Асоціації крафтових дистилерів України та випускникам Академії — знижка 20%.</p>
-            </div>
-            <form method="post" action="{% url 'core:constructor' %}" class="cc-form" id="cc-form">
-                {% csrf_token %}
-                {{ form.interest }}{{ form.details }}{{ form.state }}
-                <div>
-                    <label for="cc-course">Курс</label>
-                    <select id="cc-course"></select>
-                </div>
-                <div>
-                    <label for="{{ form.name.id_for_label }}">Ім'я</label>
-                    {{ form.name }}
-                    {{ form.name.errors }}
-                </div>
-                <div>
-                    <label for="{{ form.phone.id_for_label }}">Телефон</label>
-                    {{ form.phone }}
-                    {{ form.phone.errors }}
-                </div>
-                <div>
-                    <label for="{{ form.email.id_for_label }}">Email</label>
-                    {{ form.email }}
-                    {{ form.email.errors }}
-                </div>
-                <div class="consent-row">
-                    {{ form.consent }}
-                    <label for="{{ form.consent.id_for_label }}">Погоджуюсь з <a href="https://distillingacademy.com.ua/privacy" target="_blank" rel="noopener">політикою конфіденційності</a></label>
-                </div>
-                {{ form.consent.errors }}
-                <button type="submit" class="btn btn-primary btn-block">Надіслати заявку</button>
-            </form>
-        </section>
+        {% include "core/includes/constructor_enroll.html" %}
     </div>
 </section>
 
-{{ catalog|json_script:"cc-catalog" }}
-<script src="{% static 'js/competency-data.js' %}"></script>
-<script src="{% static 'js/course-engine.js' %}"></script>
-<script src="{% static 'js/constructor.js' %}"></script>
+{% include "core/includes/constructor_scripts.html" %}
 {% endif %}
 </div>
 {% endblock %}

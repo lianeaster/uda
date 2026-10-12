@@ -18,3 +18,18 @@ class CenterContactForm(ContactRequestForm):
     def save(self, commit=True):
         self.instance.source = ContactRequest.Source.CENTER
         return super().save(commit)
+
+
+class FoodAcademyContactForm(ContactRequestForm):
+    """Заявка з харчової академії: напрям і чи людина хоче вчитися, чи викладати."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['interest'].label = 'Який напрям цікавить'
+        self.fields['interest'].widget.attrs['placeholder'] = (
+            'Снеки, соуси, ферментація… Хочу вчитися чи викладати'
+        )
+
+    def save(self, commit=True):
+        self.instance.source = ContactRequest.Source.FOOD_ACADEMY
+        return super().save(commit)

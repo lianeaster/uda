@@ -1,16 +1,52 @@
 {% extends "base.html" %}
 {% load static %}
 {% comment %}
-Навчальна платформа: власний знак і фавікони з макета — бронзова крапля
-над розгорнутою книгою. Публічний сайт лишається під знаком Академії.
+Навчальна платформа UFIC — одна на обидві академії Центру, тож і вигляд у неї
+Центру, а не Академії дистиляції: зелений, помаранчевий і синій з його
+логотипа, шрифт Gill Sans. Розмітка й компоненти спільні з сайтом Академії
+(`base.html`, `style.css`); фарби, шрифт і форми перекриває тема
+`static/css/platform.css`, яку вмикає клас `platform` на <html>.
+
+Знак свій: з розгорнутої книги росте колос, а довкола нього — сировина
+всіх напрямів обох академій (`static/img/platform/`).
 {% endcomment %}
+
+{% block html_class %} class="platform"{% endblock %}
+
+{# Прев'ю посилання на вхід: назва платформи й картинка Центру, а не Академії. #}
+{% block meta %}
+<meta name="description" content="{{ platform_name }}: розклад, групи й картки викладачів і студентів академій Центру.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="{{ platform_name }}">
+<meta property="og:locale" content="uk_UA">
+<meta property="og:title" content="{{ platform_name }}">
+<meta property="og:description" content="Розклад, групи й картки викладачів і студентів академій Центру.">
+<meta property="og:url" content="{{ request.build_absolute_uri }}">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/center/og-image.jpg' %}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+{% endblock %}
+
+{% block preload %}{% endblock %}
+
+{% comment %}
+Шрифт — як на сайті Центру: системний Gill Sans, а де його немає —
+Alegreya Sans (див. коментар у `center/base.html`).
+{% endcomment %}
+{% block theme %}
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700&display=swap">
+<link rel="stylesheet" href="{% static 'css/platform.css' %}">
+{% endblock %}
 
 {% block favicon %}
 <link rel="icon" type="image/svg+xml" href="{% static 'img/platform/tile.svg' %}">
 <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/platform/favicon-32.png' %}">
 <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/platform/icon-192.png' %}">
 <link rel="apple-touch-icon" href="{% static 'img/platform/apple-touch-icon.png' %}">
-<meta name="theme-color" content="#97694b">
+<meta name="theme-color" content="#39552d">
 {% endblock %}
 
 {# Платформа — робочий простір, а не вітрина: смуги Центру тут немає. #}
@@ -19,8 +55,8 @@
 {# Платформа одна на всі академії Центру, тож під назвою — Центр, а не Академія. #}
 {% block brand %}
 <a class="brand" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'core:home' %}{% endif %}">
-    <img class="brand-mark brand-mark-platform" src="{% static 'img/platform/mark.svg' %}" alt="" width="40" height="50">
-    <span class="brand-name">Навчальна платформа<span class="brand-sub">{{ center_name }}</span></span>
+    <img class="brand-mark brand-mark-platform" src="{% static 'img/platform/mark.svg' %}" alt="" width="62" height="57">
+    <span class="brand-name">{{ platform_name }}<span class="brand-sub">{{ center_name }}</span></span>
 </a>
 {% endblock %}
 
@@ -67,7 +103,51 @@
         </div>
     </div>
 {% else %}
-    {# Сторінка входу: єдиний вихід звідси — назад на публічний сайт. #}
-    <a href="{% url 'core:home' %}">Сайт академії</a>
+    {# Сторінка входу: звідси виходять на публічні сайти — Центру й обох академій. #}
+    {% include "includes/site-links.html" with link_class="site-link" %}
 {% endif %}
+{% endblock %}
+
+{% comment %}
+Підвал Центру, а не Академії: звідси видно обидві академії й сам Центр.
+Коротший за підвали сайтів — тут працюють, а не знайомляться.
+{% endcomment %}
+{% block footer %}
+<footer class="site-footer">
+    <div class="container">
+        <div class="footer-grid">
+            <div class="footer-about">
+                <img class="footer-mark" src="{% static 'img/platform/mark-light.svg' %}" alt="" width="62" height="57">
+                <p class="footer-lead">
+                    {{ platform_name }} — одна на обидві академії Центру: розклад,
+                    групи й картки викладачів і студентів.
+                </p>
+            </div>
+
+            <nav class="footer-col" aria-label="Центр">
+                <h2>Центр</h2>
+                <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
+                <a href="{% url 'center:services' %}">Послуги</a>
+            </nav>
+
+            <nav class="footer-col" aria-label="Академії">
+                <h2>Академії</h2>
+                <a href="{% url 'core:home' %}">Академія дистиляції</a>
+                <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
+            </nav>
+
+            <div class="footer-col">
+                <h2>Контакти</h2>
+                <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
+                <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                <span class="footer-plain">{{ contacts.address }}</span>
+            </div>
+        </div>
+
+        <div class="footer-base">
+            <span>&copy; {% now "Y" %} UFIC · Ukrainian Food Innovation Center</span>
+            <span class="footer-leaves" aria-hidden="true"><i></i><i></i></span>
+        </div>
+    </div>
+</footer>
 {% endblock %}

@@ -1,0 +1,8 @@
+{% comment %}
+Три публічні сайти, на які можна вийти з платформи: сам Центр і обидві його
+академії. Платформа одна на всіх, тож веде до кожного, а не лише до Академії
+дистиляції. `link_class` — класи для кожного посилання.
+{% endcomment %}
+<a class="{{ link_class }}" href="{% url 'center:home' %}">{{ center_short_name }}</a>
+<a class="{{ link_class }}" href="{% url 'core:home' %}">Академія дистиляції</a>
+<a class="{{ link_class }}" href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>

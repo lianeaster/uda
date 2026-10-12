@@ -15,6 +15,22 @@ def _next_intake():
     return dt.date(year, 11, 15).strftime('%d.%m.%Y')
 
 
+def constructor_catalog():
+    """Картки готових курсів за id з матриці: назва, опис, фото."""
+    def card(item, kind, text):
+        return {
+            'id': item['id'], 'kind': kind, 'title': item['title'], 'text': text,
+            'image': static('img/' + item['image']) if item.get('image') else '',
+            'icon': item.get('icon', ''),
+        }
+    flagship = content.FLAGSHIP
+    return (
+        [card(flagship, 'program', flagship['lead'])]
+        + [card(c, 'workshop', c['short']) for c in content.COURSES]
+        + [card(m, 'masterclass', m['text']) for m in content.MASTERCLASSES]
+    )
+
+
 class HomeView(View):
     template_name = 'core/home.html'
 
@@ -34,6 +50,10 @@ class HomeView(View):
             'services': content.SERVICES,
             'partners': content.PARTNERS,
             'news': content.NEWS,
+            # Герой головної — конструктор курсів; заявку з нього приймає
+            # ConstructorView, тут лише форма й картки.
+            'catalog': constructor_catalog(),
+            'form': ConstructorRequestForm(),
         })
 
 
@@ -59,26 +79,11 @@ class ConstructorView(View):
     """Конструктор курсів — публічний, без входу.
 
     Підбір рахує скрипт на матриці компетенцій (static/js/course-engine.js);
-    звідси сторінка бере лише картки курсів із сайту й приймає заявку.
+    звідси сторінка бере лише картки курсів із сайту й приймає заявку. Той
+    самий віджет стоїть у героя головної й шле заявку сюди ж.
     """
 
     template_name = 'core/constructor.html'
-
-    @staticmethod
-    def _catalog():
-        """Картки готових курсів за id з матриці: назва, опис, фото."""
-        def card(item, kind, text):
-            return {
-                'id': item['id'], 'kind': kind, 'title': item['title'], 'text': text,
-                'image': static('img/' + item['image']) if item.get('image') else '',
-                'icon': item.get('icon', ''),
-            }
-        flagship = content.FLAGSHIP
-        return (
-            [card(flagship, 'program', flagship['lead'])]
-            + [card(c, 'workshop', c['short']) for c in content.COURSES]
-            + [card(m, 'masterclass', m['text']) for m in content.MASTERCLASSES]
-        )
 
     def _context(self, **extra):
         ctx = {
@@ -88,7 +93,7 @@ class ConstructorView(View):
                 'індивідуальну програму та готові курси Академії з відсотком, '
                 'наскільки вони вам підходять.'
             ),
-            'catalog': self._catalog(),
+            'catalog': constructor_catalog(),
             'form': ConstructorRequestForm(),
         }
         ctx.update(extra)

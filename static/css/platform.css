@@ -1,0 +1,322 @@
+/* Навчальна платформа UFIC — тема поверх style.css.
+
+   Платформа одна на обидві академії Центру, тож і виглядає як Центр, а не
+   як Академія дистиляції. Гайдлайн той самий, що в center.css: зелений,
+   помаранчевий, синій і білий; шрифт Gill Sans.
+
+   Розмітка й компоненти лишаються спільними з сайтом Академії. Тут лише
+   дві речі: (1) змінні style.css переозначено у фарби Центру — цим
+   перефарбовується майже все; (2) нижче — правила для того, що змінними не
+   дістати: шапка, кнопки, тайли, підвал.
+
+   Клас `platform` стоїть на <html> (templates/platform_base.html). */
+
+/* У Gill Sans одиниця — та сама риска, що й велика «І»: «11.10» читається як
+   «II.I0». На сайті Центру цифр мало, а тут розклад, дати й лічильники, тож
+   цифри (і лише їх) беремо з системного шрифта з виразною одиницею. */
+@font-face {
+  font-family: "UFIC Figures";
+  src: local("Avenir Next"), local("AvenirNext-Regular"), local("Trebuchet MS"), local("Segoe UI"), local("Roboto"), local("Arial");
+  font-weight: 100 500;
+  unicode-range: U+30-39;
+}
+@font-face {
+  font-family: "UFIC Figures";
+  src: local("Avenir Next Demi Bold"), local("AvenirNext-DemiBold"), local("Trebuchet MS Bold"), local("Segoe UI Semibold"), local("Roboto Medium"), local("Arial Bold");
+  font-weight: 600 900;
+  unicode-range: U+30-39;
+}
+
+html.platform {
+  /* Фарби гайдлайну UFIC — ті самі значення, що в center.css. */
+  --u-green: #39552d;
+  --u-green-900: #1f2f18;
+  --u-green-800: #2b4122;
+  --u-green-500: #587a48;
+  --u-green-200: #c9d6c0;
+  --u-green-100: #e2eadc;
+  --u-green-50: #f1f5ee;
+  --u-orange: #fcb040;
+  --u-orange-100: #feebc8;
+  --u-blue: #0f75bd;
+  --u-blue-100: #d6e8f5;
+
+  /* Змінні style.css. Назви лишилися від Академії («мідь», «пергамент»):
+     компоненти спільні, тож міняємо значення, а не імена. Мідь тут —
+     зелений Центру: ним кнопки, посилання й усе головне. */
+  --ink: #1e2a19;
+  --charcoal: var(--u-green-900);
+  --ink-soft: #4b5845;
+  --ink-muted: #5f6b59;
+
+  --copper: var(--u-green);
+  --copper-dark: var(--u-green-800);
+  --copper-light: var(--u-green-200);
+
+  /* Контрастна фарба — синій листок. */
+  --contrast: var(--u-blue);
+  --contrast-dark: #0b5a92;
+  --contrast-deep: #083f67;
+  --contrast-light: #9cc6e6;
+  --contrast-100: var(--u-blue-100);
+  --contrast-50: #ecf4fa;
+
+  /* Сторінка — теплий білий, картки на ній — чисто білі. */
+  --cream: #fbfaf6;
+  --paper: #fff;
+  --border: #dde4d6;
+  --border-strong: var(--u-green-200);
+
+  /* Шкала зеленого замість мідної. */
+  --accent-50: #f6f9f3;
+  --accent-100: #e9f0e4;
+  --accent-200: #d6e1ce;
+  --accent-300: #b9cbad;
+  --accent-400: #93ad83;
+  --accent-500: #6f8f5e;
+  --accent-600: #587a48;
+  --accent-700: #47683a;
+  --accent-800: var(--u-green-800);
+  --accent-900: var(--u-green-900);
+
+  --neutral-50: var(--cream);
+  --neutral-100: var(--u-green-50);
+  --neutral-200: var(--u-green-100);
+  --neutral-300: var(--u-green-200);
+
+  /* Статуси розкладу несуть зміст, тож лишаються трьома різними фарбами;
+     синій — фірмовий, решта підтягнуті до нього й до зеленого Центру. */
+  --sky: #7db8e3;
+  --sky-bg: #eaf3fb;
+  --blue: var(--u-blue);
+  --blue-bg: var(--u-blue-100);
+  --green: #3d8b37;
+  --green-bg: #e4f1e0;
+
+  --font-head: "UFIC Figures", "Gill Sans", "Alegreya Sans", "Segoe UI", system-ui, sans-serif;
+  --font-body: var(--font-head);
+
+  /* Робочі сторінки, не вітрина: заголовки спокійніші, ніж на сайтах. */
+  --h1: clamp(32px, 4vw, 50px);
+  --h2: clamp(26px, 3vw, 36px);
+  --h3: clamp(20px, 2vw, 23px);
+  --h4: 18px;
+  --body: 17px;
+  --small: 15px;
+  --tiny: 13px;
+
+  --radius-sm: 10px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 28px;
+
+  --shadow-xs: 0 1px 2px rgba(31, 47, 24, 0.04);
+  --shadow-sm: 0 2px 8px rgba(31, 47, 24, 0.05);
+  --shadow: 0 10px 30px rgba(31, 47, 24, 0.08);
+  --shadow-lg: 0 24px 60px rgba(31, 47, 24, 0.14);
+  --shadow-xl: 0 32px 64px rgba(31, 47, 24, 0.16);
+
+  --glass-bg: rgba(255, 255, 255, 0.9);
+  --glass-border: var(--border);
+
+  /* Піктограми: зелений контур, помаранчевий акцент — як листок над колбою. */
+  --ic-accent: var(--u-orange);
+
+  /* У Gill Sans дрібне вічко — піднімаємо базовий кегль, а з ним і всі rem. */
+  font-size: 17px;
+}
+
+/* Тло — два відсвіти фірмових кольорів, як у героя на сайті Центру. */
+.platform body {
+  font-size: var(--body);
+  line-height: 1.55;
+  background:
+    radial-gradient(900px 600px at 92% -8%, rgba(252, 176, 64, 0.13), transparent 62%),
+    radial-gradient(800px 700px at -6% 106%, rgba(88, 122, 72, 0.12), transparent 60%),
+    var(--cream);
+  background-attachment: fixed;
+}
+
+.platform :is(h1, h2, h3, h4) { font-weight: 600; color: var(--u-green); letter-spacing: -0.005em; }
+.platform h1 { line-height: 1.06; }
+
+/* Підкреслення посилань — помаранчеве. Через :where(), щоб не перебити
+   власні кольори на кшталт .danger-link. */
+:where(.platform) a { text-decoration-color: var(--u-orange); }
+.platform :focus-visible { outline: 3px solid var(--u-blue); outline-offset: 3px; }
+/* Поля мають власний фокус — рамку й ореол; другий контур їм зайвий. */
+.platform :is(input:not([type=checkbox], [type=radio], [type=file]), select, textarea):focus-visible { outline: none; }
+
+/* --- шапка --------------------------------------------------------------- */
+
+.platform .site-header {
+  background: rgba(251, 250, 246, 0.92);
+  -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px);
+}
+.platform .header-row { min-height: 80px; padding-top: 12px; padding-bottom: 12px; }
+.platform .brand-name { font-size: 19px; font-weight: 600; line-height: 1.12; letter-spacing: 0; color: var(--u-green); }
+.platform .brand-sub { margin-top: 3px; font-size: 11.5px; font-weight: 400; letter-spacing: 0.1em; color: var(--ink-soft); }
+
+.platform .main-nav { gap: 26px; }
+.platform .main-nav a { font-size: 17px; font-weight: 400; }
+.platform .main-nav a:hover { color: var(--u-green); }
+.platform .main-nav a::after { background: var(--u-orange); }
+
+.platform .account-menu-toggle { color: var(--u-green); }
+.platform .account-menu-panel a::after { content: none; }
+.platform .account-menu-who strong { font-size: 18px; font-weight: 600; color: var(--u-green); }
+.platform .account-menu-login { font-size: 14px; }
+.platform .account-menu-panel a,
+.platform .account-menu-exit { font-size: 16.5px; }
+.platform .account-menu-exit { color: var(--u-green); }
+
+/* --- кнопки -------------------------------------------------------------- */
+
+/* Як .u-btn на сайті Центру. Проста .btn — головна дія; .btn-secondary —
+   контурна, для другорядного й невибраного в перемикачах. */
+.platform .btn {
+  padding: 11px 24px;
+  border: 2px solid var(--u-green);
+  background: var(--u-green);
+  color: #fff;
+  font-size: 16.5px;
+  font-weight: 600;
+  line-height: 1.2;
+  box-shadow: none;
+}
+.platform .btn:hover { background: var(--u-green-800); border-color: var(--u-green-800); color: #fff; transform: translateY(-1px); box-shadow: none; }
+.platform .btn:active { transform: none; }
+.platform .btn-secondary,
+.platform .btn-outline { background: transparent; color: var(--u-green); }
+.platform .btn-secondary:hover,
+.platform .btn-outline:hover { background: var(--u-green-50); border-color: var(--u-green); color: var(--u-green); }
+.platform .btn-ghost { background: transparent; border-color: transparent; color: var(--u-green); }
+.platform .btn-ghost:hover { background: var(--u-green-50); border-color: transparent; color: var(--u-green); }
+.platform .btn-small,
+.platform .btn-sm { padding: 6px 16px; font-size: 15.5px; }
+.platform .icon-btn { width: 38px; height: 38px; color: var(--u-green); }
+.platform .icon-btn:hover { background: var(--u-green-50); border-color: var(--u-green); }
+
+/* --- форми --------------------------------------------------------------- */
+
+.platform label { font-size: 15px; letter-spacing: 0; color: var(--ink-soft); }
+.platform .form-page { border-radius: var(--radius-xl); }
+.platform .platform-badge { width: 250px; height: 250px; margin-bottom: 12px; }
+
+/* Під карткою входу — виходи на публічні сайти: Центр і обидві академії. */
+.platform .form-page-platform { margin-bottom: 28px; }
+.site-links { display: grid; justify-items: center; gap: 12px; margin: 0 auto 64px; }
+.site-links-label { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-soft); }
+.site-links-row { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
+.platform input[type=checkbox],
+.platform input[type=radio] { accent-color: var(--u-green); }
+
+/* --- сторінки: заголовок, тайли, картки ---------------------------------- */
+
+.platform .page-header h1 { margin: 0 0 10px; }
+.platform .section-title { color: var(--u-green); }
+
+.platform .tile {
+  display: flex; flex-direction: column;
+  border: 2px solid var(--u-green-200);
+  transition: transform 0.25s var(--ease-out), border-color 0.25s, box-shadow 0.25s;
+}
+.platform .tile:hover { transform: translateY(-3px); border-color: var(--u-green); background: var(--paper); box-shadow: var(--shadow); }
+.platform .tile h3 { color: var(--u-green); line-height: 1.2; }
+.platform .tile-icon {
+  width: 52px; height: 52px; font-size: 28px;
+  border: 0; background: var(--u-green-50); color: var(--u-green);
+}
+.platform .tile-icon .ic { stroke-width: 1.3; }
+.platform .tile-count strong { font-weight: 600; color: var(--u-green); }
+.platform .tile-news { color: var(--u-green); }
+.platform .tile-news::before {
+  content: ""; display: inline-block; width: 10px; height: 10px; margin-right: 8px;
+  border-radius: 100% 0; background: var(--u-orange);
+}
+
+.platform .card:hover { transform: none; }
+.platform .person-card { border-color: var(--border); transition: border-color 0.2s, box-shadow 0.2s; }
+.platform .person-card:hover { border-color: var(--u-green); box-shadow: var(--shadow-sm); }
+.platform .person-card-body strong { font-size: 18.5px; font-weight: 600; color: var(--u-green); }
+.platform .person-card-lead { font-size: 15px; }
+.platform .person-page { border: 1px solid var(--border); }
+.platform .avatar { background: var(--u-green-50); border-color: var(--u-green-200); }
+.platform .avatar-empty { font-weight: 600; color: var(--u-green); }
+.platform .inline-add-form,
+.platform .month-grid,
+.platform .table-card { border-color: var(--border); }
+
+/* Ролі — трьома фарбами логотипа. На помаранчевому текст темний: білий
+   на ньому не читається. */
+.platform .role-badge { background: var(--u-green); color: #fff; font-size: 13.5px; }
+.platform .role-super_admin { background: var(--u-green-900); }
+.platform .role-manager { background: var(--u-blue); }
+.platform .role-teacher { background: var(--u-green); }
+.platform .role-student,
+.platform .news-badge { background: var(--u-orange); color: var(--u-green-900); }
+
+.platform .chip { background: var(--u-green-50); border-color: var(--border); }
+.platform .alert-success { color: var(--u-green); }
+
+/* --- таблиці ------------------------------------------------------------- */
+
+.platform th,
+.platform .filter-row th,
+.platform .filter-row td { background: var(--u-green-50); }
+.platform th { letter-spacing: 0.06em; color: var(--ink-soft); }
+.platform th.is-sorted, .platform th.is-sortable:hover { color: var(--u-green); }
+.platform tbody tr:nth-child(even) { background: rgba(57, 85, 45, 0.03); }
+.platform tbody tr:hover { background: rgba(57, 85, 45, 0.07); }
+.platform .row-news { background: rgba(252, 176, 64, 0.16); }
+
+/* --- розклад ------------------------------------------------------------- */
+
+.platform .month-label { font-size: 1.25rem; font-weight: 600; color: var(--u-green); }
+.platform .month-grid-header { background: var(--u-green-50); }
+.platform .month-grid-header div { letter-spacing: 0.06em; color: var(--ink-soft); }
+.platform .day-cell:hover { background: var(--u-green-50); }
+.platform .day-cell-out:hover { background-color: transparent; }
+.platform .day-bar-track { background: var(--u-green-50); }
+.platform .day-cell:hover .day-bar-track { background: var(--u-green-100); }
+/* Сьогодні: тепла клітинка, число — зеленим. Помаранчевим число не робимо:
+   у розкладі колір несе зміст, а помаранчевий колись значив перетин. */
+.platform .day-cell-today { background: rgba(252, 176, 64, 0.12); }
+.platform .day-cell-today .day-number { color: #fff; }
+.platform .booking-row.color-green { color: var(--u-green); }
+.platform .booking-row.color-rejected { background: var(--u-green-50); }
+.platform .modal-backdrop { background: rgba(31, 47, 24, 0.5); }
+
+/* --- підвал -------------------------------------------------------------- */
+
+.platform .site-footer { border-top: 0; color: rgba(255, 255, 255, 0.82); }
+.platform .footer-grid { padding: 56px 0 36px; }
+.platform .footer-mark { width: 88px; height: auto; }
+.platform .footer-lead { font-size: 16.5px; font-weight: 400; line-height: 1.55; color: rgba(255, 255, 255, 0.82); }
+.platform .footer-col { gap: 10px; }
+.platform .footer-col h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: var(--u-orange); }
+.platform .footer-col a,
+.platform .footer-plain { font-size: 16.5px; color: rgba(255, 255, 255, 0.82); overflow-wrap: anywhere; }
+.platform .footer-col a:hover { color: #fff; text-decoration-color: var(--u-orange); }
+.platform .footer-base { align-items: center; border-top-color: rgba(255, 255, 255, 0.14); font-size: 14.5px; }
+/* Два листки логотипа — підпис Центру, як у його підвалі (.u-leaves). */
+.footer-leaves { display: inline-flex; gap: 4px; }
+.footer-leaves i { width: 14px; height: 14px; border-radius: 100% 0; background: var(--u-orange); }
+.footer-leaves i + i { width: 10px; height: 10px; background: var(--u-blue); align-self: flex-start; }
+
+/* Контактам — ширшу колонку: пошта в ній найдовший рядок. Лише на широкому
+   екрані, щоб не перебити складання сітки в style.css. */
+@media (min-width: 901px) {
+  .platform .footer-grid { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.8fr)) minmax(0, 1.2fr); }
+}
+@media (max-width: 900px) {
+  .platform .header-row { min-height: 0; }
+  /* У шапці трьом довгим назвам тісно; ті самі посилання є під карткою входу. */
+  .platform .main-nav .site-link { display: none; }
+  .platform .brand-name { font-size: 17px; }
+  .platform .brand-sub { font-size: 10.5px; }
+}
+@media (max-width: 480px) {
+  .platform .brand-sub { display: none; }
+  .site-links-row { flex-direction: column; align-self: stretch; }
+}

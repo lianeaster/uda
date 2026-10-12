@@ -16,4 +16,7 @@ def site(request):
         # Академія — підрозділ Центру, тож його назва потрібна і їй (смуга над шапкою).
         'center_name': center.NAME,
         'center_short_name': center.SHORT_NAME,
+        # Академій дві; кожна посилається на сусідню.
+        'food_academy_name': center.FOOD_ACADEMY_NAME,
+        'platform_name': center.PLATFORM_NAME,
     }

@@ -1,8 +1,8 @@
 {% comment %}
 План приміщення Центру, перемальований з креслення концепції у фірмових
-кольорах. Приміщення спільні для академій: у кімнаті підписано, кому вона
-служить, а перемикач над планом (static/js/center.js) підсвічує, де
-працює обрана академія. Без JS перемикач схований — лишаються підписи
+кольорах. Приміщення спільні для напрямів: у кімнаті підписано, скільком
+вона служить, а перемикач над планом (static/js/center.js) підсвічує, де
+працюють з обраним напрямом. Без JS перемикач схований — лишаються підписи
 й список приміщень під планом.
 
 Кімнати й підписи — з `center.content.PLAN`. Координати дробові, тож
@@ -11,11 +11,11 @@
 {% endcomment %}
 {% load l10n static %}
 <figure class="u-plan" data-reveal data-plan>
-    <div class="u-plan-filter" role="group" aria-label="Показати приміщення академії" data-plan-filter hidden>
-        <button type="button" class="u-plan-chip" data-academy="" aria-pressed="true">Усі академії</button>
-        {% for a in academies %}
-        <button type="button" class="u-plan-chip" data-academy="{{ a.slug }}" data-name="{{ a.name }}" aria-pressed="false">
-            <svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>{{ a.title }}
+    <div class="u-plan-filter" role="group" aria-label="Показати приміщення напряму" data-plan-filter hidden>
+        <button type="button" class="u-plan-chip" data-direction="" aria-pressed="true">Усі напрями</button>
+        {% for d in directions %}
+        <button type="button" class="u-plan-chip" data-direction="{{ d.slug }}" data-name="{{ d.title }}" aria-pressed="false">
+            <svg class="ic" aria-hidden="true"><use href="#{{ d.icon }}"></use></svg>{{ d.title }}
         </button>
         {% endfor %}
     </div>
@@ -24,7 +24,7 @@
     <div class="u-plan-scroll" tabindex="0" role="group" aria-label="План приміщення, прокручується вбік">
         {% localize off %}
         <svg viewBox="0 0 1390 508" role="img" aria-labelledby="plan-title" data-play=".u-room">
-            <title id="plan-title">План приміщення Центру: склади, цехи, лабораторія, навчальний зал — спільні для всіх академій</title>
+            <title id="plan-title">План приміщення Центру: склади, цехи, лабораторія, навчальний зал — спільні для всіх напрямів</title>
             {% for room in plan %}
             <g class="u-room u-room-{{ room.kind }}"{% if room.uses %} data-uses="{{ room.uses|join:' ' }}"{% endif %}>
                 <title>{{ room.name }}{% if room.area %}, {{ room.area }} м²{% endif %}. {{ room.purpose }}{% if room.uses_label %} Для: {{ room.uses_label }}.{% endif %}</title>
@@ -61,10 +61,10 @@
         </div>
         <p>{{ room.purpose }}</p>
         <div class="u-room-card-uses">
-            {% if room.uses_label == 'усі академії' %}
-                <span class="u-room-all">Усі академії</span>
+            {% if room.uses_label == 'усі напрями' %}
+                <span class="u-room-all">Усі напрями</span>
             {% else %}
-                {% for a in room.academies %}<span class="u-room-acad" title="{{ a.name }}"><svg class="ic" aria-hidden="true"><use href="#{{ a.icon }}"></use></svg>{{ a.title }}</span>{% endfor %}
+                {% for d in room.directions %}<span class="u-room-dir"><svg class="ic" aria-hidden="true"><use href="#{{ d.icon }}"></use></svg>{{ d.title }}</span>{% endfor %}
             {% endif %}
         </div>
     </li>

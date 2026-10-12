@@ -36,7 +36,7 @@
     });
   });
 
-  // --- план: де працює академія --------------------------------------------
+  // --- план: де працюють із напрямом ----------------------------------------
   // Не анімація, а навігація, тож працює і з «менше руху». Приміщення без
   // data-uses (побутові, допоміжні) фільтр не чіпає.
   each(document.querySelectorAll('[data-plan]'), function (plan) {
@@ -52,7 +52,7 @@
     filter.addEventListener('click', function (event) {
       var chip = event.target.closest('button');
       if (!chip) return;
-      var slug = chip.getAttribute('data-academy');
+      var slug = chip.getAttribute('data-direction');
       each(filter.querySelectorAll('button'), function (b) {
         b.setAttribute('aria-pressed', b === chip ? 'true' : 'false');
       });
@@ -65,8 +65,8 @@
       });
       var name = chip.getAttribute('data-name');
       status.textContent = !slug ? ''
-        : used === total ? name + ' працює в усіх ' + total + ' приміщеннях.'
-        : name + ' працює в ' + used + ' з ' + total + ' приміщень, решта — для інших академій.';
+        : used === total ? 'Напрям «' + name + '» — в усіх ' + total + ' приміщеннях.'
+        : 'Напрям «' + name + '» — у ' + used + ' з ' + total + ' приміщень, решта — для інших напрямів.';
     });
   });
 

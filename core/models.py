@@ -2,9 +2,9 @@ from django.db import models
 
 
 class ContactRequest(models.Model):
-    """Заявка з публічного сайту — з Академії чи з Центру харчових інновацій.
+    """Заявка з публічного сайту — з Центру харчових інновацій чи з його академій.
 
-    Одна таблиця на обидва сайти: відповідають ті самі люди, а `source` каже,
+    Одна таблиця на всі сайти: відповідають ті самі люди, а `source` каже,
     з якої форми прийшла заявка. Конструктор курсів — теж форма Академії, але
     окрема: до заявки він додає `details` — що людина обрала і яку програму
     їй склали.
@@ -13,6 +13,7 @@ class ContactRequest(models.Model):
     class Source(models.TextChoices):
         ACADEMY = 'academy', 'Академія дистиляції'
         CENTER = 'center', 'Центр харчових інновацій'
+        FOOD_ACADEMY = 'food', 'Академія харчових інновацій'
         CONSTRUCTOR = 'constructor', 'Конструктор курсів'
 
     source = models.CharField('Звідки', max_length=20, choices=Source.choices,

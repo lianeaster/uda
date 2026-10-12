@@ -186,6 +186,8 @@
   function show(html, { top = true } = {}) {
     app.innerHTML = html;
     if (intro) intro.hidden = state.screen !== 'intro';
+    // На головній гра стартує карткою в героя, а далі займає всю його ширину.
+    app.closest('.cc').classList.toggle('is-playing', state.screen !== 'intro');
     enroll.hidden = true;
     const head = app.querySelector('h2');
     if (head && state.screen !== 'intro') {
@@ -205,6 +207,7 @@
     show(`
       <div class="cc-start">
         <div class="cc-start-body">
+          ${app.dataset.title ? `<span class="tag">Конструктор курсів</span><p class="cc-start-title">${esc(app.dataset.title)}</p>` : ''}
           <ol class="cc-how">
             <li style="--i:0"><b>1</b><span>Скажіть, хто ви біля куба</span></li>
             <li style="--i:1"><b>2</b><span>Налийте в пляшку свій напій</span></li>
@@ -558,7 +561,7 @@
     const box = document.createElement('div');
     box.className = 'cc-burst';
     box.style.left = Math.min(name.offsetWidth / 2, 260) + 'px';
-    const tones = ['var(--copper)', 'var(--accent-300)', 'var(--ink)', 'var(--accent-700)'];
+    const tones = ['var(--copper)', 'var(--contrast)', 'var(--accent-300)', 'var(--contrast-light)'];
     for (let i = 0; i < 22; i++) {
       const angle = Math.PI * (1 + (i + Math.random()) / 22), far = 90 + Math.random() * 150;
       const drop = document.createElement('i');

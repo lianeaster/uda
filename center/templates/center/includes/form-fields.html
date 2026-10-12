@@ -1,0 +1,16 @@
+{# Поля заявки — ті самі на головній Центру й у харчовій академії. #}
+{% csrf_token %}
+{% for field in form %}
+    {% if field.name == 'consent' %}
+        <div class="u-consent">
+            {{ field }}
+            <label for="{{ field.id_for_label }}">Погоджуюсь з <a href="https://distillingacademy.com.ua/privacy" target="_blank" rel="noopener">політикою конфіденційності</a></label>
+        </div>
+    {% else %}
+        <div class="u-field">
+            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {{ field }}
+        </div>
+    {% endif %}
+    {% if field.errors %}<div class="u-error">{{ field.errors|join:" " }}</div>{% endif %}
+{% endfor %}

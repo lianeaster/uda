@@ -1,0 +1,199 @@
+{% extends "center/base.html" %}
+{% load static %}
+
+{% comment %}
+Харчова академія — друга академія Центру поруч з Академією дистиляції.
+Свого бренду не має: кольори, шрифт і знак — Центру. Від сторінок Центру
+її відрізняють смуга над шапкою (як в Академії дистиляції), назва й меню.
+Тексти й напрями — `center.content.FOOD_ACADEMY` і `FOOD_DIRECTIONS`.
+{% endcomment %}
+
+{% block umbrella %}
+<div class="u-umbrella">
+    <div class="u-wrap u-umbrella-row">
+        <a href="{% url 'center:home' %}">
+            <img src="{% static 'img/center/logo-inverse.png' %}" alt="" width="28" height="28">
+            {{ center_name }}
+        </a>
+        <span class="u-umbrella-here"><span aria-hidden="true">›</span> {{ academy.name }}</span>
+        <a class="u-umbrella-sibling" href="{% url sibling.url_name %}">Академія дистиляції <span aria-hidden="true">→</span></a>
+    </div>
+</div>
+{% endblock %}
+
+{% block brand %}
+<a class="u-brand" href="{% url 'center:food_academy' %}">
+    <img src="{% static 'img/center/logo.png' %}" alt="" width="56" height="56">
+    <span class="u-brand-name">{{ academy.name }}</span>
+</a>
+{% endblock %}
+
+{% block nav %}
+    <a href="#napryamy">Напрями</a>
+    <a href="#yak-navchayemo">Як навчаємо</a>
+    <a href="#dlya-kogo">Для кого</a>
+    <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
+    <a class="u-btn u-btn-sm" href="#zayavka">Записатися</a>
+{% endblock %}
+
+{% block content %}
+
+<section class="u-hero u-hero-academy">
+    <div class="u-hero-deco" aria-hidden="true">
+        <i class="u-float u-float-1"></i><i class="u-float u-float-2"></i><i class="u-float u-float-3"></i><i class="u-float u-float-4"></i>
+    </div>
+
+    <div class="u-wrap u-hero-grid">
+        <div class="u-hero-text" data-reveal>
+            <span class="u-kicker">Академія Центру · {{ academy.status }}</span>
+            <h1><span>Вчимо робити</span> <span><span class="u-h1-accent">продукт</span></span> <span>зі свого врожаю</span></h1>
+
+            {% include "center/includes/morph.html" %}
+
+            <p class="u-lead">{{ academy.hero_lead }}</p>
+            <div class="u-actions">
+                <a class="u-btn" href="#zayavka">Записатися в першу групу</a>
+                <a class="u-btn u-btn-outline" href="#napryamy">Напрями навчання</a>
+            </div>
+            <dl class="u-stats">
+                <div><dt><span data-count>{{ directions|length }}</span></dt><dd>напрямів харчової переробки</dd></div>
+                <div><dt><span data-count>{{ topics_count }}</span></dt><dd>тем у семи напрямах</dd></div>
+                <div><dt><span data-count>{{ plan_area }}</span>&nbsp;м²</dt><dd>лабораторії, цехів і залів</dd></div>
+            </dl>
+        </div>
+
+        <figure class="u-collage" data-reveal>
+            <div class="u-collage-tile u-collage-raw">
+                <img src="{% static 'img/center/kitchen-class.jpg' %}" alt="Практичне заняття на професійній кухні" width="721" height="1124" loading="eager">
+                <span class="u-collage-tag"><b>1</b>Навчання</span>
+            </div>
+            <div class="u-collage-tile u-collage-lab">
+                <img src="{% static 'img/center/lab-kitchen.jpg' %}" alt="Робота з продуктом у цеху Центру" width="749" height="1124" loading="eager">
+                <span class="u-collage-tag"><b>2</b>Практика</span>
+            </div>
+            <div class="u-collage-tile u-collage-product">
+                <img src="{% static 'img/center/local-sauces.jpg' %}" alt="Соуси в банках із крафтовими етикетками" width="250" height="250" loading="eager">
+                <span class="u-collage-tag"><b>3</b>Продукт</span>
+            </div>
+        </figure>
+    </div>
+</section>
+
+<section class="u-section" id="napryamy">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Напрями</span>
+            <h2 data-reveal>Усе харчове — в одній академії</h2>
+            <p class="u-lead" data-reveal>Сім напрямів — оберіть свій. {{ academy.note }}</p>
+        </div>
+        {# Рядки, а не картки: назви стоять одна під одною, тож сім напрямів читаються як список. #}
+        <ul class="u-rows" data-stagger>
+            {% for d in directions %}
+            <li class="u-row" id="{{ d.slug }}" data-reveal>
+                <div class="u-row-head">
+                    <span class="u-row-icon"><svg class="ic" aria-hidden="true"><use href="#{{ d.icon }}"></use></svg></span>
+                    <div>
+                        <h3>{{ d.title }}</h3>
+                        <span class="u-row-example">{{ d.example.0 }} <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg> {{ d.example.1 }}</span>
+                    </div>
+                </div>
+                <div class="u-row-body">
+                    <p>{{ d.lead }}</p>
+                    <ul class="u-chips">
+                        {% for topic in d.topics %}<li><span>{{ topic }}</span></li>{% endfor %}
+                    </ul>
+                </div>
+                <a class="u-btn u-btn-outline u-btn-sm" href="?napryam={{ d.slug }}#zayavka" aria-label="Хочу в першу групу: {{ d.title }}">Хочу в групу</a>
+            </li>
+            {% endfor %}
+        </ul>
+        <div class="u-ask" data-reveal>
+            <div>
+                <h3>Вашої сировини немає в списку?</h3>
+                <p>Напишіть, що вирощуєте або з чим працюєте: нові програми складаємо під запити.</p>
+            </div>
+            <a class="u-btn u-btn-light" href="#zayavka">Розповісти про свою сировину</a>
+        </div>
+        <p class="u-note" data-reveal>Алкогольні напої — окрема академія Центру: дистилятів навчає <a href="{% url sibling.url_name %}">{{ sibling.name }}</a>.</p>
+    </div>
+</section>
+
+<section class="u-section u-section-tint" id="yak-navchayemo">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Як навчаємо</span>
+            <h2 data-reveal>Не конспект, а власний продукт на виході</h2>
+            <p class="u-lead" data-reveal>Академія працює на базі Центру — у тій самій лабораторії та цехах, де для виробників досліджують сировину й роблять пілотні партії. Тому програму будуємо як шлях продукту.</p>
+        </div>
+        <ol class="u-path" data-play="li">
+            {% for step in academy.path %}
+            <li>
+                <span class="u-path-ring"><svg class="ic" aria-hidden="true"><use href="#{{ step.icon }}"></use></svg></span>
+                <strong>{{ step.title }}</strong>
+                <span>{{ step.text }}</span>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+
+<section class="u-section" id="dlya-kogo">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Для кого</span>
+            <h2 data-reveal>Для тих, хто хоче робити продукт сам</h2>
+        </div>
+        <ul class="u-who" data-play="li">
+            {% for item in academy.audience %}
+            <li><strong>{{ item.title }}</strong><span>{{ item.text }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-section u-section-tint" id="platform">
+    <div class="u-wrap u-platform">
+        <div data-reveal>
+            <img class="u-platform-mark" src="{% static 'img/platform/mark.svg' %}" alt="" width="62" height="57">
+            <span class="u-kicker">Спільне для обох академій</span>
+            <h2>{{ platform.title }}</h2>
+            <p class="u-lead">{{ platform.text }} Харчова академія не будує своєї — підключається до тієї, що вже працює в Академії дистиляції.</p>
+            <div class="u-actions">
+                <a class="u-btn" href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Увійти на платформу</a>
+            </div>
+        </div>
+        <ul class="u-platform-list" data-play="li">
+            {% for feature in platform.features %}<li><svg class="ic" aria-hidden="true"><use href="#u-screen"></use></svg>{{ feature }}</li>{% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-contact" id="zayavka">
+    <div class="u-wrap u-contact-grid">
+        <div data-reveal>
+            <h2>Хочете вчитися чи викладати?</h2>
+            <p>Напишіть, який напрям вам потрібен і з якою сировиною працюєте. Перші групи збираємо з тих, хто відгукнувся.</p>
+            <dl class="u-contact-list">
+                <div><dt>Телефон</dt><dd><a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a></dd></div>
+                <div><dt>Пошта</dt><dd><a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a></dd></div>
+                <div><dt>Адреса</dt><dd>{{ contacts.address }}</dd></div>
+            </dl>
+        </div>
+
+        <div class="u-form" data-reveal>
+            {% if submitted %}
+                <div class="u-thanks" role="status">
+                    <h3>Дякуємо!</h3>
+                    <p>Ми зв'яжемось із вами протягом робочого дня.</p>
+                </div>
+            {% else %}
+                <h3>Заявка до Академії</h3>
+                <form method="post" action="{% url 'center:food_academy' %}#zayavka">
+                    {% include "center/includes/form-fields.html" %}
+                    <button type="submit" class="u-btn u-btn-block">Надіслати заявку</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

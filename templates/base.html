@@ -1,5 +1,5 @@
 {% load static %}<!DOCTYPE html>
-<html lang="uk">
+<html lang="uk"{% block html_class %}{% endblock %}>
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +9,7 @@
     голий URL. Заголовок і опис сторінки дає в'юшка (`page_title`,
     `page_description`) — один рядок і в <title>, і в прев'ю.
     {% endcomment %}
+    {% block meta %}
     <meta name="description" content="{{ page_description|default:site_description }}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Українська Академія Дистиляції">
@@ -20,17 +21,22 @@
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
     <meta name="twitter:card" content="summary_large_image">
-    
+    {% endblock %}
+
     <!-- Performance: preload critical assets -->
     <link rel="preload" as="style" href="{% static 'css/style.css' %}">
-    <link rel="preload" as="image" href="{% static 'img/photo/hero-new.png' %}" type="image/png">
+    {# Фото героя й шрифти Академії потрібні лише її сайту — платформа цей блок спорожнює. #}
+    {% block preload %}
+    <link rel="preload" as="image" href="{% static 'img/photo/hero-glass.jpg' %}" type="image/jpeg">
     
     <!-- Fonts: self-hosted via @font-face in CSS (woff2 with font-display: swap) -->
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/lora/v32/0QIvMX1D_JOuGQbT0gvTJPa787z5vb_C.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/ptsans/v17/jizfRExUiTo99u79D0KEwA.woff2">
-    
+    {% endblock %}
+
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% block theme %}{% endblock %}
     {% block favicon %}
     <link rel="icon" type="image/png" sizes="32x32" href="{% static 'img/brand/favicon-32.png' %}">
     <link rel="icon" type="image/png" sizes="192x192" href="{% static 'img/brand/icon-192.png' %}">
@@ -76,7 +82,7 @@
                 <a href="{% url 'core:lecturers' %}">Лектори</a>
                 {# Хто вже увійшов, того кнопка веде одразу в кабінет, а не на вхід. #}
                 <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}" class="cta-link">
-                    <img src="{% static 'img/platform/mark-light.svg' %}" alt="" width="40" height="50">
+                    <img src="{% static 'img/platform/mark-light.svg' %}" alt="" width="62" height="57">
                     Навчальна платформа
                 </a>
             {% endblock %}
@@ -97,6 +103,7 @@
 
     {% block outro %}{% endblock %}
 
+    {% block footer %}
     <footer class="site-footer">
         <div class="container">
             <div class="footer-grid">
@@ -116,6 +123,7 @@
                     <a href="{% url 'core:lecturers' %}">Лектори</a>
                     <a href="{% url 'core:lecturers' %}#zayavka">Консультація</a>
                     <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
+                    <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
                 </nav>
 
                 <div class="footer-col">
@@ -143,7 +151,8 @@
             </div>
         </div>
     </footer>
-    {% endblock %}
+    {% endblock footer %}
+    {% endblock body %}
     <script src="{% static 'js/menu.js' %}"></script>
     <script src="{% static 'js/reveal.js' %}"></script>
     <script src="{% static 'js/table.js' %}"></script>

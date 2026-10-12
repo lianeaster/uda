@@ -1,0 +1,18 @@
+{% comment %}
+Рядок перетворень «сировина → продукт»: приклади з `directions` змінюють
+один одного (static/js/center.js, `data-morph`). Читач екрана отримує всі
+одразу одним реченням.
+{% endcomment %}
+<div class="u-morph" aria-label="Наприклад: {% for d in directions %}{{ d.example.0 }} — {{ d.example.1 }}{% if not forloop.last %}; {% endif %}{% endfor %}">
+    <ul aria-hidden="true" data-morph>
+        {% for d in directions %}
+        <li{% if forloop.first %} class="is-in"{% endif %}>
+            <span class="u-morph-icon"><svg class="ic"><use href="#{{ d.icon }}"></use></svg></span>
+            <span class="u-morph-from">{{ d.example.0 }}</span>
+            <svg class="ic u-morph-arrow"><use href="#u-arrow"></use></svg>
+            <strong class="u-morph-to">{{ d.example.1 }}</strong>
+            <span class="u-morph-dir">{{ d.title }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+</div>

@@ -3,15 +3,31 @@
 {% block title %}{{ page_title }}{% endblock %}
 {% block content %}
 
-<section class="hero">
+{% comment %}
+Герой — це й є конструктор курсів: гра стартує просто з першого екрана.
+Композиція — як у Центру, але у фарбах Академії: ліворуч заголовок, праворуч
+сцена — фото з дегустації, печатка й картка гри, на якій, мов на полиці,
+стоїть пляшка з рецептом курсу. Тлом — кільце напису логотипа й мідні краплі.
+{% endcomment %}
+<link rel="stylesheet" href="{% static 'css/constructor.css' %}">
+<section class="hero cc cc-home">
+    <div class="hero-deco" aria-hidden="true">
+        <svg class="hero-ring" viewBox="0 0 500 500">
+            <path id="hero-ring-path" fill="none" d="M250 250m-205 0a205 205 0 1 1 410 0a205 205 0 1 1-410 0"/>
+            <text><textPath href="#hero-ring-path" textLength="1270" lengthAdjust="spacing">УКРАЇНСЬКА АКАДЕМІЯ ДИСТИЛЯЦІЇ •</textPath></text>
+        </svg>
+        <i class="hero-drop hero-drop-1"></i><i class="hero-drop hero-drop-2"></i><i class="hero-drop hero-drop-3"></i><i class="hero-drop hero-drop-4"></i>
+    </div>
+
     <div class="container hero-split">
-        <div data-reveal>
-            <span class="tag tag-outline tag-lg">Спеціалізована освітня платформа</span>
-            <h1>Вчимо робити дистиляти, які не соромно ставити на полицю</h1>
+        <div class="cc-home-text" id="cc-intro" data-reveal>
+            <span class="hero-kicker">Спеціалізована освітня платформа</span>
+            {# На широкому екрані кожен span — свій рядок; останній стоїть «на полиці». #}
+            <h1><span>Вчимо робити</span> <span>дистиляти, які</span> <em><span>не соромно ставити</span> <span><span class="hero-shelf">на полицю</span></span></em></h1>
             <p class="hero-lead">Технологи, науковці, крафтові виробники та сомельє — під одним дахом. Теорія, практика на діючих виробництвах і власний рецепт на виході.</p>
             <div class="hero-actions">
-                <a class="btn btn-primary" href="{% url 'core:constructor' %}">Зібрати свій курс</a>
-                <a class="btn btn-outline" href="{% url 'core:courses' %}">Програми навчання</a>
+                <a class="btn btn-dark" href="{% url 'core:courses' %}">Програми навчання</a>
+                <a class="btn btn-outline" href="{% url 'core:lecturers' %}">Лектори</a>
             </div>
             <div class="hero-stats" data-reveal>
                 <div class="hero-stat"><div class="stat-number">8</div><div class="stat-label">курсів і майстерень</div></div>
@@ -19,12 +35,21 @@
                 <div class="hero-stat"><div class="stat-number">12</div><div class="stat-label">партнерів галузі</div></div>
             </div>
         </div>
-        <div class="hero-figure" data-reveal>
-            <img src="{% static 'img/photo/hero-new.png' %}" alt="Дегустаційний сет Української Академії Дистиляції" width="1600" height="1067" loading="eager">
-            <img class="hero-seal" src="{% static 'img/brand/logo.png' %}" alt="" width="120" height="120">
+        <div class="cc-home-play" data-reveal>
+            <img class="cc-home-photo" src="{% static 'img/photo/hero-glass.jpg' %}" alt="Келих дистиляту на дегустації в Академії" width="800" height="1200" loading="eager">
+            <img class="cc-home-seal" src="{% static 'img/brand/logo.png' %}" alt="" width="124" height="124">
+            <noscript>
+                <a class="btn btn-primary btn-lg" href="{% url 'core:lecturers' %}#zayavka">Підібрати курс із менеджером</a>
+            </noscript>
+            {# Усі екрани гри малює static/js/constructor.js — той самий, що й на /academy/constructor/. #}
+            <div class="cc-app" id="cc-app" data-courses-url="{% url 'core:courses' %}" data-title="Зберіть свій курс за хвилину"></div>
         </div>
     </div>
+    <div class="container">
+        {% include "core/includes/constructor_enroll.html" %}
+    </div>
 </section>
+{% include "core/includes/constructor_scripts.html" %}
 
 <section class="page-section">
     <div class="container">
@@ -43,12 +68,6 @@
             </div>
             {% endfor %}
         </div>
-    </div>
-</section>
-
-<section class="page-section">
-    <div class="container">
-        {% include "core/includes/builder.html" %}
     </div>
 </section>
 

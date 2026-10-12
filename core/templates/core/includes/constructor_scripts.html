@@ -1,0 +1,8 @@
+{% load static %}{% comment %}
+Дані матриці, підбір і сама гра — саме в такому порядку. Сторінці потрібні ще
+`catalog` у контексті та елементи #cc-app і #zapys.
+{% endcomment %}
+{{ catalog|json_script:"cc-catalog" }}
+<script src="{% static 'js/competency-data.js' %}"></script>
+<script src="{% static 'js/course-engine.js' %}"></script>
+<script src="{% static 'js/constructor.js' %}"></script>

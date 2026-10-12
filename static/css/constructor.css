@@ -1,14 +1,15 @@
 /* Конструктор курсів (core/constructor.html, static/js/constructor.js).
 
    Усе під обгорткою .cc і з префіксом cc-, щоб не зачепити решту сайту.
-   Кольори — лише з гайдлайну Академії: вугільна, мідь і їхні тінти. */
+   Кольори — з гами Академії: мідь і вугільна тримають основу, контрастна
+   фарба (--contrast, див. style.css) позначає вибране й головне. */
 
 .cc button { font: inherit; color: inherit; }
 .cc-app { min-height: 420px; }
 .cc-fine { font-size: var(--small); color: var(--ink-muted); margin: 0; }
 .cc-kicker {
   display: block; font-size: var(--tiny); letter-spacing: 0.12em; text-transform: uppercase;
-  font-weight: 600; color: var(--copper);
+  font-weight: 600; color: var(--contrast);
 }
 .cc-hint { color: var(--ink-muted); max-width: 52ch; margin: 0 0 28px; font-size: 17px; }
 .cc-link {
@@ -108,7 +109,7 @@
 .cc-steps .is-done { border-color: var(--ink); color: var(--ink); }
 .cc-steps .is-done b { background: var(--ink); border-color: var(--ink); color: var(--cream); }
 .cc-steps .is-now { border-color: var(--copper); color: var(--ink); font-weight: 700; }
-.cc-steps .is-now b { background: var(--copper); border-color: var(--copper); color: var(--cream); }
+.cc-steps .is-now b { background: var(--contrast); border-color: var(--contrast); color: var(--cream); }
 
 .cc-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 36px; }
 
@@ -123,14 +124,14 @@
 .cc-level:hover, .cc-stage:hover { border-color: var(--copper-light); transform: translateY(-3px); box-shadow: var(--shadow); }
 .cc-level strong, .cc-stage strong { font-family: "Lora", Georgia, serif; font-weight: 500; color: var(--ink); line-height: 1.2; }
 .cc-level[aria-pressed="true"], .cc-stage[aria-pressed="true"] {
-  border-color: var(--copper); background: var(--accent-100); box-shadow: 0 0 0 3px color-mix(in srgb, var(--copper) 22%, transparent);
+  border-color: var(--contrast); background: var(--contrast-50); box-shadow: 0 0 0 3px color-mix(in srgb, var(--contrast) 22%, transparent);
 }
 
 .cc-levels { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; }
 .cc-level strong { font-size: var(--h3); }
 .cc-level .icon-badge { margin-bottom: 8px; }
-.cc-level[aria-pressed="true"] .icon-badge { border-color: var(--copper); color: var(--copper-dark); }
-.cc-level-n { font-size: var(--tiny); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--copper); }
+.cc-level[aria-pressed="true"] .icon-badge { border-color: var(--contrast); color: var(--contrast-dark); }
+.cc-level-n { font-size: var(--tiny); letter-spacing: 0.1em; text-transform: uppercase; font-weight: 600; color: var(--contrast); }
 
 .cc-drinks { display: flex; flex-wrap: wrap; gap: 10px; }
 .cc-drink, .cc-word, .cc-seg button, .cc-options button {
@@ -144,17 +145,17 @@
 .cc-drink:hover, .cc-word:hover, .cc-seg button:hover, .cc-options button:hover { border-color: var(--copper); }
 .cc .cc-drink[aria-pressed="true"], .cc .cc-word[aria-pressed="true"],
 .cc .cc-seg button[aria-pressed="true"], .cc .cc-options button[aria-pressed="true"] {
-  background: var(--ink); border-color: var(--ink); color: var(--cream);
+  background: var(--contrast-dark); border-color: var(--contrast-dark); color: var(--cream);
 }
 .cc-drink[aria-pressed="true"] i { border-color: var(--cream); }
 
 .cc-route { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; margin-bottom: 16px; }
 .cc-stage { grid-template-columns: auto 1fr; column-gap: 12px; padding: 16px 18px; }
-.cc-stage-n { grid-column: 1 / -1; font-size: var(--tiny); letter-spacing: 0.1em; font-weight: 600; color: var(--copper); }
+.cc-stage-n { grid-column: 1 / -1; font-size: var(--tiny); letter-spacing: 0.1em; font-weight: 600; color: var(--contrast); }
 .cc-stage-ic { grid-row: span 2; align-self: start; font-size: 26px; color: var(--ink); }
 .cc-stage strong { font-size: 18px; }
 .cc-stage > span:last-child { grid-column: 2; }
-.cc-stage[aria-pressed="true"] .cc-stage-n::after { content: " · у маршруті"; color: var(--copper-dark); }
+.cc-stage[aria-pressed="true"] .cc-stage-n::after { content: " · у маршруті"; color: var(--contrast-dark); }
 
 /* --- вибір за словами ----------------------------------------------------- */
 .cc-seg { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 16px; }
@@ -194,7 +195,7 @@
   padding: 6px 14px; border-radius: var(--radius-pill); border: 1px solid var(--border-strong);
   background: var(--accent-50); font-size: var(--small); color: var(--ink-soft);
 }
-.cc-chip--level { background: var(--ink); border-color: var(--ink); color: var(--cream); }
+.cc-chip--level { background: var(--contrast-dark); border-color: var(--contrast-dark); color: var(--cream); }
 
 .cc-cards { display: grid; gap: 20px; }
 .cc-cards-title { margin: 28px 0 0; }
@@ -202,8 +203,8 @@
   padding: 28px; background: var(--glass-bg); border: 1.5px solid var(--glass-border); border-radius: var(--radius-lg);
   transition: border-color var(--duration-base) var(--ease-out), box-shadow var(--duration-base) var(--ease-out);
 }
-.cc-card--own { position: relative; background: var(--paper); border-color: var(--copper); box-shadow: var(--shadow); }
-.cc-card.is-chosen { border-color: var(--ink); box-shadow: 0 0 0 3px color-mix(in srgb, var(--copper) 30%, transparent); }
+.cc-card--own { position: relative; background: var(--paper); border-color: var(--contrast); box-shadow: var(--shadow); }
+.cc-card.is-chosen { border-color: var(--contrast-dark); box-shadow: 0 0 0 3px color-mix(in srgb, var(--contrast) 30%, transparent); }
 .cc-card-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 24px; align-items: start; }
 .cc-card-text { display: grid; gap: 8px; justify-items: start; }
 .cc-card-text h3 { margin: 4px 0 0; }
@@ -220,7 +221,7 @@
   stroke: var(--copper); stroke-linecap: round; stroke-dasharray: 100;
   stroke-dashoffset: calc(100 - var(--p)); transition: stroke-dashoffset 1100ms var(--ease-out);
 }
-.cc-card--own .cc-ring-value { stroke: var(--ink); }
+.cc-card--own .cc-ring-value { stroke: var(--contrast); }
 .cc-ring > span { position: absolute; inset: 0; display: grid; place-content: center; grid-auto-flow: column; align-items: baseline; font-size: 13px; color: var(--ink-muted); }
 .cc-ring b { font-family: "Lora", Georgia, serif; font-size: 28px; font-weight: 500; color: var(--ink); font-variant-numeric: tabular-nums; }
 
@@ -232,11 +233,12 @@
   width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--radius-pill);
   border: 1.5px solid var(--border-strong); font-size: var(--small); font-weight: 700; color: var(--ink-muted); background: var(--cream);
 }
-.cc-mod--goal .cc-mod-n { background: var(--copper); border-color: var(--copper); color: var(--cream); }
+.cc-mod--goal .cc-mod-n { background: var(--contrast); border-color: var(--contrast); color: var(--cream); }
 .cc-mod--drink .cc-mod-n { border-color: var(--copper); color: var(--copper-dark); }
 .cc-mod-body { display: grid; gap: 4px; }
 .cc-role { font-size: var(--tiny); letter-spacing: 0.08em; text-transform: uppercase; font-weight: 600; color: var(--ink-muted); }
-.cc-mod--goal .cc-role, .cc-mod--drink .cc-role { color: var(--copper-dark); }
+.cc-mod--goal .cc-role { color: var(--contrast-dark); }
+.cc-mod--drink .cc-role { color: var(--copper-dark); }
 .cc-mod h4 { margin: 0; font-size: 20px; }
 .cc-out, .cc-topics { margin: 0; font-size: var(--small); color: var(--ink-soft); }
 .cc-topics { color: var(--ink-muted); }
@@ -265,24 +267,218 @@
 .cc-cover li { display: flex; gap: 8px; color: var(--ink-muted); }
 .cc-cover li span { flex: none; width: 1em; text-align: center; font-weight: 700; }
 .cc-cover .hit { color: var(--ink); }
-.cc-cover .hit span { color: var(--copper); }
+.cc-cover .hit span { color: var(--contrast); }
 
 /* --- запис ---------------------------------------------------------------- */
 .cc-enroll {
   display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 40px; align-items: start;
   margin-top: 48px; padding: 48px; scroll-margin-top: 110px;
-  background: var(--accent-900); color: var(--neutral-200); border-radius: var(--radius-xl);
+  background: var(--contrast-deep); color: var(--neutral-200); border-radius: var(--radius-xl);
 }
 .cc-enroll[hidden] { display: none; }
 .cc-enroll h2 { margin: 0 0 14px; color: var(--neutral-100); }
 .cc-enroll-text p { font-size: 17px; max-width: 32em; }
-.cc-enroll .section-kicker { color: var(--accent-400); }
-.cc-enroll .cc-fine { color: var(--accent-300); font-size: var(--small); }
+.cc-enroll .section-kicker { color: var(--contrast-light); }
+.cc-enroll .cc-fine { color: var(--contrast-light); font-size: var(--small); }
 .cc-form {
   display: grid; gap: 16px; padding: 32px; background: var(--cream); color: var(--ink);
   border-radius: var(--radius-lg); border: 1px solid var(--border);
 }
 .cc-form label { font-size: var(--small); margin-bottom: 6px; font-weight: 400; color: var(--ink-muted); }
+
+/* --- головна: гра стартує в героя -----------------------------------------
+   Ліворуч заголовок Академії, праворуч — сцена: фото з дегустації, печатка
+   й стартова картка гри на контрастній фарбі. Пляшка стоїть на картці, мов
+   на полиці, — тій самій, що в заголовку. Після старту текст і сцена
+   ховаються (скрипт ставить .is-playing), і гра займає всю ширину героя. */
+.cc-home { position: relative; }
+.cc-home > .container { position: relative; z-index: 1; }
+.cc-home .hero-split { grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr); gap: 56px; align-items: center; }
+.cc-home.is-playing .hero-split { grid-template-columns: minmax(0, 1fr); }
+.cc-home .cc-app { min-height: 0; }
+.cc-home.is-playing .cc-app { min-height: 420px; }
+.cc-home.is-playing :is(.cc-home-photo, .cc-home-seal, .hero-ring, .hero-drop) { display: none; }
+
+/* Текст: підпис із краплею, заголовок, що закінчується «на полиці». */
+.hero-kicker {
+  display: inline-flex; align-items: center; gap: 14px; margin-bottom: 20px;
+  font-size: 13px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--copper-dark);
+}
+.hero-kicker::before {
+  content: ""; flex: none; width: 10px; height: 10px; background: var(--copper);
+  border-radius: 0 50% 50% 50%; transform: rotate(45deg);
+}
+.cc-home h1 { isolation: isolate; margin-bottom: 22px; font-size: clamp(36px, 4.3vw, 60px); line-height: 1.05; letter-spacing: -0.03em; }
+.cc-home h1 em { display: block; }
+.hero-shelf { position: relative; display: inline-block; white-space: nowrap; }
+.hero-shelf::after {
+  content: ""; position: absolute; z-index: -1; left: -0.05em; right: -0.12em; bottom: -0.04em; height: 0.08em;
+  border-radius: 999px; background: var(--copper); transform-origin: left center;
+}
+.cc-home .hero-lead { max-width: 33em; margin-bottom: 28px; font-size: clamp(17px, 1.45vw, 19px); line-height: 1.6; font-weight: 400; }
+.cc-home .hero-actions { gap: 12px; margin-bottom: 36px; }
+.cc-home .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding-top: 24px; }
+.cc-home .hero-stat { min-width: 0; }
+.cc-home .hero-stats .stat-label { line-height: 1.4; }
+
+/* Тло: два відсвіти фірмових фарб, напис логотипа кільцем ледь обертається,
+   пливуть мідні краплі. Донизу все тане — наступна секція на тому ж
+   пергаменті, тож різати кільце по краю героя не можна. */
+.hero-deco {
+  position: absolute; inset: 0; overflow: hidden; pointer-events: none;
+  background:
+    radial-gradient(900px 600px at 90% 6%, color-mix(in srgb, var(--copper) 15%, transparent), transparent 62%),
+    radial-gradient(800px 700px at -6% 100%, color-mix(in srgb, var(--contrast) 11%, transparent), transparent 60%);
+  -webkit-mask-image: linear-gradient(#000 72%, transparent);
+  mask-image: linear-gradient(#000 72%, transparent);
+}
+.hero-ring {
+  --size: min(820px, 68vw);
+  position: absolute; right: -8%; top: 0; bottom: 0; margin: auto 0; width: var(--size); height: var(--size);
+  opacity: 0.07; fill: var(--copper-dark); animation: hero-spin 160s linear infinite;
+}
+.hero-ring text { font-family: var(--font-body); font-size: 60px; font-weight: 700; }
+.hero-drop {
+  position: absolute; width: 14px; height: 14px; border-radius: 0 50% 50% 50%; transform: rotate(45deg);
+  background: var(--copper); opacity: 0.4; animation: hero-drift 9s ease-in-out infinite alternate;
+}
+.hero-drop-1 { left: 4%; top: 15%; }
+.hero-drop-2 { left: 48%; top: 8%; width: 10px; height: 10px; background: var(--contrast); animation-duration: 11s; animation-delay: -3s; }
+.hero-drop-3 { left: 50%; bottom: 24%; width: 11px; height: 11px; animation-duration: 8s; animation-delay: -5s; }
+.hero-drop-4 { right: 3%; top: 72%; background: var(--contrast); animation-duration: 12s; animation-delay: -2s; }
+/* Вужче за 1280 ліворуч від тексту вже немає поля — крапля лізла б на підпис. */
+@media (max-width: 1279px) { .hero-drop-1 { display: none; } }
+@keyframes hero-spin { to { transform: rotate(360deg); } }
+@keyframes hero-drift { to { transform: translate(8px, -22px) rotate(32deg); } }
+.hero-shelf::after { animation: hero-draw 900ms var(--ease-out) 600ms both; }
+@keyframes hero-draw { from { transform: scaleX(0); } }
+
+/* Стартова картка гри — темна, на контрастній фарбі. */
+.cc-home .cc-start {
+  grid-template-columns: minmax(0, 1fr) auto; gap: 28px; padding: 40px 36px;
+  border: 0; box-shadow: var(--shadow-xl); color: var(--neutral-100);
+  background:
+    radial-gradient(ellipse 70% 90% at 100% 0%, color-mix(in srgb, var(--contrast-light) 16%, transparent), transparent 62%),
+    var(--contrast-deep);
+}
+.cc-home .cc-start .tag { background: var(--contrast-light); color: var(--contrast-deep); }
+.cc-start-title {
+  margin: 14px 0 22px; font-family: "Lora", Georgia, serif; font-size: clamp(26px, 2.5vw, 34px);
+  line-height: 1.12; letter-spacing: -0.01em; color: var(--cream);
+}
+.cc-home .cc-how { margin-bottom: 26px; }
+.cc-home .cc-how li { font-size: 18px; gap: 14px; }
+.cc-home .cc-how b { --how-rest: var(--copper-light); width: 34px; height: 34px; font-size: 15px; border-color: var(--copper-light); }
+.cc-home .cc-start-actions { flex-direction: column; align-items: stretch; margin-bottom: 0; }
+.cc-home .cc-start .btn-outline { border-color: color-mix(in srgb, var(--cream) 40%, transparent); color: var(--cream); font-size: var(--small); padding-block: 12px; }
+.cc-home .cc-start .btn-outline:hover { background: color-mix(in srgb, var(--cream) 12%, transparent); border-color: var(--cream); color: var(--cream); }
+.cc-home .cc-start .cc-fine { display: none; }
+.cc-home .cc-start-art .cc-bottle { width: 132px; }
+
+@media (min-width: 861px) {
+  /* Перший екран — на всю висоту вікна (у розумних межах), як у Центру. */
+  .cc-home {
+    display: flex; flex-direction: column; justify-content: center;
+    min-height: clamp(600px, calc(100svh - 116px), 840px); padding: 44px 0 48px;
+  }
+  .cc-home.is-playing { display: block; min-height: 0; }
+  .cc-home > .container { width: 100%; }
+  .cc-home h1 > span, .cc-home h1 em > span { display: block; }
+
+  /* Сцена: фото визирає з-за картки на --peek, пляшка стоїть на її краю. */
+  .cc-home-play { --peek: 244px; position: relative; }
+  .cc-home-photo {
+    position: absolute; left: 0; top: 0; width: 62%; height: calc(var(--peek) + 96px);
+    object-fit: cover; object-position: 50% 100%;
+    border-radius: var(--radius-xl); box-shadow: var(--shadow-xl);
+  }
+  .cc-home-seal {
+    position: absolute; z-index: 2; left: -34px; top: -26px; width: 124px; height: 124px; padding: 14px;
+    object-fit: contain; background: var(--cream); border: 1px solid var(--border); border-radius: 50%;
+    box-shadow: var(--shadow-lg); animation: float-gentle 6s ease-in-out infinite;
+  }
+  .cc-home:not(.is-playing) .cc-app { position: relative; z-index: 1; margin-top: var(--peek); }
+  .cc-home .cc-start { position: relative; display: block; padding: 30px 36px 26px; }
+  .cc-start-title { margin: 12px 0 18px; font-size: clamp(24px, 2.1vw, 30px); text-wrap: balance; }
+  .cc-home .cc-how { gap: 9px; margin-bottom: 22px; }
+  .cc-home .cc-how li { font-size: 17px; }
+  .cc-home .cc-how b { width: 30px; height: 30px; font-size: 14px; }
+  /* Другий шлях — не кнопка, а посилання під закликом. */
+  .cc-home .cc-start .btn-outline, .cc-home .cc-start .btn-outline:hover {
+    align-self: center; padding: 2px 4px; border: 0; background: none; box-shadow: none; transform: none;
+    color: var(--contrast-light); text-decoration: underline; text-underline-offset: 3px; font-weight: 400;
+  }
+  .cc-home .cc-start .btn-outline:hover { color: var(--cream); }
+
+  /* Пляшка на «полиці»: стоїть на верхньому краї картки, не гойдається. */
+  .cc-home .cc-start-art { position: absolute; right: 8%; bottom: calc(100% - 3px); width: 104px; }
+  .cc-home .cc-start-art::before {
+    content: ""; position: absolute; z-index: -1; inset: 8% -30% -6%;
+    background: radial-gradient(closest-side, color-mix(in srgb, var(--copper) 26%, transparent), transparent);
+  }
+  .cc-home .cc-start-art .cc-bottle { width: 100%; animation: none; container-type: normal; }
+  /* Етикетка тут — бирка поруч із пляшкою: на самій пляшці її не прочитати. */
+  .cc-home .cc-start-art .cc-label {
+    left: auto; right: calc(100% + 16px); top: 30%; width: 152px;
+    gap: 2px; padding: 10px 16px; text-align: left; font-size: 13px;
+    border: 0; border-radius: var(--radius-md); box-shadow: var(--shadow-lg);
+  }
+  .cc-home .cc-start-art .cc-label::after {
+    content: ""; position: absolute; right: -5px; top: 50%; width: 11px; height: 11px; margin-top: -5px;
+    background: inherit; transform: rotate(45deg);
+  }
+  .cc-home .cc-start-art .cc-label strong { font-size: 17px; }
+  .cc-home .cc-start-art .cc-label-kicker { font-size: 10px; font-weight: 700; }
+}
+
+@media (max-width: 860px) {
+  /* На телефоні картка гри стає одразу під заголовком: його діти
+     розкладаються в ту саму колонку, що й картка. Сцени немає — фото
+     лягає тлом картки, пляшка стоїть усередині. */
+  .cc-home { padding-top: 28px; }
+  .cc-home .hero-split, .cc-home.is-playing .hero-split { grid-template-columns: minmax(0, 1fr); gap: 0; }
+  .cc-home-text { display: contents; }
+  .cc-home-text[hidden] { display: none; }
+  .cc-home-text > .hero-kicker { margin-bottom: 14px; }
+  .cc-home h1 { margin-bottom: 24px; }
+  .cc-home-play { order: 1; margin-bottom: 32px; }
+  .cc-home.is-playing .cc-home-play { margin-bottom: 0; }
+  .cc-home-text > .hero-lead, .cc-home-text > .hero-actions, .cc-home-text > .hero-stats { order: 2; }
+  .cc-home-photo, .cc-home-seal, .hero-drop { display: none; }
+  .hero-ring { right: -30%; top: auto; bottom: -12%; --size: 110vw; }
+  /* У картці спершу назва й заклик, кроки — під ними. */
+  .cc-home .cc-start {
+    grid-template-columns: minmax(0, 1fr) auto; gap: 20px; padding: 28px 24px;
+    background:
+      linear-gradient(155deg, color-mix(in srgb, var(--contrast-deep) 72%, transparent), color-mix(in srgb, var(--contrast-deep) 96%, transparent) 70%),
+      url("../img/photo/hero-glass.jpg") 30% center / cover;
+  }
+  .cc-home .cc-start-body { display: flex; flex-direction: column; align-items: stretch; }
+  .cc-home .cc-start-body > .tag { order: -3; align-self: start; }
+  .cc-home .cc-start-title { order: -2; margin: 12px 0 20px; }
+  .cc-home .cc-start-actions { order: -1; margin-bottom: 24px; }
+  .cc-home .cc-how { margin-bottom: 0; }
+  .cc-home .cc-start-art .cc-bottle { width: 104px; }
+  /* Скло на темному — світле. */
+  .cc-home .cc-start .cc-glass { stroke: var(--cream); }
+  .cc-home .cc-start .cc-glass-back { fill: color-mix(in srgb, var(--cream) 14%, transparent); }
+  .cc-home .cc-start .cc-pour { border-color: var(--cream); }
+}
+@media (max-width: 480px) {
+  /* Маленький телефон: заклик має вміститись у перший екран, тож підпис над
+     заголовком поступається місцем, а заголовок трохи менший. */
+  .cc-home { padding-top: 20px; }
+  .cc-home-text > .hero-kicker { display: none; }
+  .cc-home h1 { font-size: 34px; margin-bottom: 18px; }
+  .cc-home .hero-stats { gap: 14px; }
+  /* Картка в одну колонку; пляшка — маленька, у кутку біля назви. Етикетку
+     на такій не прочитати, тож її немає. */
+  .cc-home .cc-start { position: relative; grid-template-columns: minmax(0, 1fr); gap: 0; padding: 22px 20px; }
+  .cc-home .cc-start-title { font-size: 24px; margin: 10px 0 16px; padding-right: 64px; }
+  .cc-home .cc-start-art { position: absolute; right: 20px; top: 18px; }
+  .cc-home .cc-start-art .cc-bottle { width: 46px; }
+  .cc-home .cc-start-art .cc-label { display: none; }
+}
 
 /* --- вузькі екрани -------------------------------------------------------- */
 @media (max-width: 900px) {
@@ -355,7 +551,7 @@
 .cc-how li { animation: cc-up 600ms var(--ease-out) both; animation-delay: calc(var(--i) * 140ms + 100ms); }
 .cc-how b { animation: cc-lit 4.8s ease-in-out infinite; animation-delay: calc(var(--i) * 1.6s + 0.9s); }
 @keyframes cc-lit {
-  0%, 30%, 100% { background: transparent; color: var(--copper-dark); transform: none; }
+  0%, 30%, 100% { background: transparent; color: var(--how-rest, var(--copper-dark)); transform: none; }
   8%, 22% { background: var(--copper); color: var(--cream); transform: scale(1.12); }
 }
 .cc-start-actions { animation: cc-up 600ms var(--ease-out) 520ms both; }
@@ -384,7 +580,7 @@
 }
 .cc-plus {
   position: absolute; left: 50%; top: 19%; z-index: 2; white-space: nowrap; pointer-events: none;
-  padding: 5px 14px; border-radius: var(--radius-pill); background: var(--ink); color: var(--cream);
+  padding: 5px 14px; border-radius: var(--radius-pill); background: var(--contrast-dark); color: var(--cream);
   font-size: 13px; font-weight: 700; animation: cc-plus 1300ms var(--ease-out) both;
 }
 @keyframes cc-plus {
@@ -407,7 +603,7 @@
 .cc-steps li { position: relative; }
 .cc-steps .is-now { border-top-color: var(--border-strong); }
 .cc-steps .is-now::before {
-  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 3px; background: var(--copper);
+  content: ""; position: absolute; left: 0; right: 0; top: -3px; height: 3px; background: var(--contrast);
   transform-origin: left; animation: cc-grow 800ms var(--ease-out) both;
 }
 .cc-steps .is-now b { animation: cc-pulse 1.9s ease-out infinite; }
@@ -456,8 +652,8 @@
 }
 .cc-stamp {
   position: absolute; top: -15px; right: 28px; padding: 5px 14px; transform: rotate(3deg);
-  background: var(--cream); border: 2px solid var(--ink); border-radius: 6px;
-  font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink);
+  background: var(--cream); border: 2px solid var(--contrast-dark); border-radius: 6px;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase; color: var(--contrast-dark);
 }
 .cc-result.is-first .cc-stamp { animation: cc-stamp 460ms cubic-bezier(0.2, 1.5, 0.4, 1) 1500ms both; }
 @keyframes cc-stamp { from { opacity: 0; transform: rotate(-14deg) scale(2.4); } }
@@ -465,8 +661,8 @@
 /* Правки в програмі: нове підсвічується, обрана картка відгукується. */
 .cc-mod.is-new, .cc-card.is-new { animation: cc-new 1500ms var(--ease-out); }
 @keyframes cc-new {
-  0% { opacity: 0; transform: translateX(-16px); background: var(--accent-300); }
-  30% { opacity: 1; transform: none; background: var(--accent-200); }
+  0% { opacity: 0; transform: translateX(-16px); background: var(--contrast-100); }
+  30% { opacity: 1; transform: none; background: var(--contrast-50); }
 }
 .cc-mod-n, .cc-x { transition: transform var(--duration-base) var(--ease-spring), background var(--duration-fast), border-color var(--duration-fast); }
 .cc-mod:hover .cc-mod-n { transform: scale(1.15); }

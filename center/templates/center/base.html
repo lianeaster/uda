@@ -5,8 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{{ page_title }}{% endblock %}</title>
     {% comment %}
-    Сайт Центру — окремий бренд від Академії: власні знак, палітра й шрифт
-    за гайдлайном UFIC, тож і база своя, а не `templates/base.html`.
+    Сайт Центру — окремий бренд від Академії дистиляції: власні знак, палітра
+    й шрифт за гайдлайном UFIC, тож і база своя, а не `templates/base.html`.
+    На ній же стоїть харчова академія: свого бренду в неї немає, вона
+    перекриває лише смугу над шапкою, назву й меню.
     Опис і прев'ю посилання дає в'юшка (`page_title`, `page_description`).
     {% endcomment %}
     <meta name="description" content="{{ page_description }}">
@@ -47,19 +49,27 @@
     {% include "center/includes/icons.html" %}
     <a class="skip-link" href="#main">До змісту</a>
 
+    {% block umbrella %}{% endblock %}
     <header class="u-header">
         <div class="u-wrap u-header-row">
+            {% block brand %}
             <a class="u-brand" href="{% url 'center:home' %}">
                 <img src="{% static 'img/center/logo.png' %}" alt="" width="56" height="56">
                 <span class="u-brand-name">{{ center_name }}</span>
             </a>
+            {% endblock %}
             <nav class="u-nav" aria-label="Головне меню">
+            {% comment %}
+            Меню Центру — про те, що він робить. Вхід на навчальну платформу
+            тут свідомо не в меню: він у шапках академій і в підвалі.
+            {% endcomment %}
+            {% block nav %}
                 <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
-                <a href="{% url 'center:home' %}#karta">Карта</a>
-                <a href="{% url 'center:directions' %}"{% if request.resolver_match.url_name == 'directions' %} aria-current="page"{% endif %}>Академії</a>
+                <a href="{% url 'center:services' %}"{% if request.resolver_match.url_name == 'services' %} aria-current="page"{% endif %}>Послуги</a>
                 <a href="{% url 'center:home' %}#prostir">Простір</a>
-                <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
-                <a class="u-btn u-btn-sm" href="{% url 'center:home' %}#zayavka">Зв'язатися</a>
+                <a href="{% url 'center:home' %}#akademii">Академії</a>
+                <a class="u-btn u-btn-sm" href="{% url 'center:home' %}#zayavka">Обговорити проєкт</a>
+            {% endblock %}
             </nav>
         </div>
     </header>
@@ -79,8 +89,8 @@
                 <nav class="u-footer-col" aria-label="Центр">
                     <h2>Центр</h2>
                     <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
-                    <a href="{% url 'center:home' %}#karta">Карта Центру</a>
-                    <a href="{% url 'center:directions' %}#base">Спільна база</a>
+                    <a href="{% url 'center:services' %}">Послуги</a>
+                    <a href="{% url 'center:services' %}#incubator">Інкубатор</a>
                     <a href="{% url 'center:home' %}#prostir">Простір</a>
                     <a href="{% url 'center:home' %}#zayavka">Заявка</a>
                 </nav>
@@ -88,7 +98,7 @@
                 <nav class="u-footer-col" aria-label="Академії">
                     <h2>Академії</h2>
                     <a href="{% url 'core:home' %}">Академія дистиляції</a>
-                    <a href="{% url 'center:directions' %}#academies">Усі напрями</a>
+                    <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
                     <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
                 </nav>
 

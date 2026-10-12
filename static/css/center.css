@@ -147,6 +147,15 @@ body.ufic {
 .u-nav a:not(.u-btn):hover { color: var(--green); border-bottom-color: var(--orange); }
 .u-nav a[aria-current="page"] { color: var(--green); border-bottom-color: var(--green); }
 
+/* Смуга над шапкою харчової академії: вона — підрозділ Центру, поруч з
+   Академією дистиляції. Така сама смуга є в тієї (`.umbrella` у style.css). */
+.u-umbrella { background: var(--green-900); color: var(--green-200); font-size: 15px; }
+.u-umbrella-row { display: flex; flex-wrap: wrap; align-items: center; gap: 2px 10px; min-height: 40px; padding-top: 4px; padding-bottom: 4px; }
+.u-umbrella a { display: inline-flex; align-items: center; gap: 8px; color: #fff; text-decoration: none; }
+.u-umbrella a:hover { text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 3px; }
+.u-umbrella img { width: 28px; height: 28px; }
+.u-umbrella-sibling { margin-left: auto; white-space: nowrap; }
+
 /* --- герой --------------------------------------------------------------- */
 
 /* Перший екран — на всю висоту вікна (у розумних межах). Тло — два теплі
@@ -163,7 +172,8 @@ body.ufic {
   position: relative; z-index: 1; flex: 1;
   display: grid; grid-template-columns: 1.05fr .95fr; gap: 56px; align-items: center; padding-bottom: 56px;
 }
-/* Заголовок завжди в три рядки: «Від сировини / до продукту / на полиці». */
+/* Заголовок завжди в три рядки: «Від сировини / до продукту / на полиці»
+   в Центру, «Вчимо робити / продукт / зі свого врожаю» в харчовій академії. */
 .u-hero h1 { isolation: isolate; font-size: clamp(44px, 5.6vw, 80px); line-height: .98; letter-spacing: -.012em; }
 .u-hero h1 > span { display: block; }
 /* «до продукту» підкреслено помаранчевим мазком, що домальовується. */
@@ -174,7 +184,7 @@ body.ufic {
 }
 .u-hero .u-lead { margin-top: 22px; max-width: 32em; }
 
-/* Рядок перетворень: «сировина → продукт» по академіях, по одному. */
+/* Рядок перетворень: «сировина → продукт» по напрямах, по одному. */
 .u-morph { margin-top: 28px; }
 .u-morph ul { list-style: none; margin: 0; padding: 0; display: inline-grid; }
 .u-morph li {
@@ -190,7 +200,7 @@ body.ufic {
 .u-morph-from { font-size: 20px; color: var(--ink-soft); }
 .u-morph-arrow { width: 22px; height: 22px; color: var(--orange); stroke-width: 2.4; }
 .u-morph-to { font-size: 22px; font-weight: 600; color: var(--green); }
-.u-morph-acad {
+.u-morph-dir {
   margin-left: 6px; padding-left: 14px; border-left: 1px solid var(--line);
   font-size: 12.5px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-soft);
 }
@@ -258,8 +268,8 @@ body.ufic {
 .u-path strong { font-size: 21px; font-weight: 600; color: var(--green); }
 .u-path span:last-child { font-size: 15px; color: var(--ink-soft); max-width: 13em; }
 
-/* Карта Центру (center/includes/map.html): парасолька → академії →
-   спільне. Пунктирні лінії між рівнями «течуть» донизу. */
+/* Карта Центру (center/includes/map.html): Центр → послуги → дві
+   академії. Пунктирні лінії між рівнями «течуть» донизу. */
 .u-map { display: flex; flex-direction: column; align-items: center; }
 .u-map-root {
   display: flex; align-items: center; gap: 16px; padding: 12px 30px 12px 12px;
@@ -284,84 +294,119 @@ body.ufic {
   padding: 7px 20px; border-radius: 999px; background: var(--green); color: #fff;
   font-size: 14px; letter-spacing: .12em; text-transform: uppercase; white-space: nowrap;
 }
-/* 3 колонки: дев'ять академій лягають рівно 3×3. */
-.u-map-academies { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
-.u-acad {
-  display: flex; flex-direction: column; gap: 4px; height: 100%; padding: 18px;
-  border: 2px dashed var(--green-200); border-radius: var(--radius); background: #fff;
+/* 4 колонки: сім послуг та інкубатор лягають рівно 4×2. */
+.u-map-tiles { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.u-tile {
+  display: flex; flex-direction: column; gap: 6px; height: 100%; padding: 18px;
+  border: 2px solid var(--green-200); border-radius: var(--radius); background: #fff;
   color: var(--ink); text-decoration: none;
   transition: transform .25s var(--ease), border-color .25s, box-shadow .25s;
 }
-.u-acad:hover { transform: translateY(-3px); border-color: var(--green-500); box-shadow: var(--shadow); }
-.u-acad-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
-.u-acad .ic { width: 38px; height: 38px; color: var(--green); stroke-width: 1.3; }
-.u-acad-status {
+.u-tile:hover { transform: translateY(-3px); border-color: var(--green); box-shadow: var(--shadow); }
+.u-tile-top { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 6px; margin-bottom: 8px; }
+.u-tile .ic { width: 38px; height: 38px; color: var(--green); stroke-width: 1.3; }
+.u-tile-no { font-size: 14px; letter-spacing: .1em; color: var(--ink-soft); }
+.u-tile strong { font-size: 19px; font-weight: 600; line-height: 1.2; color: var(--green); }
+.u-tile-short { font-size: 14.5px; line-height: 1.35; color: var(--ink-soft); }
+/* Інкубатор — перспектива, тому рамка пунктирна. */
+.u-tile-soon { border-style: dashed; }
+
+/* Позначка стану: «Працює» — помаранчева, решта — контуром. */
+.u-status {
   padding: 3px 9px; border: 1px solid var(--green-200); border-radius: 999px;
   font-size: 11px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; color: var(--green-500);
 }
-.u-acad-kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
-.u-acad strong { font-size: 19px; font-weight: 600; line-height: 1.2; color: var(--green); }
-.u-acad-short { font-size: 14.5px; line-height: 1.35; color: var(--ink-soft); }
-.u-acad-live { border: 2px solid var(--green); background: var(--green); color: #fff; }
-.u-acad-live:hover { border-color: var(--green-800); }
-.u-acad-live strong, .u-acad-live .ic { color: #fff; }
-.u-acad-live .u-acad-kicker, .u-acad-live .u-acad-short { color: var(--green-100); }
-.u-acad-live .u-acad-status, .u-acad-card-live .u-acad-status { border-color: var(--orange); background: var(--orange); color: var(--green-900); }
+.u-status-live { border-color: var(--orange); background: var(--orange); color: var(--green-900); }
 
 .u-map-shared { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .u-map-node {
-  display: flex; flex-direction: column; gap: 12px; padding: 24px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px; padding: 24px;
   border: 2px solid var(--green); border-radius: var(--radius-lg); background: #fff;
   color: var(--ink); text-decoration: none; transition: transform .25s var(--ease), box-shadow .25s;
 }
 a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-map-node-head { display: flex; align-items: center; gap: 14px; }
-.u-map-node-head .ic { width: 46px; height: 46px; color: var(--green); stroke-width: 1.3; }
+.u-map-node-head img { width: 56px; height: 56px; flex: none; }
 .u-map-node-head strong { display: block; font-size: 22px; font-weight: 600; line-height: 1.15; color: var(--green); }
 .u-map-node-text { font-size: 16px; color: var(--ink-soft); }
 .u-map-node .u-more { margin-top: auto; padding-top: 0; }
-.u-map-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
-.u-map-chips a, .u-map-chips span {
+/* Теми «пігулками»: в академій на карті й у напрямів харчової академії. */
+.u-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.u-chips span {
   display: inline-block; padding: 6px 12px; border: 1px solid var(--line); border-radius: 999px;
-  background: var(--green-50); font-size: 14.5px; text-decoration: none; transition: border-color .2s, color .2s;
+  background: var(--green-50); font-size: 14.5px;
 }
-.u-map-chips a:hover { border-color: var(--green); color: var(--green); }
-.u-map-section { padding: 64px 0; }
+.u-map-foot { margin-top: 28px; text-align: center; font-size: 17px; color: var(--ink-soft); }
+.u-map-foot a { color: var(--green); font-weight: 600; text-decoration-color: var(--orange); text-underline-offset: 4px; }
 
-/* Академії на /directions/ */
-/* Як і на карті: дев'ять академій — рівно 3×3, без самотньої картки знизу. */
-.u-acad-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
-.u-acad-card {
+/* Картки академій на /services/: дві поруч. */
+.u-topic-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.u-topic-card {
   display: flex; flex-direction: column; gap: 10px; padding: 26px;
-  border: 2px dashed var(--green-200); border-radius: var(--radius); background: #fff;
+  border: 2px solid var(--green-200); border-radius: var(--radius); background: #fff;
 }
-.u-acad-card header { display: flex; align-items: center; justify-content: space-between; }
-.u-acad-card header .ic { width: 44px; height: 44px; color: var(--green); stroke-width: 1.3; }
-.u-acad-card h3 { font-size: 22px; }
-.u-acad-card p { font-size: 16px; color: var(--ink-soft); }
-.u-acad-card ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
-.u-acad-card li { position: relative; padding-left: 20px; font-size: 15.5px; line-height: 1.4; }
-.u-acad-card li::before {
+.u-topic-card header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.u-topic-card header .ic { width: 44px; height: 44px; color: var(--green); stroke-width: 1.3; }
+.u-topic-card header img { width: 56px; height: 56px; }
+.u-topic-kicker { font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
+.u-topic-card h3 { font-size: 22px; }
+.u-topic-card p { font-size: 16px; color: var(--ink-soft); }
+.u-topic-card ul { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; }
+.u-topic-card li { position: relative; padding-left: 20px; font-size: 15.5px; line-height: 1.4; }
+.u-topic-card li::before {
   content: ""; position: absolute; left: 0; top: .42em; width: 9px; height: 9px;
   border-radius: 100% 0; background: var(--orange);
 }
-.u-acad-card .u-more { margin-top: auto; padding-top: 12px; text-decoration: none; }
-.u-acad-card .u-more:hover { text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 4px; }
-.u-acad-card-live { border: 2px solid var(--green); background: var(--green); color: #fff; }
-.u-acad-card-live h3, .u-acad-card-live header .ic, .u-acad-card-live .u-more { color: #fff; }
-.u-acad-card-live p, .u-acad-card-live .u-acad-kicker { color: var(--green-100); }
+.u-topic-card .u-more { margin-top: auto; padding-top: 12px; text-decoration: none; }
+.u-topic-card .u-more:hover { text-decoration: underline; text-decoration-color: var(--orange); text-underline-offset: 4px; }
+.u-topic-card-live { border-color: var(--green); background: var(--green); color: #fff; }
+.u-topic-card-live h3, .u-topic-card-live header .ic, .u-topic-card-live .u-more { color: #fff; }
+.u-topic-card-live p, .u-topic-card-live .u-topic-kicker { color: var(--green-100); }
+/* Знак Академії дистиляції — темний, на зеленій картці йому потрібна підкладка. */
+.u-topic-card-live header img { padding: 4px; border-radius: 50%; background: #fff; }
 
-/* Навчальна платформа на /directions/ */
+/* Напрями харчової академії — рядками: назва, суть із темами, дія. Колонка
+   назв однакової ширини, тож вони читаються згори донизу як зміст. */
+.u-rows { list-style: none; margin: 0; padding: 0 32px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: #fff; }
+.u-row { display: grid; grid-template-columns: 340px minmax(0, 1fr) auto; gap: 16px 32px; align-items: center; padding: 30px 0; }
+.u-row + .u-row { border-top: 1px solid var(--line); }
+.u-row-head { display: flex; align-items: center; gap: 16px; }
+.u-row-icon { flex: none; display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--green-50); color: var(--green); }
+.u-row-icon .ic { width: 34px; height: 34px; stroke-width: 1.3; }
+.u-row h3 { font-size: 23px; line-height: 1.15; }
+.u-row-example { display: inline-flex; align-items: center; gap: 6px; margin-top: 6px; font-size: 15px; color: var(--ink-soft); }
+.u-row-example .ic { width: 16px; height: 16px; color: var(--orange); stroke-width: 2.4; }
+.u-row-body p { margin-bottom: 14px; font-size: 17.5px; line-height: 1.45; color: var(--ink); max-width: 38em; }
+.u-row .u-btn { white-space: nowrap; }
+
+/* Заклик під списком напрямів. */
+.u-ask {
+  display: flex; align-items: center; justify-content: space-between; gap: 20px 40px; flex-wrap: wrap;
+  margin-top: 20px; padding: 28px 32px; border-radius: var(--radius-lg); background: var(--green); color: #fff;
+}
+.u-ask h3 { color: #fff; font-size: 24px; }
+.u-ask p { margin-top: 6px; font-size: 17px; color: var(--green-100); }
+
+/* «Для кого» в харчовій академії */
+.u-who { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+.u-who li {
+  display: flex; flex-direction: column; gap: 8px; padding: 22px;
+  border-top: 4px solid var(--orange); border-radius: 0 0 var(--radius) var(--radius); background: var(--green-50);
+}
+.u-who strong { font-size: 20px; font-weight: 600; line-height: 1.2; color: var(--green); }
+.u-who span { font-size: 16px; line-height: 1.45; color: var(--ink-soft); }
+
+/* Навчальна платформа — у харчовій академії */
 .u-platform { display: grid; grid-template-columns: 1.2fr .8fr; gap: 56px; align-items: center; }
 .u-platform .u-lead { margin-top: 18px; }
+/* Знак платформи: книга, колос і сировина всіх напрямів (static/img/platform/). */
+.u-platform-mark { width: 104px; margin-bottom: 20px; }
 .u-platform-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .u-platform-list li {
   display: flex; align-items: center; gap: 14px; padding: 16px 20px;
   border: 1px solid var(--line); border-radius: var(--radius); background: #fff; font-size: 18px;
 }
 .u-platform-list .ic { width: 28px; height: 28px; color: var(--green); }
-.u-base-head { padding-bottom: 0; }
-.u-base-head .u-head { margin-bottom: 0; }
 
 /* Приклад фермера */
 .u-case {
@@ -388,17 +433,6 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-chain-light { margin-top: 28px; }
 .u-chain-light li { background: #fff; border-color: var(--line); color: var(--ink); }
 
-/* Академія як підрозділ */
-.u-academy { display: grid; grid-template-columns: .8fr 1.2fr; gap: 64px; align-items: center; }
-.u-academy-media { margin: 0; }
-.u-academy-media img { width: 100%; aspect-ratio: 4 / 5; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
-.u-academy-body h2 { margin-top: 24px; }
-.u-academy-body .u-lead { margin-top: 18px; }
-.u-endorse { display: flex; align-items: center; gap: 14px; }
-.u-endorse img { width: 64px; height: 64px; }
-.u-endorse span { font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-soft); }
-.u-endorse strong { display: block; font-size: 19px; letter-spacing: 0; text-transform: none; color: var(--ink); }
-
 /* План приміщення */
 .u-plan { margin: 0; }
 .u-plan-scroll { overflow-x: auto; padding: 24px; background: #fff; border: 1px solid var(--line); border-radius: var(--radius-lg); }
@@ -418,7 +452,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-plan-note { font-size: 14px; color: var(--ink-soft); }
 .u-room .u-room-uses { font-size: 19px; font-weight: 600; letter-spacing: .06em; fill: var(--green-500); }
 
-/* Перемикач академій над планом: обрана підсвічує свої приміщення. */
+/* Перемикач напрямів над планом: обраний підсвічує свої приміщення. */
 .u-plan-filter { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
 .u-plan-chip {
   display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px;
@@ -452,12 +486,12 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-room-card-head .u-swatch { flex: none; }
 .u-room-card p { font-size: 15.5px; color: var(--ink-soft); line-height: 1.45; }
 .u-room-card-uses { display: flex; flex-wrap: wrap; gap: 6px; margin-top: auto; padding-top: 4px; }
-.u-room-all, .u-room-acad {
+.u-room-all, .u-room-dir {
   display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
   border-radius: 999px; background: var(--green-50); font-size: 13.5px; color: var(--green);
 }
 .u-room-all { background: var(--green); color: #fff; font-weight: 600; }
-.u-room-acad .ic { width: 16px; height: 16px; }
+.u-room-dir .ic { width: 16px; height: 16px; }
 
 /* Заявка */
 .u-contact { padding: 96px 0; background: var(--green); color: #fff; }
@@ -504,7 +538,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-leaves i { width: 14px; height: 14px; border-radius: 100% 0; background: var(--orange); }
 .u-leaves i + i { width: 10px; height: 10px; background: var(--blue); align-self: flex-start; }
 
-/* --- сторінка напрямів --------------------------------------------------- */
+/* --- сторінка послуг ----------------------------------------------------- */
 
 .u-intro { padding: 72px 0 48px; }
 .u-intro .u-lead { margin-top: 20px; max-width: 42em; }
@@ -651,14 +685,16 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
    жодне з цих правил не діє: видно кінцевий стан. */
 
 /* Карта: рівні з'являються згори донизу, лінії простягаються й «течуть»,
-   картки академій вискакують по одній. */
+   картки послуг вискакують по одній. */
 .motion .u-map:not(.is-playing) .u-map-step,
-.motion .u-map-academies:not(.is-playing) li,
+.motion .u-map-tiles:not(.is-playing) li,
+.motion .u-who:not(.is-playing) li,
 .motion .u-platform-list:not(.is-playing) li { opacity: 0; }
 .motion .u-map.is-playing .u-map-step { animation: u-rise .6s var(--ease) calc(var(--i) * .35s) both; }
 .motion .u-map.is-playing .u-map-link { animation: u-grow-y .45s ease-out calc(var(--i) * .35s) both, u-flow 1.2s linear infinite; transform-origin: top; }
 .motion .u-map.is-playing .u-map-fork i { animation: u-grow-y .45s ease-out calc(var(--i) * .35s) both, u-flow 1.2s linear infinite; transform-origin: top; }
-.motion .u-map-academies.is-playing li { animation: u-pop-in .45s var(--spring) calc(var(--i) * 70ms + .8s) both; }
+.motion .u-map-tiles.is-playing li { animation: u-pop-in .45s var(--spring) calc(var(--i) * 70ms + .8s) both; }
+.motion .u-who.is-playing li { animation: u-rise .5s var(--ease) calc(var(--i) * .12s) both; }
 .motion .u-platform-list.is-playing li { animation: u-slide .45s var(--ease) calc(var(--i) * .12s) both; }
 @keyframes u-grow-y { from { transform: scaleY(0); } to { transform: none; } }
 @keyframes u-flow { from { background-position: 0 0; } to { background-position: 0 12px; } }
@@ -678,7 +714,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .motion .u-chain.is-playing li::before { animation: u-pop .5s var(--spring) calc(var(--i) * .12s + .3s) both; }
 .motion .u-jump.is-playing a { animation: u-pop-in .4s var(--spring) calc(var(--i) * 50ms) both; }
 
-/* Списки напрямів і етапи інкубатора. */
+/* Списки послуг і етапи інкубатора. */
 .motion .u-groups:not(.is-playing) li,
 .motion .u-stages:not(.is-playing) li { opacity: 0; }
 .motion .u-groups.is-playing li { animation: u-slide .45s var(--ease) calc(var(--i) * 45ms + .1s) both; }
@@ -718,8 +754,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .motion .u-gallery.is-revealed img { clip-path: inset(-60px); transform: none; }
 
 /* Дрібниці: листки кікера проростають, «Працює» пульсує. */
-.motion .u-acad-live .u-acad-status,
-.motion .u-acad-card-live .u-acad-status { animation: u-pulse 2.4s ease-out 1.5s infinite; }
+.motion .u-status-live { animation: u-pulse 2.4s ease-out 1.5s infinite; }
 .motion .is-revealed .u-kicker::before,
 .motion .u-kicker.is-revealed::before { animation: u-sprout .8s var(--spring) .2s both; }
 
@@ -753,7 +788,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .u-btn, .u-acad, .u-more .ic { transition: none; }
+  .u-btn, .u-tile, .u-map-node, .u-more .ic { transition: none; }
 }
 
 /* --- адаптив ------------------------------------------------------------- */
@@ -768,15 +803,13 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 }
 
 @media (max-width: 1000px) {
-  .u-hero-grid, .u-academy, .u-contact-grid, .u-dir-grid, .u-case, .u-platform { grid-template-columns: 1fr; gap: 40px; }
-  .u-map-academies { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  /* У дві колонки академія, що працює, — на всю ширину: решта лягає рівно. */
-  .u-map-academies li:has(.u-acad-live) { grid-column: 1 / -1; }
+  .u-hero-grid, .u-contact-grid, .u-dir-grid, .u-case, .u-platform { grid-template-columns: 1fr; gap: 40px; }
+  .u-map-tiles { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .u-rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .u-acad-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .u-acad-card-live { grid-column: 1 / -1; }
+  .u-row { grid-template-columns: 1fr; padding: 26px 0; }
+  .u-row .u-btn { justify-self: start; }
+  .u-who { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .u-dir-media, .u-gallery { position: static; order: 0 !important; }
-  .u-academy-media img { aspect-ratio: 16 / 10; }
   .u-footer-grid { grid-template-columns: 1fr 1fr; }
   .u-path { grid-template-columns: 1fr; gap: 14px; }
   .u-path li { display: grid; grid-template-columns: 72px 1fr; column-gap: 18px; row-gap: 2px; text-align: left; align-items: center; }
@@ -808,7 +841,7 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
   .u-morph-from { font-size: 17px; }
   .u-morph-to { font-size: 18px; }
   .u-morph-icon { width: 36px; height: 36px; }
-  .u-morph-acad { display: none; }
+  .u-morph-dir { display: none; }
   .u-collage { height: 380px; }
   .u-collage-raw { left: 0; width: 66%; height: 86%; }
   .u-collage-lab { width: 50%; border-width: 4px; }
@@ -831,13 +864,21 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
   .u-map-root strong { font-size: 18px; }
   .u-map-group { padding: 34px 10px 12px; }
   .u-map-group-label { font-size: 12px; padding: 6px 14px; }
-  .u-map-academies { gap: 8px; }
-  .u-acad { padding: 12px; }
-  .u-acad strong { font-size: 16.5px; }
-  .u-acad-short { display: none; }
-  .u-acad-status { font-size: 9.5px; padding: 2px 6px; }
+  .u-map-tiles { gap: 8px; }
+  .u-tile { padding: 12px; }
+  .u-tile strong { font-size: 16.5px; }
+  .u-tile-short { display: none; }
+  .u-tile .u-status { font-size: 9.5px; padding: 2px 6px; }
   .u-map-shared { grid-template-columns: 1fr; }
-  .u-acad-list { grid-template-columns: 1fr; }
+  .u-map-node { padding: 18px; }
+  .u-map-node-head strong { font-size: 19px; }
+  .u-topic-list, .u-who { grid-template-columns: 1fr; }
+  .u-rows { padding: 0 18px; }
+  .u-row-icon { width: 52px; height: 52px; }
+  .u-row-icon .ic { width: 28px; height: 28px; }
+  .u-row h3 { font-size: 21px; }
+  .u-ask { padding: 22px 20px; }
+  .u-umbrella-here { display: none; }
   .u-rooms { grid-template-columns: 1fr; }
   .u-plan-chip { padding: 6px 11px; font-size: 14px; }
   .u-map-fork i:first-child { left: calc(50% - 1px); }
