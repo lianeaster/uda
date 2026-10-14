@@ -249,7 +249,7 @@ class RoleVisibilityTests(TestCase):
         response = self.dashboard(self.student)
         self.assertTrue(response.context['student_tiles'])
         self.assertEqual(response.context['group_total'], 1)
-        self.assertIn('<h3>Моє навчання</h3>', response.content.decode())
+        self.assertIn('<h3>Мої групи</h3>', response.content.decode())
 
     def test_someone_who_manages_and_teaches_gets_both_sets_of_tiles(self):
         dual = User.objects.create_user(

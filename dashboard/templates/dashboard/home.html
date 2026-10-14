@@ -10,8 +10,8 @@
     </div>
 
     {% comment %}
-    Тайли зібрано в групи за тим, про що вони: час, навчальні групи, люди,
-    каталог. Кожен тайл — рядок: піктограма, назва з підписом, число праворуч.
+    Тайли зібрано в групи за тим, про що вони: розклад, люди (зокрема групи,
+    у яких вони вчаться), навчання — що саме вивчають. Кожен тайл — рядок: піктограма, назва з підписом, число праворуч.
     {% endcomment %}
     <div class="tile-groups">
         <section class="tile-group">
@@ -45,44 +45,6 @@
             </div>
         </section>
 
-        {% if student_tiles or show_tiles %}
-        <section class="tile-group">
-            <h2 class="tile-group-title">Навчання</h2>
-            <div class="tile-group-list">
-                {% if student_tiles %}
-                <a class="tile" href="{% url 'schedule:group_list' %}">
-                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
-                    <div class="tile-body">
-                        <h3>Моє навчання</h3>
-                        <p class="tile-meta">груп зараз / за весь час</p>
-                    </div>
-                    <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
-                </a>
-                {% endif %}
-
-                {% if show_tiles %}
-                <a class="tile" href="{% url 'schedule:group_list' %}">
-                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
-                    <div class="tile-body">
-                        <h3>{% if own_scope %}Мої групи{% else %}Групи{% endif %}</h3>
-                        <p class="tile-meta">активні / усі</p>
-                    </div>
-                    <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
-                </a>
-
-                <a class="tile" href="{% url 'schedule:student_list' %}">
-                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-cap"></use></svg></span>
-                    <div class="tile-body">
-                        <h3>{% if own_scope %}Мої студенти{% else %}Студенти{% endif %}</h3>
-                        <p class="tile-meta">{% if own_scope %}у ваших групах зараз{% else %}зараз навчаються{% endif %}</p>
-                    </div>
-                    <p class="tile-count"><strong>{{ student_count }}</strong></p>
-                </a>
-                {% endif %}
-            </div>
-        </section>
-        {% endif %}
-
         <section class="tile-group">
             <h2 class="tile-group-title">Люди</h2>
             <div class="tile-group-list">
@@ -95,7 +57,8 @@
                     <p class="tile-count"><strong>{{ people_count }}</strong></p>
                 </a>
 
-                {% if show_tiles and user.can_manage_users %}
+                {% if show_tiles %}
+                {% if user.can_manage_users %}
                 <a class="tile" href="{% url 'accounts:user_list' %}?role=teacher">
                     <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-diploma"></use></svg></span>
                     <div class="tile-body">
@@ -105,12 +68,42 @@
                     <p class="tile-count"><strong>{{ teacher_count }}</strong></p>
                 </a>
                 {% endif %}
+
+                <a class="tile" href="{% url 'schedule:student_list' %}">
+                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-cap"></use></svg></span>
+                    <div class="tile-body">
+                        <h3>{% if own_scope %}Мої студенти{% else %}Студенти{% endif %}</h3>
+                        <p class="tile-meta">{% if own_scope %}у ваших групах зараз{% else %}зараз навчаються{% endif %}</p>
+                    </div>
+                    <p class="tile-count"><strong>{{ student_count }}</strong></p>
+                </a>
+
+                <a class="tile" href="{% url 'schedule:group_list' %}">
+                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
+                    <div class="tile-body">
+                        <h3>{% if own_scope %}Мої групи{% else %}Групи{% endif %}</h3>
+                        <p class="tile-meta">активні / усі</p>
+                    </div>
+                    <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
+                </a>
+                {% endif %}
+
+                {% if student_tiles %}
+                <a class="tile" href="{% url 'schedule:group_list' %}">
+                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
+                    <div class="tile-body">
+                        <h3>Мої групи</h3>
+                        <p class="tile-meta">груп зараз / за весь час</p>
+                    </div>
+                    <p class="tile-count"><strong>{{ group_active }}</strong> / {{ group_total }}</p>
+                </a>
+                {% endif %}
             </div>
         </section>
 
         {% if show_tiles %}
         <section class="tile-group">
-            <h2 class="tile-group-title">Каталог</h2>
+            <h2 class="tile-group-title">Навчання</h2>
             <div class="tile-group-list">
                 <a class="tile" href="{% url 'schedule:course_list' %}">
                     <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg></span>
