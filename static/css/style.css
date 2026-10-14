@@ -900,42 +900,58 @@ input:focus, select:focus, textarea:focus {
 }
 
 /* ---- tiles ---- */
-.tile-grid {
+/* Тайли зібрано в групи; групи стають у колонки, тайли в групі — стовпчиком. */
+.tile-groups {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    align-items: start;
+    gap: 28px 24px;
     padding-bottom: 48px;
 }
+.tile-group-title {
+    margin: 0 0 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--muted);
+}
+.tile-group-list { display: grid; gap: 10px; }
+/* Тайл — рядок: піктограма, назва з підписом, число праворуч. */
 .tile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
     background: var(--paper);
     border: 1px solid var(--border);
-    border-radius: var(--radius-lg);
-    padding: 26px;
+    border-radius: var(--radius-md);
+    padding: 14px 16px;
     text-decoration: none;
     color: var(--ink);
     transition: background 0.15s ease, border-color 0.15s ease;
 }
 .tile:hover { border-color: var(--copper); background: var(--cream); }
-.tile h3 { color: var(--copper-dark); margin: 0 0 6px; }
+.tile h3 { color: var(--copper-dark); margin: 0; font-size: 1.05rem; line-height: 1.25; }
+.tile-body { flex: 1; min-width: 0; }
 /* Кругла плашка під піктограмою — те саме кільце, що й .icon-badge, лише дрібніше. */
 .tile-icon {
-    width: 42px;
-    height: 42px;
-    font-size: 21px;
+    flex: none;
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
     display: grid;
     place-items: center;
     color: var(--charcoal);
     background: var(--cream);
     border: 1.5px solid var(--border-strong);
     border-radius: var(--radius-pill);
-    margin-bottom: 14px;
 }
-.tile-count { margin: 0; color: var(--muted); }
-.tile-count strong { font-size: var(--stat); font-weight: 700; color: var(--ink); line-height: 1.1; }
-.tile-meta { margin: 2px 0 0; font-size: 0.82rem; color: var(--muted); }
+.tile-count { flex: none; margin: 0 0 0 auto; color: var(--muted); white-space: nowrap; }
+.tile-count strong { font-size: 1.6rem; font-weight: 700; color: var(--ink); line-height: 1; }
+.tile-meta { margin: 2px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
 /* Новина в тайлі — єдине, що на дашборді має тягнути око. */
 .tile-news {
-    margin: 10px 0 0;
+    margin: 4px 0 0;
     font-size: 0.82rem;
     font-weight: 700;
     color: var(--copper-dark);
@@ -951,7 +967,7 @@ input:focus, select:focus, textarea:focus {
     font-weight: 600;
     margin-left: 6px;
 }
-.tile-lead { margin: 0; color: var(--muted); }
+.tile-lead { margin: 2px 0 0; font-size: 0.82rem; line-height: 1.35; color: var(--muted); }
 
 /* ---- період і його статус ---- */
 /* Три стани дат однакові для групи, предмета в групі та студента в групі. */

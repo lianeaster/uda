@@ -217,15 +217,15 @@ html.platform {
 .platform .page-header h1 { margin: 0 0 10px; }
 .platform .section-title { color: var(--u-green); }
 
+.platform .tile-group-title { font-size: 13px; color: var(--ink-soft); }
 .platform .tile {
-  display: flex; flex-direction: column;
   border: 2px solid var(--u-green-200);
   transition: transform 0.25s var(--ease-out), border-color 0.25s, box-shadow 0.25s;
 }
-.platform .tile:hover { transform: translateY(-3px); border-color: var(--u-green); background: var(--paper); box-shadow: var(--shadow); }
-.platform .tile h3 { color: var(--u-green); line-height: 1.2; }
+.platform .tile:hover { transform: translateY(-2px); border-color: var(--u-green); background: var(--paper); box-shadow: var(--shadow-sm); }
+.platform .tile h3 { font-size: 17px; color: var(--u-green); line-height: 1.2; }
 .platform .tile-icon {
-  width: 52px; height: 52px; font-size: 28px;
+  width: 42px; height: 42px; font-size: 22px;
   border: 0; background: var(--u-green-50); color: var(--u-green);
 }
 .platform .tile-icon .ic { stroke-width: 1.3; }
