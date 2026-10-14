@@ -1,0 +1,93 @@
+{% extends "platform_base.html" %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <p class="muted course-kicker">Курс</p>
+            <h1>{{ course.name }}</h1>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Усі курси</a>
+            {% if user.can_manage_users %}
+            <a href="{% url 'schedule:course_edit' course.pk %}" class="btn">Редагувати</a>
+            {% include "schedule/includes/course_delete.html" with button_class="btn btn-secondary danger-button" %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="course-summary">
+        {% if course.description %}
+            <p class="course-description">{{ course.description|linebreaksbr }}</p>
+        {% else %}
+            <p class="muted">Опису ще немає.{% if user.can_manage_users %} <a href="{% url 'schedule:course_edit' course.pk %}">Додати опис</a>{% endif %}</p>
+        {% endif %}
+        <dl class="course-facts">
+            <div><dt>Предметів у програмі</dt><dd>{{ program|length }}</dd></div>
+            <div><dt>Груп</dt><dd>{{ groups|length }}</dd></div>
+        </dl>
+    </div>
+
+    <div class="page-header-row">
+        <h2 class="section-title">Програма</h2>
+        {% if user.can_manage_users %}
+        <a href="{% url 'schedule:subject_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
+        {% endif %}
+    </div>
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr>
+                <th>№</th><th>Предмет</th><th>Хто може вести</th>
+                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for link in program %}
+            <tr>
+                <td class="muted" data-sort="{{ link.position }}">{{ link.code|default:"—" }}</td>
+                <td>{{ link.subject.name }}</td>
+                <td>
+                    {% for t in link.subject.teachers.all %}
+                        <span class="chip">{{ t.get_full_name|default:t.username }}</span>
+                    {% empty %}
+                        <span class="muted">— не призначено —</span>
+                    {% endfor %}
+                </td>
+                {% if user.can_manage_users %}
+                <td class="row-actions"><a href="{% url 'schedule:subject_edit' link.subject.pk %}">Редагувати</a></td>
+                {% endif %}
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="{% if user.can_manage_users %}4{% else %}3{% endif %}" class="muted">У програмі курсу ще немає предметів.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <div class="page-header-row">
+        <h2 class="section-title">Групи</h2>
+        {% if user.can_manage_users %}
+        <a href="{% url 'schedule:group_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати групу</a>
+        {% endif %}
+    </div>
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr><th data-filter="none">Група</th><th data-filter="period">Період навчання</th><th data-filter="none">Студенти</th></tr>
+        </thead>
+        <tbody>
+        {% for group in groups %}
+            <tr>
+                <td><a href="{% url 'schedule:group_detail' group.pk %}">{{ group.name }}</a></td>
+                <td {% include "schedule/includes/period_attrs.html" with obj=group %}>{% include "schedule/includes/period.html" with obj=group %}</td>
+                <td>{{ group.student_count }}</td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="3" class="muted">За цим курсом ще не навчається жодна група.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+</div>
+{% endblock %}

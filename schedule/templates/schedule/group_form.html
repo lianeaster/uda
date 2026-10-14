@@ -1,0 +1,18 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if object %}Група {{ object.name }}{% else %}Нова група{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page">
+        <h1>{% if object %}Редагування групи{% else %}Нова група{% endif %}</h1>
+        <form method="post">
+            {% csrf_token %}
+            {% include "schedule/includes/form_fields.html" %}
+            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+        </form>
+        <p style="text-align:center;margin-top:16px;">
+            {% if object %}<a href="{% url 'schedule:group_detail' object.pk %}">&larr; До групи</a>
+            {% else %}<a href="{% url 'schedule:group_list' %}">&larr; До списку груп</a>{% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}

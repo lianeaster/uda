@@ -1,34 +1,58 @@
 {% extends "platform_base.html" %}
-{% block title %}Новий предмет{% endblock %}
+{% load static %}
+{% block title %}{% if object %}{{ object.name }}{% else %}Новий предмет{% endif %}{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="form-page">
-        <h1>Новий предмет</h1>
+    <div class="form-page form-page-wide">
+        <h1>{% if object %}Редагування предмета{% else %}Новий предмет{% endif %}</h1>
         <form method="post">
             {% csrf_token %}
-            <p>
+            {{ form.non_field_errors }}
+            <div class="form-field">
                 <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
                 {{ form.name }}
                 {{ form.name.errors }}
-            </p>
-            <p>
-                <label for="{{ form.course.id_for_label }}">{{ form.course.label }}</label>
-                {{ form.course }}
-                {{ form.course.errors }}
-                {% if not form.course.field.queryset.exists %}
-                    <small class="muted">Спочатку <a href="{% url 'schedule:course_add' %}">створіть курс</a>.</small>
-                {% endif %}
-            </p>
-            <p>
-                <label>{{ form.teachers.label }}</label>
-                <div class="checkbox-list">
-                    {{ form.teachers }}
+            </div>
+
+            <h2 class="form-section-title">Курси</h2>
+            <p class="muted form-section-lead">Один предмет може входити в програми кількох курсів — у кожного свій номер.</p>
+            <div class="repeat" data-repeat>
+                {{ courses.management_form }}
+                {{ courses.non_form_errors }}
+                <div class="repeat-rows" data-repeat-rows>
+                    {% for row in courses %}
+                        {% include "schedule/includes/course_subject_row.html" with row=row %}
+                    {% endfor %}
                 </div>
-                {{ form.teachers.errors }}
-            </p>
-            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+                <template data-repeat-template>
+                    {% include "schedule/includes/course_subject_row.html" with row=courses.empty_form %}
+                </template>
+                <button type="button" class="btn btn-small btn-secondary repeat-add" data-repeat-add hidden>+ Додати курс</button>
+            </div>
+
+            <h2 class="form-section-title">{{ form.teachers.label }}</h2>
+            <p class="muted form-section-lead">Хто може вести предмет. Хто веде його в конкретній групі, обирається в самій групі — там викладачі можуть різнитися.</p>
+            {{ form.teachers }}
+            {{ form.teachers.errors }}
+
+            <button type="submit" class="btn" style="width:100%;margin-top:28px;">Зберегти</button>
         </form>
+
+        {% if taught_in %}
+        <h2 class="form-section-title">Де викладається</h2>
+        <ul class="taught-in">
+            {% for gs in taught_in %}
+            <li>
+                <a href="{% url 'schedule:group_detail' gs.group.pk %}">{{ gs.group.name }}</a>
+                <span class="muted">· {{ gs.group.course.name }} ·</span>
+                {{ gs.teacher.display_name }}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
         <p style="text-align:center;margin-top:16px;"><a href="{% url 'schedule:subject_list' %}">&larr; До списку предметів</a></p>
     </div>
 </div>
+<script src="{% static 'js/repeat.js' %}"></script>
 {% endblock %}

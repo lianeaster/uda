@@ -1,0 +1,5 @@
+<form class="inline-form" method="post" action="{% url 'schedule:group_delete' group.pk %}"
+      onsubmit="return confirm('Видалити групу «{{ group.name|escapejs }}»? Разом із нею зникнуть її предмети, зарахування студентів і розклад. Облікові записи людей лишаться.');">
+    {% csrf_token %}
+    <button type="submit" class="link-button danger-link">Видалити</button>
+</form>

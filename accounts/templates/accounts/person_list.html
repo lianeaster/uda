@@ -17,6 +17,27 @@
         </div>
     </div>
 
+    <form method="get" class="filter-bar filter-bar-wrap">
+        <label for="role-filter" class="filter-label">Хто:</label>
+        <select id="role-filter" name="role" onchange="this.form.submit()">
+            <option value="" {% if not current_role %}selected{% endif %}>Усі</option>
+            {% for value, label in role_filters %}
+                <option value="{{ value }}" {% if current_role == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        {% if groups is not None %}
+        <label for="group-filter" class="filter-label">Група:</label>
+        <select id="group-filter" name="group" onchange="this.form.submit()">
+            <option value="">Усі групи</option>
+            {% for g in groups %}
+                <option value="{{ g.pk }}" {% if current_group.pk == g.pk %}selected{% endif %}>{{ g.name }} · {{ g.course.name }}</option>
+            {% endfor %}
+        </select>
+        {% endif %}
+        <noscript><button type="submit" class="btn btn-small">Показати</button></noscript>
+        <span class="muted">Карток: {{ people|length }}</span>
+    </form>
+
     <div class="person-grid">
         {% for p in people %}
         <a class="person-card" href="{% url 'accounts:person_detail' p.pk %}">
@@ -36,7 +57,7 @@
             </span>
         </a>
         {% empty %}
-        <p class="muted">Поки що видно лише вашу картку — вона з'явиться тут разом із групою.</p>
+        <p class="muted">{% if filtered %}Нікого не знайдено за цим фільтром.{% else %}Поки що видно лише вашу картку — вона з'явиться тут разом із групою.{% endif %}</p>
         {% endfor %}
     </div>
 </div>

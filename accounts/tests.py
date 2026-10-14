@@ -433,7 +433,8 @@ class CardVisibilityTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        from schedule.models import Course, Enrollment, Group, GroupSubject, Subject
+        from schedule.models import Course, Enrollment, Group, GroupSubject
+        from schedule.testing import make_subject
 
         cls.manager = User.objects.create_user(
             username='card-mgr', password='pw', roles=[User.Role.MANAGER])
@@ -448,7 +449,7 @@ class CardVisibilityTests(TestCase):
 
         today = dt.date.today()
         course = Course.objects.create(name='Майстер дистиляції')
-        subject = Subject.objects.create(name='Сенсорика', course=course)
+        subject = make_subject('Сенсорика', course=course)
         group = Group.objects.create(
             name='МД-картки', course=course, start_date=today - dt.timedelta(days=30))
         GroupSubject.objects.create(
@@ -684,10 +685,11 @@ class MergeUsersTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        from schedule.models import Course, Group, Subject
+        from schedule.models import Course, Group
+        from schedule.testing import make_subject
 
         cls.course = Course.objects.create(name='Майстер дистиляції')
-        cls.subject = Subject.objects.create(name='Бренд. Дизайн. Етикетка', course=cls.course)
+        cls.subject = make_subject('Бренд. Дизайн. Етикетка', course=cls.course)
         cls.group = Group.objects.create(
             name='МД-звід', course=cls.course, start_date=dt.date.today() - dt.timedelta(days=30))
 
@@ -788,3 +790,47 @@ class MergeUsersTests(TestCase):
             call_command('merge_users', 'manager', 'nobody', verbosity=0)
         with self.assertRaises(CommandError):
             call_command('merge_users', 'manager', 'manager', verbosity=0)
+
+
+class PersonFilterTests(TestCase):
+    """Картки фільтруються за родом людей, студенти — ще й за групою."""
+
+    @classmethod
+    def setUpTestData(cls):
+        from schedule.models import Course, Enrollment, Group, GroupSubject
+        from schedule.testing import make_subject
+
+        today = dt.date.today()
+        cls.admin = User.objects.create_user(username='admin', roles=[User.Role.SUPER_ADMIN])
+        cls.manager = User.objects.create_user(username='mgr', roles=[User.Role.MANAGER])
+        cls.teacher = User.objects.create_user(username='tchr', roles=[User.Role.TEACHER])
+        cls.ann = User.objects.create_user(username='ann', roles=[User.Role.STUDENT])
+        cls.bob = User.objects.create_user(username='bob', roles=[User.Role.STUDENT])
+        course = Course.objects.create(name='Курс')
+        cls.group_a = Group.objects.create(name='А', course=course, start_date=today)
+        cls.group_b = Group.objects.create(name='Б', course=course, start_date=today)
+        Enrollment.objects.create(group=cls.group_a, student=cls.ann, start_date=today)
+        Enrollment.objects.create(group=cls.group_b, student=cls.bob, start_date=today)
+        GroupSubject.objects.create(group=cls.group_a, subject=make_subject('П', course=course),
+                                    teacher=cls.teacher, start_date=today)
+
+    def people(self, **params):
+        return {p.username for p in self.client.get(reverse('accounts:person_list'), params).context['people']}
+
+    def test_by_kind_and_students_by_group(self):
+        self.client.force_login(self.manager)
+        self.assertEqual(self.people(role='student'), {'ann', 'bob'})
+        self.assertEqual(self.people(role='teacher'), {'tchr'})
+        # «Менеджери» — уся адміністрація, і супер-адмін теж
+        self.assertEqual(self.people(role='manager'), {'admin', 'mgr'})
+        self.assertEqual(self.people(role='student', group=self.group_b.pk), {'bob'})
+        # група без студентського фільтра нічого не звужує
+        self.assertEqual(self.people(group=self.group_b.pk), {'admin', 'mgr', 'tchr', 'ann', 'bob'})
+
+    def test_filters_never_open_cards_that_are_not_visible(self):
+        self.client.force_login(self.teacher)
+        self.assertEqual(self.people(role='student'), {'ann'})
+        # чужа група в списку не пропонується, а підставлена вручну ігнорується
+        page = self.client.get(reverse('accounts:person_list'), {'role': 'student'})
+        self.assertEqual(list(page.context['groups']), [self.group_a])
+        self.assertEqual(self.people(role='student', group=self.group_b.pk), {'ann'})

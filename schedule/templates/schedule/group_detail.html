@@ -5,7 +5,7 @@
     <div class="page-header page-header-row">
         <div>
             <h1>{{ group.name }}</h1>
-            <p class="muted">{{ group.course.name }} · {% include "schedule/includes/period.html" with obj=group %}</p>
+            <p class="muted"><a href="{% url 'schedule:course_detail' group.course.pk %}">{{ group.course.name }}</a> · {% include "schedule/includes/period.html" with obj=group %}</p>
             {% if group.i_teach or group.i_study %}
             <p>
                 {% if group.i_teach %}<span class="chip">ви тут викладаєте</span>{% endif %}
@@ -15,8 +15,13 @@
         </div>
         <div class="page-header-actions">
             <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Усі групи</a>
-            {% if user.is_super_admin %}
-            <a href="{% url 'admin:schedule_group_change' group.pk %}" class="btn">Редагувати</a>
+            {% if user.can_manage_users %}
+            <a href="{% url 'schedule:group_edit' group.pk %}" class="btn">Редагувати</a>
+            <form class="inline-form" method="post" action="{% url 'schedule:group_delete' group.pk %}"
+                  onsubmit="return confirm('Видалити групу «{{ group.name|escapejs }}»? Разом із нею зникнуть її предмети, зарахування студентів і розклад. Облікові записи людей лишаться.');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary danger-button">Видалити</button>
+            </form>
             {% endif %}
         </div>
     </div>
@@ -38,17 +43,17 @@
     <table data-table>
         <thead>
             <tr>
-                <th>№</th><th>Предмет</th><th>Викладач</th><th>Період вивчення</th>
+                <th>№</th><th>Предмет</th><th>Викладач</th><th data-filter="period">Період вивчення</th>
                 {% if subject_form %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
         {% for gs in group_subjects %}
             <tr>
-                <td class="muted" data-sort="{{ gs.subject.position }}">{{ gs.subject.code|default:"—" }}</td>
+                <td class="muted" data-sort="{{ gs.position|default:0 }}">{{ gs.code|default:"—" }}</td>
                 <td>{{ gs.subject.name }}</td>
                 <td><a href="{% url 'accounts:person_detail' gs.teacher.pk %}">{{ gs.teacher.display_name }}</a></td>
-                <td data-sort="{{ gs.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=gs %}</td>
+                <td {% include "schedule/includes/period_attrs.html" with obj=gs %}>{% include "schedule/includes/period.html" with obj=gs %}</td>
                 {% if subject_form %}
                 <td class="row-actions">
                     <form class="inline-form" method="post" action="{% url 'schedule:group_subject_delete' gs.pk %}"
@@ -94,21 +99,32 @@
     </form>
     {% endif %}
 
-    <h2 class="section-title">Студенти</h2>
+    <div class="page-header-row">
+        <h2 class="section-title">Студенти</h2>
+        {% if user.can_manage_users %}
+        <a href="{% url 'schedule:student_add' %}?group={{ group.pk }}&next={{ request.get_full_path|urlencode }}" class="btn btn-small btn-secondary">+ Додати студента</a>
+        {% endif %}
+    </div>
     <div class="table-card">
     <table data-table>
         <thead>
-            <tr><th>ПІБ</th><th>Логін</th><th>Навчання в групі</th></tr>
+            <tr>
+                <th>ПІБ</th><th>Логін</th><th data-filter="period">Навчання в групі</th>
+                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
+            </tr>
         </thead>
         <tbody>
         {% for e in enrollments %}
             <tr>
                 <td><a href="{% url 'accounts:person_detail' e.student.pk %}">{{ e.student.display_name }}</a></td>
                 <td>{{ e.student.username }}</td>
-                <td data-sort="{{ e.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=e %}</td>
+                <td {% include "schedule/includes/period_attrs.html" with obj=e %}>{% include "schedule/includes/period.html" with obj=e %}</td>
+                {% if user.can_manage_users %}
+                <td class="row-actions">{% include "schedule/includes/student_actions.html" %}</td>
+                {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="3" class="muted">До цієї групи ще нікого не зараховано.</td></tr>
+            <tr data-empty><td colspan="{% if user.can_manage_users %}4{% else %}3{% endif %}" class="muted">До цієї групи ще нікого не зараховано.</td></tr>
         {% endfor %}
         </tbody>
     </table>

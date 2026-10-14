@@ -1,0 +1,72 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if creating %}Новий студент{% else %}Студент {{ enrollment.student.display_name }}{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page form-page-wide">
+        <h1>{% if creating %}Новий студент{% else %}{{ enrollment.student.display_name }}{% endif %}</h1>
+        <form method="post" data-student-form>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+            {% if creating %}
+            <fieldset class="mode-switch">
+                <legend class="visually-hidden">Хто це</legend>
+                <label><input type="radio" name="mode" value="new" {% if mode != 'existing' %}checked{% endif %}> Новий на платформі</label>
+                <label><input type="radio" name="mode" value="existing" {% if mode == 'existing' %}checked{% endif %}> Уже є на платформі</label>
+            </fieldset>
+
+            <div data-mode="new">
+                <p class="muted form-section-lead">Створимо обліковий запис із роллю «студент». Логін і пароль передайте студентові.</p>
+                {% include "schedule/includes/form_fields.html" with form=new_form %}
+            </div>
+
+            <div data-mode="existing">
+                <div class="form-field">
+                    <label for="{{ form.student.id_for_label }}">{{ form.student.label }}</label>
+                    {{ form.student }}
+                    {{ form.student.errors }}
+                    <small class="muted">Ті, хто має роль «студент», — наприклад, уже вчаться в іншій групі.</small>
+                </div>
+            </div>
+            {% else %}
+                {% if info_form %}
+                <h2 class="form-section-title">Студент</h2>
+                {% include "schedule/includes/form_fields.html" with form=info_form %}
+                {% else %}
+                <p class="muted">Обліковий запис цієї людини змінює керівництво в «Користувачах» — тут лише її навчання в групі.</p>
+                {% endif %}
+            {% endif %}
+
+            <h2 class="form-section-title">Навчання в групі</h2>
+            {{ form.non_field_errors }}
+            {% for field in form.visible_fields %}{% if field.name != 'student' %}
+            <div class="form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {{ field.errors }}
+                {% if field.help_text %}<small class="muted">{{ field.help_text }}</small>{% endif %}
+            </div>
+            {% endif %}{% endfor %}
+
+            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+        </form>
+        <p style="text-align:center;margin-top:16px;"><a href="{{ next }}">&larr; Назад</a></p>
+    </div>
+</div>
+<script>
+/* Показуємо лише поля обраного режиму; без скрипта видно обидва, а що з них
+   брати, сервер вирішує за перемикачем. */
+(function () {
+    var form = document.querySelector('[data-student-form]');
+    if (!form) return;
+    var radios = form.querySelectorAll('input[name=mode]');
+    function sync() {
+        var mode = form.querySelector('input[name=mode]:checked').value;
+        form.querySelectorAll('[data-mode]').forEach(function (box) {
+            box.hidden = box.getAttribute('data-mode') !== mode;
+        });
+    }
+    radios.forEach(function (radio) { radio.addEventListener('change', sync); });
+    if (radios.length) sync();
+})();
+</script>
+{% endblock %}

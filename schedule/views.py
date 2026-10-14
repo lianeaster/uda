@@ -3,18 +3,38 @@ import datetime as dt
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Count, Q
+from django.db import transaction
+from django.db.models import Count, OuterRef, ProtectedError, Q, Subquery
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
-from django.views.generic import CreateView, DetailView, ListView
+from django.views.generic import CreateView, DetailView, ListView, UpdateView
 
 from accounts.mixins import UserManagementRequiredMixin
 from accounts.models import User
 
-from .forms import CourseForm, GroupSubjectForm, ScheduleEntryForm, SubjectForm
-from .models import Course, Enrollment, Group, GroupSubject, ScheduleEntry, Subject
+from .forms import (
+    CourseForm,
+    EnrollmentForm,
+    GroupForm,
+    GroupSubjectForm,
+    NewStudentForm,
+    ScheduleEntryForm,
+    StudentInfoForm,
+    SubjectForm,
+    course_subject_formset,
+)
+from .models import (
+    Course,
+    CourseSubject,
+    Enrollment,
+    Group,
+    GroupSubject,
+    ScheduleEntry,
+    Subject,
+)
 from .services import build_month_grid, can_modify, can_review
 
 UK_MONTHS = [
@@ -265,14 +285,39 @@ class ScheduleEntryReviewView(LoginRequiredMixin, View):
 
 
 class CourseListView(LoginRequiredMixin, ListView):
-    """Read-only for everyone; only managers get the add/delete controls."""
+    """Read-only for everyone; only managers get the add/edit/delete controls."""
 
     model = Course
     template_name = 'schedule/course_list.html'
     context_object_name = 'courses'
 
     def get_queryset(self):
-        return Course.objects.prefetch_related('subjects')
+        return Course.objects.annotate(
+            subject_count=Count('program', distinct=True),
+            group_count=Count('groups', distinct=True),
+        )
+
+
+class CourseDetailView(LoginRequiredMixin, DetailView):
+    """Картка курсу: опис, програма з номерами й групи, що його проходять.
+
+    Каталог курсів відкритий усім ролям, тож і картка теж. Групи — лише ті,
+    що людині видно й на сторінці груп.
+    """
+
+    model = Course
+    template_name = 'schedule/course_detail.html'
+    context_object_name = 'course'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        groups = self.object.groups.annotate(student_count=Count('enrollments', distinct=True))
+        if not user.can_manage_users:
+            groups = groups.filter(pk__in=Group.objects.for_person(user))
+        context['program'] = self.object.ordered_program
+        context['groups'] = groups
+        return context
 
 
 class CourseCreateView(UserManagementRequiredMixin, CreateView):
@@ -282,19 +327,37 @@ class CourseCreateView(UserManagementRequiredMixin, CreateView):
 
     def get_success_url(self):
         messages.success(self.request, f'Курс «{self.object.name}» додано.')
-        return reverse('schedule:course_list')
+        return reverse('schedule:course_detail', args=[self.object.pk])
+
+
+class CourseUpdateView(UserManagementRequiredMixin, UpdateView):
+    model = Course
+    form_class = CourseForm
+    template_name = 'schedule/course_form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, f'Курс «{self.object.name}» збережено.')
+        return reverse('schedule:course_detail', args=[self.object.pk])
 
 
 class CourseDeleteView(UserManagementRequiredMixin, View):
     def post(self, request, pk):
         course = get_object_or_404(Course, pk=pk)
-        course.delete()
-        messages.success(request, f'Курс «{course.name}» видалено.')
+        try:
+            course.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                f'Курс «{course.name}» не можна видалити: за ним навчаються групи. '
+                f'Спершу видаліть групи або переведіть їх на інший курс.',
+            )
+            return redirect('schedule:course_detail', pk=course.pk)
+        messages.success(request, f'Курс «{course.name}» видалено. Його предмети лишилися в каталозі.')
         return redirect('schedule:course_list')
 
 
 class SubjectListView(LoginRequiredMixin, ListView):
-    """Read-only for everyone; only managers get the add/delete controls.
+    """Read-only for everyone; only managers get the add/edit/delete controls.
 
     A teacher lands on their own subjects («Мої предмети») and can switch to
     the full catalogue — everybody sees every subject, the scope is only a
@@ -306,7 +369,7 @@ class SubjectListView(LoginRequiredMixin, ListView):
     context_object_name = 'subjects'
 
     def all_subjects(self):
-        return Subject.objects.select_related('course').prefetch_related('teachers')
+        return Subject.objects.prefetch_related('teachers', 'course_links__course')
 
     def get_queryset(self):
         subjects = self.all_subjects()
@@ -332,20 +395,58 @@ class SubjectListView(LoginRequiredMixin, ListView):
         return context
 
 
-class SubjectCreateView(UserManagementRequiredMixin, CreateView):
-    model = Subject
-    form_class = SubjectForm
+class SubjectFormView(UserManagementRequiredMixin, View):
+    """Додавання й редагування предмета: сам предмет, його викладачі й
+    рядки «курс + номер у програмі» — одним збереженням."""
+
     template_name = 'schedule/subject_form.html'
 
-    def get_success_url(self):
-        messages.success(self.request, f'Предмет «{self.object.name}» додано.')
-        return reverse('schedule:subject_list')
+    def get_subject(self):
+        pk = self.kwargs.get('pk')
+        return get_object_or_404(Subject, pk=pk) if pk else None
+
+    def get(self, request, pk=None):
+        subject = self.get_subject()
+        courses = course_subject_formset(subject, course=request.GET.get('course'))
+        return self.render(SubjectForm(instance=subject), courses, subject)
+
+    def post(self, request, pk=None):
+        subject = self.get_subject()
+        form = SubjectForm(request.POST, instance=subject)
+        courses = course_subject_formset(subject or Subject(), request.POST)
+        if form.is_valid() and courses.is_valid():
+            with transaction.atomic():
+                saved = form.save()
+                courses.instance = saved
+                courses.save()
+            messages.success(
+                request,
+                f'Предмет «{saved.name}» {"збережено" if subject else "додано"}.',
+            )
+            return redirect('schedule:subject_list')
+        return self.render(form, courses, subject)
+
+    def render(self, form, courses, subject):
+        context = {'form': form, 'courses': courses, 'object': subject}
+        if subject is not None:
+            # Хто реально веде предмет — у групах; там викладачі й різняться.
+            context['taught_in'] = subject.group_subjects.select_related(
+                'group__course', 'teacher').order_by('-start_date')
+        return render(self.request, self.template_name, context)
 
 
 class SubjectDeleteView(UserManagementRequiredMixin, View):
     def post(self, request, pk):
         subject = get_object_or_404(Subject, pk=pk)
-        subject.delete()
+        try:
+            subject.delete()
+        except ProtectedError:
+            messages.error(
+                request,
+                f'Предмет «{subject.name}» не можна видалити: його вже викладають у групах. '
+                f'Спершу приберіть його з груп.',
+            )
+            return redirect('schedule:subject_list')
         messages.success(request, f'Предмет «{subject.name}» видалено.')
         return redirect('schedule:subject_list')
 
@@ -400,8 +501,6 @@ class GroupListView(GroupScopedMixin, ListView):
 
     def get_queryset(self):
         groups = self.scoped_groups().annotate_my_part(self.request.user).annotate(
-            subject_count=Count('group_subjects', distinct=True),
-            teacher_count=Count('group_subjects__teacher', distinct=True),
             student_count=Count('enrollments', distinct=True),
         )
         if self.request.GET.get('scope') != 'all':
@@ -429,14 +528,55 @@ class GroupDetailView(GroupScopedMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         group = self.object
+        # Номер і місце предмета — з програми курсу цієї групи: в іншому
+        # курсі той самий предмет може стояти під іншим номером.
+        program = CourseSubject.objects.filter(
+            course_id=group.course_id, subject_id=OuterRef('subject_id'))
         context['group_subjects'] = (
-            group.group_subjects.select_related('subject', 'teacher').all()
+            group.group_subjects.select_related('subject', 'teacher').annotate(
+                code=Subquery(program.values('code')[:1]),
+                position=Subquery(program.values('position')[:1]),
+            ).order_by('position', 'start_date', 'subject__name')
         )
         context['enrollments'] = group.enrollments.select_related('student').all()
         if self.request.user.can_manage_users:
             context['subject_form'] = GroupSubjectForm(group=group)
             context['fillable'] = len(_fillable_subjects(group)[0])
         return context
+
+
+class GroupCreateView(UserManagementRequiredMixin, CreateView):
+    model = Group
+    form_class = GroupForm
+    template_name = 'schedule/group_form.html'
+
+    def get_initial(self):
+        return {'course': self.request.GET.get('course')}
+
+    def get_success_url(self):
+        messages.success(self.request, f'Групу «{self.object.name}» створено.')
+        return reverse('schedule:group_detail', args=[self.object.pk])
+
+
+class GroupUpdateView(UserManagementRequiredMixin, UpdateView):
+    model = Group
+    form_class = GroupForm
+    template_name = 'schedule/group_form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, f'Групу «{self.object.name}» збережено.')
+        return reverse('schedule:group_detail', args=[self.object.pk])
+
+
+class GroupDeleteView(UserManagementRequiredMixin, View):
+    """Разом із групою зникають її предмети, зарахування й розклад — без
+    групи вони нічого не означають. Облікові записи людей лишаються."""
+
+    def post(self, request, pk):
+        group = get_object_or_404(Group, pk=pk)
+        group.delete()
+        messages.success(request, f'Групу «{group.name}» видалено.')
+        return redirect('schedule:group_list')
 
 
 def _fillable_subjects(group):
@@ -502,7 +642,7 @@ class GroupSubjectsFillView(UserManagementRequiredMixin, View):
         else:
             messages.info(request, 'Нема чого додавати — усі предмети курсу вже в групі.')
         if ambiguous:
-            names = ', '.join(s.label for s in ambiguous[:5])
+            names = ', '.join(s.name for s in ambiguous[:5])
             tail = f' та ще {len(ambiguous) - 5}' if len(ambiguous) > 5 else ''
             messages.warning(
                 request,
@@ -541,3 +681,121 @@ class StudentListView(OwnScopeMixin, ListView):
         context['own_only'] = self.showing_own()
         context.update(self.own_scope_context())
         return context
+
+
+def _safe_next(request, fallback):
+    """Повернутися туди, звідки прийшли (зі сторінки групи чи зі списку студентів)."""
+    target = request.POST.get('next') or request.GET.get('next')
+    if target and url_has_allowed_host_and_scheme(
+            target, allowed_hosts={request.get_host()}, require_https=request.is_secure()):
+        return target
+    return fallback
+
+
+class StudentFormMixin(UserManagementRequiredMixin):
+    template_name = 'schedule/student_form.html'
+
+    def back_url(self):
+        return _safe_next(self.request, reverse('schedule:student_list'))
+
+
+class StudentCreateView(StudentFormMixin, View):
+    """Зарахувати до групи нового студента або того, хто вже є на платформі.
+
+    Новому одразу створюється обліковий запис із роллю «студент». Хто вже
+    навчався (або вчиться в іншій групі), обирається зі списку — другий
+    обліковий запис тій самій людині не потрібен.
+    """
+
+    def get(self, request):
+        initial = {'group': request.GET.get('group')}
+        return self.render(EnrollmentForm(initial=initial, student_required=False),
+                           NewStudentForm(prefix='new'), mode='new')
+
+    def post(self, request):
+        mode = 'existing' if request.POST.get('mode') == 'existing' else 'new'
+        enrollment_form = EnrollmentForm(request.POST, student_required=mode == 'existing')
+        new_form = NewStudentForm(request.POST, prefix='new')
+
+        valid = enrollment_form.is_valid()
+        if mode == 'new':
+            valid = new_form.is_valid() and valid
+        if not valid:
+            return self.render(enrollment_form, new_form, mode)
+
+        with transaction.atomic():
+            enrollment = enrollment_form.save(commit=False)
+            if mode == 'new':
+                enrollment.student = new_form.save()
+            enrollment.save()
+        messages.success(
+            request,
+            f'{enrollment.student.display_name} — у групі «{enrollment.group.name}».',
+        )
+        return redirect(self.back_url())
+
+    def render(self, enrollment_form, new_form, mode):
+        return render(self.request, self.template_name, {
+            'form': enrollment_form,
+            'new_form': new_form,
+            'mode': mode,
+            'creating': True,
+            'next': self.back_url(),
+        })
+
+
+class StudentUpdateView(StudentFormMixin, View):
+    """Навчання в групі (група, дати) і ПІБ студента — на одній сторінці.
+
+    ПІБ правиться лише тоді, коли актор має право редагувати цей обліковий
+    запис: менеджер не чіпає, скажімо, колегу, що вчиться в Академії.
+    """
+
+    def get_enrollment(self, pk):
+        return get_object_or_404(Enrollment.objects.select_related('student', 'group'), pk=pk)
+
+    def info_form(self, student, data=None):
+        if not self.request.user.can_edit_user(student):
+            return None
+        return StudentInfoForm(data, instance=student, prefix='info')
+
+    def get(self, request, pk):
+        enrollment = self.get_enrollment(pk)
+        return self.render(enrollment, EnrollmentForm(instance=enrollment),
+                           self.info_form(enrollment.student))
+
+    def post(self, request, pk):
+        enrollment = self.get_enrollment(pk)
+        form = EnrollmentForm(request.POST, instance=enrollment)
+        info = self.info_form(enrollment.student, request.POST)
+        if form.is_valid() and (info is None or info.is_valid()):
+            with transaction.atomic():
+                form.save()
+                if info is not None:
+                    info.save()
+            messages.success(request, f'Дані студента {enrollment.student.display_name} збережено.')
+            return redirect(self.back_url())
+        return self.render(enrollment, form, info)
+
+    def render(self, enrollment, form, info):
+        return render(self.request, self.template_name, {
+            'form': form,
+            'info_form': info,
+            'enrollment': enrollment,
+            'creating': False,
+            'next': self.back_url(),
+        })
+
+
+class StudentDeleteView(UserManagementRequiredMixin, View):
+    """Прибирає рядок навчання в групі. Обліковий запис лишається —
+    його видаляють у «Користувачах», якщо людина зовсім іде з платформи."""
+
+    def post(self, request, pk):
+        enrollment = get_object_or_404(Enrollment.objects.select_related('student', 'group'), pk=pk)
+        enrollment.delete()
+        messages.success(
+            request,
+            f'{enrollment.student.display_name} більше не в групі «{enrollment.group.name}».',
+        )
+        return redirect(_safe_next(request, reverse('schedule:student_list')))

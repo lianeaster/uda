@@ -8,7 +8,6 @@
             <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
             <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Групи</a>
             {% if user.can_manage_users %}
-            <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Користувачі</a>
             <a href="{% url 'schedule:subject_add' %}" class="btn">+ Додати предмет</a>
             {% endif %}
         </div>
@@ -26,9 +25,9 @@
     <table data-table>
         <thead>
             <tr>
-                <th>№</th>
-                <th>Назва</th>
-                <th>Курс</th>
+                <th data-filter="none">Назва</th>
+                {# Номер у програмі свій для кожного курсу — тому він поруч із курсом. #}
+                <th>Курси (№ у програмі)</th>
                 <th>Викладачі</th>
                 {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
@@ -36,9 +35,14 @@
         <tbody>
         {% for subject in subjects %}
             <tr>
-                <td class="muted" data-sort="{{ subject.position }}">{{ subject.code|default:"—" }}</td>
                 <td>{{ subject.name }}</td>
-                <td>{{ subject.course.name|default:"—" }}</td>
+                <td>
+                    {% for link in subject.course_links.all %}
+                        <a class="chip" href="{% url 'schedule:course_detail' link.course_id %}">{{ link.course.name }}{% if link.code %} · {{ link.code }}{% endif %}</a>
+                    {% empty %}
+                        <span class="muted">— поза курсами —</span>
+                    {% endfor %}
+                </td>
                 <td>
                     {% for t in subject.teachers.all %}
                         <span class="chip">{{ t.get_full_name|default:t.username }}</span>
@@ -48,7 +52,8 @@
                 </td>
                 {% if user.can_manage_users %}
                 <td class="row-actions">
-                    <form class="inline-form" method="post" action="{% url 'schedule:subject_delete' subject.pk %}" onsubmit="return confirm('Видалити предмет {{ subject.name }}?');">
+                    <a href="{% url 'schedule:subject_edit' subject.pk %}">Редагувати</a>
+                    <form class="inline-form" method="post" action="{% url 'schedule:subject_delete' subject.pk %}" onsubmit="return confirm('Видалити предмет «{{ subject.name|escapejs }}»?');">
                         {% csrf_token %}
                         <button type="submit" class="link-button danger-link">Видалити</button>
                     </form>
@@ -56,7 +61,7 @@
                 {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="{% if user.can_manage_users %}5{% else %}4{% endif %}" class="muted">
+            <tr data-empty><td colspan="{% if user.can_manage_users %}4{% else %}3{% endif %}" class="muted">
                 {% if scope == 'mine' %}Вам іще не призначили жодного предмету — зверніться до менеджера.
                 {% else %}Ще немає жодного предмету.{% endif %}
             </td></tr>

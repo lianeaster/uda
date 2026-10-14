@@ -6,6 +6,9 @@
        <th>ПІБ</th>                    звичайна колонка: сортується, фільтрується
        <th data-sort="false">          не сортувати (колонка дій)
        <th data-filter="none">         не фільтрувати
+       <th data-filter="period">       фільтр «з … по …»; комірки несуть
+       <td data-start="2026-03-05"     межі періоду (кінця може не бути —
+           data-end="">                тоді період ще триває)
        <td data-sort="2026-03-05">     чим сортувати, якщо текст для цього не годиться
                                        (дати, ролі за старшинством, періоди)
 
@@ -118,7 +121,18 @@
 
         headers.forEach(function (th, index) {
             var cell = row.insertCell(-1);
-            if (th.getAttribute('data-filter') === 'none' || !th.textContent.trim()) return;
+            var kind = th.getAttribute('data-filter');
+            if (kind === 'none' || !th.textContent.trim()) return;
+
+            if (kind === 'period') {
+                var period = periodControl(th.textContent.trim());
+                cell.appendChild(period.element);
+                period.element.addEventListener('input', onChange);
+                filters.push({
+                    matches: function (dataRow) { return period.matches(dataRow.cells[index]); }
+                });
+                return;
+            }
 
             var values = dataRows.map(function (dataRow) {
                 return text(dataRow.cells[index]);
@@ -166,6 +180,40 @@
                 return !needle || text.toLowerCase().indexOf(needle) !== -1;
             }
         };
+    }
+
+    /* Період рядка підходить, якщо перетинається з обраним: «з» — ще не
+       закінчився до цієї дати, «по» — уже почався до неї. Обидві межі разом —
+       тривав хоч день у цьому проміжку. ISO-дати порівнюються як рядки. */
+    function periodControl(label) {
+        var box = document.createElement('div');
+        box.className = 'period-filter';
+        var from = dateInput('з', label + ': з');
+        var to = dateInput('по', label + ': по');
+        box.appendChild(from.label);
+        box.appendChild(to.label);
+        return {
+            element: box,
+            matches: function (cell) {
+                var start = cell.getAttribute('data-start') || '';
+                var end = cell.getAttribute('data-end') || '';
+                if (from.input.value && end && end < from.input.value) return false;
+                if (to.input.value && start && start > to.input.value) return false;
+                return true;
+            }
+        };
+    }
+
+    function dateInput(caption, label) {
+        var wrap = document.createElement('label');
+        var input = document.createElement('input');
+        input.type = 'date';
+        input.setAttribute('aria-label', label);
+        var text = document.createElement('span');
+        text.textContent = caption;
+        wrap.appendChild(text);
+        wrap.appendChild(input);
+        return { label: wrap, input: input };
     }
 
     document.querySelectorAll('table[data-table]').forEach(setUp);

@@ -1051,7 +1051,10 @@ th.is-sortable:focus-visible { outline: 2px solid var(--copper); outline-offset:
     background: var(--cream);
     border-bottom: 1px solid var(--border-strong);
 }
-.filter-row input, .filter-row select {
+/* Довгий ланцюжок :not — щоб перебити загальне правило для полів форм
+   (воно теж із :not і інакше роздуває поля в рядку фільтрів). */
+.filter-row input:not([type=checkbox]):not([type=radio]):not([type=submit]):not([type=button]):not([type=hidden]),
+.filter-row select {
     width: 100%;
     min-width: 0;
     padding: 5px 8px;
@@ -2284,3 +2287,89 @@ picture img { width: 100%; height: auto; display: block; }
   .container { max-width: 100%; padding: 0; }
   a { text-decoration: underline; color: black !important; }
 }
+
+/* ---- «+ ще один рядок» у формах (static/js/repeat.js) ---- */
+.repeat-rows { display: grid; gap: 8px; }
+.repeat-row { display: flex; align-items: center; gap: 8px; }
+.repeat-row > select, .repeat-row > input, .repeat-row > .repeat-field { flex: 1; min-width: 0; }
+.repeat-row > .repeat-code { flex: 0 0 110px; }
+.repeat-row[hidden] { display: none; }
+.repeat-remove {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    background: var(--paper);
+    color: var(--muted);
+    font-size: 1.2rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.repeat-remove:hover { color: var(--red); border-color: var(--red); }
+.repeat-add { margin-top: 10px; }
+.repeat-delete { display: none; }
+html:not(.js) .repeat-remove { display: none; }
+
+/* Фільтр періоду в рядку фільтрів: дві дати «з» і «по» одна під одною. */
+.period-filter { display: grid; gap: 4px; }
+.period-filter label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    font-size: 0.78rem;
+    font-weight: 400;
+    color: var(--muted);
+}
+.period-filter span { flex: 0 0 18px; }
+/* Колонка, якій ще не придумали змісту: видно, що вона є, але нічого не обіцяє. */
+th.is-inactive, td.is-inactive { color: var(--muted); opacity: 0.55; }
+
+/* ---- форми платформи ---- */
+.form-field { margin-bottom: 20px; }
+.form-field > small { display: block; margin-top: 6px; }
+.form-page-wide { max-width: 680px; }
+.form-section-title { margin: 30px 0 6px; font-size: 1.05rem; }
+.form-section-lead { margin: 0 0 14px; font-size: 0.9rem; }
+/* Перемикач «новий / уже є» — два радіо, що виглядають як вкладки. */
+.mode-switch { display: flex; gap: 8px; flex-wrap: wrap; margin: 0 0 20px; padding: 0; border: 0; }
+.mode-switch label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    padding: 9px 16px;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius-pill);
+    font-weight: 600;
+    cursor: pointer;
+}
+.mode-switch input { width: auto; margin: 0; }
+.mode-switch label:has(input:checked) { border-color: var(--copper); background: var(--cream); }
+.danger-button { color: var(--red); border-color: var(--red); }
+
+/* ---- картка курсу ---- */
+.course-kicker { margin: 0 0 4px; font-size: 0.8rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; }
+.course-summary {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 22px 26px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 18px 40px;
+}
+.course-description { margin: 0; max-width: 62ch; flex: 1 1 320px; }
+.course-summary > p { flex: 1 1 320px; margin: 0; }
+.course-facts { display: flex; gap: 32px; margin: 0; }
+.course-facts dt { font-size: 0.78rem; color: var(--muted); }
+.course-facts dd { margin: 2px 0 0; font-size: 1.6rem; font-weight: 600; line-height: 1.1; }
+.repeat-row { flex-wrap: wrap; }
+.repeat-row > .errorlist { flex-basis: 100%; margin: 0; }
+.taught-in { margin: 0 0 8px; padding-left: 18px; }
+.taught-in li { margin-bottom: 4px; }
+.filter-bar-wrap { flex-wrap: wrap; }
+a.chip { white-space: nowrap; }

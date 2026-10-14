@@ -28,13 +28,62 @@ class LogoutView(auth_views.LogoutView):
 
 
 class PersonListView(LoginRequiredMixin, ListView):
-    """Картки, які видно саме цій людині (`User.objects.visible_to`)."""
+    """Картки, які видно саме цій людині (`User.objects.visible_to`).
+
+    Фільтр — за родом людей; студентів можна ще звузити до групи. Групи в
+    списку — ті, що людині видно й на сторінці груп. Фільтри лише звужують
+    видиме, нових карток вони не відкривають.
+    """
 
     template_name = 'accounts/person_list.html'
     context_object_name = 'people'
 
+    # Керівництво — одним пунктом: для того, хто шукає людину, супер-адмін і
+    # менеджер однаково «з адміністрації».
+    ROLE_FILTERS = {
+        'student': ('Студенти', [User.Role.STUDENT]),
+        'teacher': ('Викладачі', [User.Role.TEACHER]),
+        'manager': ('Менеджери', [User.Role.MANAGER, User.Role.SUPER_ADMIN]),
+    }
+
+    def role(self):
+        role = self.request.GET.get('role', '')
+        return role if role in self.ROLE_FILTERS else ''
+
+    def group_choices(self):
+        from schedule.models import Group
+
+        user = self.request.user
+        groups = Group.objects.all() if user.can_manage_users else Group.objects.for_person(user)
+        return groups.select_related('course').order_by('-start_date', 'name')
+
+    def group(self):
+        if self.role() != 'student':
+            return None
+        requested = self.request.GET.get('group', '')
+        if not requested.isdigit():
+            return None
+        return self.group_choices().filter(pk=requested).first()
+
     def get_queryset(self):
-        return User.objects.visible_to(self.request.user).with_roles()
+        people = User.objects.visible_to(self.request.user).with_roles()
+        role = self.role()
+        if role:
+            people = people.filter(role_links__role__in=self.ROLE_FILTERS[role][1]).distinct()
+        group = self.group()
+        if group is not None:
+            people = people.filter(enrollments__group=group).distinct()
+        return people
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        role = self.role()
+        context['role_filters'] = [(value, label) for value, (label, _) in self.ROLE_FILTERS.items()]
+        context['current_role'] = role
+        context['current_group'] = self.group()
+        context['groups'] = self.group_choices() if role == 'student' else None
+        context['filtered'] = bool(role)
+        return context
 
 
 class PersonDetailView(LoginRequiredMixin, DetailView):

@@ -1,0 +1,5 @@
+<form class="inline-form" method="post" action="{% url 'schedule:course_delete' course.pk %}"
+      onsubmit="return confirm('Видалити курс «{{ course.name|escapejs }}»? Його предмети лишаться в каталозі, зникне лише програма курсу.');">
+    {% csrf_token %}
+    <button type="submit" class="{{ button_class }}">Видалити</button>
+</form>

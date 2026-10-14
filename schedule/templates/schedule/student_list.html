@@ -14,6 +14,7 @@
             <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Групи</a>
             {% if user.can_manage_users %}
             <a href="{% url 'accounts:user_list' %}?role=student" class="btn btn-secondary">Облікові записи</a>
+            <a href="{% url 'schedule:student_add' %}" class="btn">+ Додати студента</a>
             {% endif %}
         </div>
     </div>
@@ -36,7 +37,11 @@
     <div class="table-card">
     <table data-table>
         <thead>
-            <tr><th>ПІБ</th><th>Логін</th><th>Група</th><th>Курс</th><th>Навчання в групі</th></tr>
+            <tr>
+                <th>ПІБ</th><th>Логін</th><th>Група</th><th>Курс</th>
+                <th data-filter="period">Навчання в групі</th>
+                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
+            </tr>
         </thead>
         <tbody>
         {% for e in enrollments %}
@@ -44,11 +49,14 @@
                 <td><a href="{% url 'accounts:person_detail' e.student.pk %}">{{ e.student.display_name }}</a></td>
                 <td>{{ e.student.username }}</td>
                 <td><a href="{% url 'schedule:group_detail' e.group.pk %}">{{ e.group.name }}</a></td>
-                <td>{{ e.group.course.name }}</td>
-                <td data-sort="{{ e.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=e %}</td>
+                <td><a href="{% url 'schedule:course_detail' e.group.course.pk %}">{{ e.group.course.name }}</a></td>
+                <td {% include "schedule/includes/period_attrs.html" with obj=e %}>{% include "schedule/includes/period.html" with obj=e %}</td>
+                {% if user.can_manage_users %}
+                <td class="row-actions">{% include "schedule/includes/student_actions.html" %}</td>
+                {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="5" class="muted">
+            <tr data-empty><td colspan="{% if user.can_manage_users %}6{% else %}5{% endif %}" class="muted">
                 {% if own_only %}У ваших групах іще немає студентів.
                 {% else %}Ще нікого не зараховано до жодної групи.{% endif %}
             </td></tr>

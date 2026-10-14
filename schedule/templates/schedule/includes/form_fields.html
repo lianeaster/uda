@@ -1,0 +1,14 @@
+{% comment %}
+Поля форми одне під одним: підпис, поле, помилки, підказка. `form` — будь-яка
+форма; загальні помилки (не прив'язані до поля) — зверху.
+{% endcomment %}
+{{ form.non_field_errors }}
+{% for field in form.hidden_fields %}{{ field }}{% endfor %}
+{% for field in form.visible_fields %}
+<div class="form-field">
+    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+    {{ field }}
+    {{ field.errors }}
+    {% if field.help_text %}<small class="muted">{{ field.help_text|safe }}</small>{% endif %}
+</div>
+{% endfor %}

@@ -1,19 +1,18 @@
 {% extends "platform_base.html" %}
-{% block title %}Новий курс{% endblock %}
+{% block title %}{% if object %}{{ object.name }}{% else %}Новий курс{% endif %}{% endblock %}
 {% block content %}
 <div class="container">
-    <div class="form-page">
-        <h1>Новий курс</h1>
+    <div class="form-page form-page-wide">
+        <h1>{% if object %}Редагування курсу{% else %}Новий курс{% endif %}</h1>
         <form method="post">
             {% csrf_token %}
-            <p>
-                <label for="{{ form.name.id_for_label }}">{{ form.name.label }}</label>
-                {{ form.name }}
-                {{ form.name.errors }}
-            </p>
+            {% include "schedule/includes/form_fields.html" %}
             <button type="submit" class="btn" style="width:100%;">Зберегти</button>
         </form>
-        <p style="text-align:center;margin-top:16px;"><a href="{% url 'schedule:course_list' %}">&larr; До списку курсів</a></p>
+        <p style="text-align:center;margin-top:16px;">
+            {% if object %}<a href="{% url 'schedule:course_detail' object.pk %}">&larr; До картки курсу</a>
+            {% else %}<a href="{% url 'schedule:course_list' %}">&larr; До списку курсів</a>{% endif %}
+        </p>
     </div>
 </div>
 {% endblock %}

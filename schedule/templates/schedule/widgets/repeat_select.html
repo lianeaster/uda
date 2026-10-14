@@ -1,0 +1,31 @@
+{% comment %}
+Стовпчик випадних списків з одним ім'ям і кнопкою «+». Поведінку дає
+static/js/repeat.js; без скрипта видно один список, і його вистачає на одне значення.
+{% endcomment %}
+<div class="repeat" data-repeat>
+    <div class="repeat-rows" data-repeat-rows>
+        {% for selected in widget.rows %}
+        <div class="repeat-row" data-repeat-row>
+            <select name="{{ widget.name }}" aria-label="{{ widget.empty_label }}">
+                <option value="">{{ widget.empty_label }}</option>
+                {% for value, label in widget.options %}
+                <option value="{{ value }}"{% if value == selected %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="repeat-remove" data-repeat-remove aria-label="Прибрати">&times;</button>
+        </div>
+        {% endfor %}
+    </div>
+    <template data-repeat-template>
+        <div class="repeat-row" data-repeat-row>
+            <select name="{{ widget.name }}" aria-label="{{ widget.empty_label }}">
+                <option value="">{{ widget.empty_label }}</option>
+                {% for value, label in widget.options %}
+                <option value="{{ value }}">{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="repeat-remove" data-repeat-remove aria-label="Прибрати">&times;</button>
+        </div>
+    </template>
+    <button type="button" class="btn btn-small btn-secondary repeat-add" data-repeat-add hidden>+ {{ widget.add_label }}</button>
+</div>

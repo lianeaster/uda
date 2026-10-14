@@ -7,8 +7,8 @@
         <div class="page-header-actions">
             <a href="{% url 'schedule:student_list' %}" class="btn btn-secondary">Студенти</a>
             <a href="{% url 'schedule:course_list' %}" class="btn btn-secondary">Курси</a>
-            {% if user.is_super_admin %}
-            <a href="{% url 'admin:schedule_group_add' %}" class="btn">+ Додати групу</a>
+            {% if user.can_manage_users %}
+            <a href="{% url 'schedule:group_add' %}" class="btn">+ Додати групу</a>
             {% endif %}
         </div>
     </div>
@@ -31,12 +31,16 @@
     <table data-table>
         <thead>
             <tr>
-                <th>Група</th>
+                {# Назва групи унікальна — фільтр по ній нічого б не звужував. #}
+                <th data-filter="none">Група</th>
                 <th>Курс</th>
-                <th>Період навчання</th>
-                <th>Предмети</th>
-                <th>Викладачі</th>
-                <th>Студенти</th>
+                <th data-filter="period">Період навчання</th>
+                {# Голе число предметів і викладачів нічого не каже; що тут #}
+                {# показувати — ще вирішуємо, а поки колонки лише позначені. #}
+                <th class="is-inactive" data-sort="false" data-filter="none" title="Скоро">Предмети</th>
+                <th class="is-inactive" data-sort="false" data-filter="none" title="Скоро">Викладачі</th>
+                <th data-filter="none">Студенти</th>
+                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
@@ -47,14 +51,20 @@
                     {% if group.i_teach %}<span class="chip">викладаю</span>{% endif %}
                     {% if group.i_study %}<span class="chip">навчаюсь</span>{% endif %}
                 </td>
-                <td>{{ group.course.name }}</td>
-                <td data-sort="{{ group.start_date|date:'Y-m-d' }}">{% include "schedule/includes/period.html" with obj=group %}</td>
-                <td>{{ group.subject_count }}</td>
-                <td>{{ group.teacher_count }}</td>
+                <td><a href="{% url 'schedule:course_detail' group.course.pk %}">{{ group.course.name }}</a></td>
+                <td {% include "schedule/includes/period_attrs.html" with obj=group %}>{% include "schedule/includes/period.html" with obj=group %}</td>
+                <td class="is-inactive">—</td>
+                <td class="is-inactive">—</td>
                 <td>{{ group.student_count }}</td>
+                {% if user.can_manage_users %}
+                <td class="row-actions">
+                    <a href="{% url 'schedule:group_edit' group.pk %}">Редагувати</a>
+                    {% include "schedule/includes/group_delete.html" %}
+                </td>
+                {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="6" class="muted">
+            <tr data-empty><td colspan="{% if user.can_manage_users %}7{% else %}6{% endif %}" class="muted">
                 {% if own_only %}Вас іще не призначили в жодну групу — зверніться до менеджера.
                 {% elif scope == 'all' %}Ще немає жодної групи.
                 {% else %}Немає активних груп.{% endif %}

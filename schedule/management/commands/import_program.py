@@ -6,7 +6,7 @@ from django.db import transaction
 from accounts.models import User
 
 from ... import programs
-from ...models import Course, Subject
+from ...models import Course, CourseSubject, Subject
 
 
 class Command(BaseCommand):
@@ -33,25 +33,22 @@ class Command(BaseCommand):
 
         seen = set()
         for position, code, name, module, lecturer_labels in programs.subjects():
-            subject, is_new = Subject.objects.get_or_create(
-                name=name,
-                defaults={'course': course, 'code': code, 'position': position},
-            )
+            subject, is_new = Subject.objects.get_or_create(name=name)
             seen.add(subject.pk)
+            link = CourseSubject.objects.filter(course=course, subject=subject).first()
 
-            if is_new:
-                created.append(f'{code} {name}')
+            if is_new or link is None:
+                if not self.dry_run:
+                    CourseSubject.objects.create(
+                        course=course, subject=subject, code=code, position=position)
+                created.append(f'{code} {name}' + ('' if is_new else ' — додано в програму курсу'))
             else:
-                changes = []
-                for field, value in (('course', course), ('code', code), ('position', position)):
-                    if getattr(subject, f'{field}_id' if field == 'course' else field) != (
-                        value.pk if field == 'course' else value
-                    ):
-                        setattr(subject, field, value)
-                        changes.append(field)
+                changes = [field for field, value in (('code', code), ('position', position))
+                           if getattr(link, field) != value]
                 if changes:
+                    link.code, link.position = code, position
                     if not self.dry_run:
-                        subject.save(update_fields=changes)
+                        link.save(update_fields=changes)
                     updated.append(f'{code} {name} — {", ".join(changes)}')
 
             teachers = [t for t in (self._resolve(label) for label in lecturer_labels) if t]
@@ -69,11 +66,11 @@ class Command(BaseCommand):
         self._report('Призначено', assigned, self.style.SUCCESS)
         self._report('Не призначено', self.blocked, self.style.ERROR)
 
-        stray = Subject.objects.filter(course=course).exclude(pk__in=seen)
+        stray = course.program.exclude(subject_id__in=seen).select_related('subject')
         if stray:
             self._report(
                 'Предмети курсу поза програмою (не чіпав)',
-                [s.name for s in stray],
+                [link.subject.name for link in stray],
                 self.style.WARNING,
             )
 

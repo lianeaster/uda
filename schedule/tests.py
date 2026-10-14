@@ -4,7 +4,8 @@ from django.test import TestCase
 from accounts.models import User
 
 from . import programs
-from .models import Course, Subject
+from .models import Course, CourseSubject, Subject
+from .testing import make_subject
 
 
 class ImportProgramTests(TestCase):
@@ -20,16 +21,15 @@ class ImportProgramTests(TestCase):
         self.assertEqual(course.subjects.count(), len(expected))
         for position, code, name, _module, _lecturers in expected:
             with self.subTest(code=code):
-                subject = Subject.objects.get(name=name)
-                self.assertEqual(subject.course, course)
-                self.assertEqual(subject.code, code)
-                self.assertEqual(subject.position, position)
+                link = CourseSubject.objects.get(subject__name=name)
+                self.assertEqual(link.course, course)
+                self.assertEqual(link.code, code)
+                self.assertEqual(link.position, position)
 
     def test_subjects_keep_the_order_of_the_programme_not_the_alphabet(self):
         self.import_program()
         codes = list(
-            Subject.objects.filter(course__name=programs.COURSE)
-            .values_list('code', flat=True)
+            Course.objects.get(name=programs.COURSE).program.values_list('code', flat=True)
         )
         self.assertEqual(codes, [code for _, code, _, _, _ in programs.subjects()])
         # за абеткою «10.1» стояло б перед «2.1» — саме тому є `position`
@@ -39,7 +39,7 @@ class ImportProgramTests(TestCase):
         self.import_program()
         bachurin = User.objects.get(username='ivan-bachurin')
         self.assertEqual(
-            sorted(bachurin.subjects.values_list('code', flat=True)),
+            sorted(bachurin.subjects.values_list('course_links__code', flat=True)),
             ['2.2', '2.3', '2.4', '2.5'],
         )
         # один предмет може вести двоє — «8.2 Витримка в бочці»
@@ -54,7 +54,7 @@ class ImportProgramTests(TestCase):
         # «Білько М.В» / «Білько М.В.» / «Билько М.» — та сама людина
         bilko = User.objects.get(username='maryna-bilko')
         self.assertEqual(
-            sorted(bilko.subjects.values_list('code', flat=True)),
+            sorted(bilko.subjects.values_list('course_links__code', flat=True)),
             ['3.3', '3.6', '7.3', '8.2'],
         )
         self.assertEqual(User.objects.filter(last_name__in=['Білько', 'Билько']).count(), 1)
@@ -79,15 +79,15 @@ class ImportProgramTests(TestCase):
 
     def test_running_twice_changes_nothing(self):
         self.import_program()
-        before = {
-            (s.pk, s.code, s.position, tuple(sorted(s.teachers.values_list('pk', flat=True))))
-            for s in Subject.objects.all()
-        }
+        def snapshot():
+            return {
+                (link.subject_id, link.code, link.position,
+                 tuple(sorted(link.subject.teachers.values_list('pk', flat=True))))
+                for link in CourseSubject.objects.select_related('subject')
+            }
+        before = snapshot()
         self.import_program()
-        after = {
-            (s.pk, s.code, s.position, tuple(sorted(s.teachers.values_list('pk', flat=True))))
-            for s in Subject.objects.all()
-        }
+        after = snapshot()
         self.assertEqual(after, before)
 
     def test_dry_run_writes_nothing(self):
@@ -97,11 +97,11 @@ class ImportProgramTests(TestCase):
 
     def test_subjects_of_the_course_outside_the_programme_are_left_alone(self):
         course = Course.objects.create(name=programs.COURSE)
-        stray = Subject.objects.create(name='Старий предмет', course=course)
+        stray = make_subject('Старий предмет', course=course, position=999)
         self.import_program()
-        stray.refresh_from_db()
-        self.assertEqual(stray.course, course)
-        self.assertEqual(stray.position, 0)
+        link = CourseSubject.objects.get(subject=stray)
+        self.assertEqual(link.course, course)
+        self.assertEqual(link.position, 999)
 
 
 import datetime as dt
@@ -130,7 +130,7 @@ class ScheduleFlowTests(TestCase):
             username='stud', password='pw', roles=[User.Role.STUDENT])
 
         cls.course = Course.objects.create(name='Майстер дистиляції')
-        cls.subject = Subject.objects.create(name='Сенсорика', course=cls.course)
+        cls.subject = make_subject('Сенсорика', course=cls.course)
         cls.group = Group.objects.create(
             name='МД-1', course=cls.course, start_date=MONTH_AGO)
         cls.lesson = GroupSubject.objects.create(
@@ -142,8 +142,7 @@ class ScheduleFlowTests(TestCase):
         cls.foreign_group = Group.objects.create(
             name='ЗД-1', course=cls.course, start_date=MONTH_AGO)
         GroupSubject.objects.create(
-            group=cls.foreign_group, subject=Subject.objects.create(
-                name='Солод', course=cls.course),
+            group=cls.foreign_group, subject=make_subject('Солод', course=cls.course),
             teacher=cls.outsider, start_date=MONTH_AGO)
 
     def entry(self, **kwargs):
@@ -298,14 +297,14 @@ class GroupSubjectManagementTests(TestCase):
         cls.course = Course.objects.create(name='Майстер дистиляції')
         cls.other_course = Course.objects.create(name='Інший курс')
 
-        cls.solo = Subject.objects.create(name='Сенсорика', course=cls.course, position=1)
+        cls.solo = make_subject('Сенсорика', course=cls.course, position=1)
         cls.solo.teachers.add(cls.teacher)
-        cls.also_solo = Subject.objects.create(name='Вода', course=cls.course, position=2)
+        cls.also_solo = make_subject('Вода', course=cls.course, position=2)
         cls.also_solo.teachers.add(cls.other_teacher)
-        cls.shared = Subject.objects.create(name='Обладнання', course=cls.course, position=3)
+        cls.shared = make_subject('Обладнання', course=cls.course, position=3)
         cls.shared.teachers.add(cls.teacher, cls.other_teacher)
-        cls.orphan = Subject.objects.create(name='Випускна робота', course=cls.course, position=4)
-        cls.foreign = Subject.objects.create(name='Чуже', course=cls.other_course)
+        cls.orphan = make_subject('Випускна робота', course=cls.course, position=4)
+        cls.foreign = make_subject('Чуже', course=cls.other_course)
 
         cls.group = Group.objects.create(
             name='МД-1', course=cls.course, start_date=MONTH_AGO)
@@ -404,11 +403,11 @@ class ProposalOutcomeTests(TestCase):
             name='Г-1', course=cls.course, start_date=MONTH_AGO)
         cls.lesson = GroupSubject.objects.create(
             group=cls.group,
-            subject=Subject.objects.create(name='Предмет', course=cls.course),
+            subject=make_subject('Предмет', course=cls.course),
             teacher=cls.teacher, start_date=MONTH_AGO)
         cls.other_lesson = GroupSubject.objects.create(
             group=cls.group,
-            subject=Subject.objects.create(name='Інший', course=cls.course),
+            subject=make_subject('Інший', course=cls.course),
             teacher=cls.other, start_date=MONTH_AGO)
 
     def propose(self, author, lesson, hour=10):
@@ -498,3 +497,231 @@ class ProposalOutcomeTests(TestCase):
         context = self.dashboard(self.manager).context
         self.assertEqual(context['proposals_pending'], 2)
         self.assertEqual(context['proposals_news'], 0)   # своїх пропозицій не має
+
+
+class CatalogueManagementTests(TestCase):
+    """Курси, предмети, групи й студенти правляться на самій платформі."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.manager = User.objects.create_user(
+            username='mgr', password='pw', roles=[User.Role.MANAGER])
+        cls.teacher = User.objects.create_user(
+            username='tchr', password='pw', last_name='Бачурін', roles=[User.Role.TEACHER])
+        cls.second_teacher = User.objects.create_user(
+            username='tchr2', password='pw', last_name='Ражабов', roles=[User.Role.TEACHER])
+        cls.master = Course.objects.create(name='Майстер дистиляції')
+        cls.grain = Course.objects.create(name='Зернові дистиляти')
+        cls.group = Group.objects.create(
+            name='МД-1', course=cls.master, start_date=MONTH_AGO,
+            end_date=TODAY + dt.timedelta(days=60))
+
+    def setUp(self):
+        self.client.force_login(self.manager)
+
+    def subject_payload(self, name, courses=(), teachers=(), existing=0):
+        data = {
+            'name': name,
+            'courses-TOTAL_FORMS': str(len(courses)),
+            'courses-INITIAL_FORMS': str(existing),
+            'courses-MIN_NUM_FORMS': '0',
+            'courses-MAX_NUM_FORMS': '1000',
+            # Зайвий порожній список — рядок «+ викладач», у якому нічого не обрали.
+            'teachers': [str(t.pk) for t in teachers] + [''],
+        }
+        for index, row in enumerate(courses):
+            for key, value in row.items():
+                data[f'courses-{index}-{key}'] = value
+        return data
+
+    # --- предмети ------------------------------------------------------
+
+    def test_one_subject_sits_in_several_courses_under_its_own_numbers(self):
+        response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
+            'Зернові дистиляти',
+            courses=[{'course': self.master.pk, 'code': '2.3'},
+                     {'course': self.grain.pk, 'code': '1.1'}],
+            teachers=[self.teacher, self.second_teacher],
+        ))
+        self.assertRedirects(response, reverse('schedule:subject_list'))
+        subject = Subject.objects.get(name='Зернові дистиляти')
+        self.assertEqual(
+            dict(subject.course_links.values_list('course__name', 'code')),
+            {'Майстер дистиляції': '2.3', 'Зернові дистиляти': '1.1'})
+        self.assertEqual(set(subject.teachers.all()), {self.teacher, self.second_teacher})
+
+    def test_the_same_course_twice_is_refused(self):
+        response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
+            'Ром', courses=[{'course': self.master.pk, 'code': '2.6'},
+                            {'course': self.master.pk, 'code': '2.7'}]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Subject.objects.filter(name='Ром').exists())
+
+    def test_a_subject_is_edited_and_removed_from_a_course(self):
+        subject = make_subject('Водка', course=self.master, code='2.4')
+        CourseSubject.objects.create(course=self.grain, subject=subject, code='3')
+        subject.teachers.add(self.teacher)
+        links = list(subject.course_links.order_by('course__name'))   # зернові, майстер
+        data = self.subject_payload(
+            'Горілка',
+            courses=[
+                {'id': links[0].pk, 'course': self.grain.pk, 'code': '3', 'DELETE': 'on'},
+                {'id': links[1].pk, 'course': self.master.pk, 'code': '2.4.1'},
+            ],
+            teachers=[self.second_teacher], existing=2)
+        response = self.client.post(reverse('schedule:subject_edit', args=[subject.pk]), data)
+        self.assertRedirects(response, reverse('schedule:subject_list'))
+        subject.refresh_from_db()
+        self.assertEqual(subject.name, 'Горілка')
+        self.assertEqual(list(subject.course_links.values_list('course__name', 'code')),
+                         [('Майстер дистиляції', '2.4.1')])
+        self.assertEqual(list(subject.teachers.all()), [self.second_teacher])
+
+    def test_teachers_are_picked_from_dropdowns_not_checkboxes(self):
+        page = self.client.get(reverse('schedule:subject_add')).content.decode()
+        self.assertIn('data-repeat-add', page)
+        self.assertNotIn('type="checkbox" name="teachers"', page)
+
+    def test_the_group_shows_the_number_from_its_own_courses_programme(self):
+        subject = make_subject('Сенсорика', course=self.master, code='4.1')
+        CourseSubject.objects.create(course=self.grain, subject=subject, code='9.9')
+        GroupSubject.objects.create(group=self.group, subject=subject, teacher=self.teacher,
+                                    start_date=MONTH_AGO)
+        page = self.client.get(reverse('schedule:group_detail', args=[self.group.pk]))
+        row = page.context['group_subjects'].get()
+        self.assertEqual(row.code, '4.1')
+
+    def test_a_subject_taught_in_a_group_cannot_be_deleted_quietly(self):
+        subject = make_subject('Сенсорика', course=self.master)
+        GroupSubject.objects.create(group=self.group, subject=subject, teacher=self.teacher,
+                                    start_date=MONTH_AGO)
+        response = self.client.post(reverse('schedule:subject_delete', args=[subject.pk]))
+        self.assertRedirects(response, reverse('schedule:subject_list'))
+        self.assertTrue(Subject.objects.filter(pk=subject.pk).exists())
+
+    # --- курси ---------------------------------------------------------
+
+    def test_a_course_has_a_card_and_can_be_edited(self):
+        make_subject('Сенсорика', course=self.master, code='4.1')
+        response = self.client.post(
+            reverse('schedule:course_edit', args=[self.master.pk]),
+            {'name': 'Майстер дистиляції', 'description': 'Повний курс для виробників.'})
+        self.assertRedirects(response, reverse('schedule:course_detail', args=[self.master.pk]))
+
+        self.client.force_login(self.teacher)
+        card = self.client.get(reverse('schedule:course_detail', args=[self.master.pk]))
+        self.assertContains(card, 'Повний курс для виробників.')
+        self.assertContains(card, 'Сенсорика')
+        self.assertNotContains(card, reverse('schedule:course_edit', args=[self.master.pk]))
+        self.assertRedirects(
+            self.client.get(reverse('schedule:course_edit', args=[self.master.pk])),
+            reverse('dashboard:home'))
+
+    def test_a_course_with_groups_is_not_deleted_and_its_subjects_survive_deletion(self):
+        response = self.client.post(reverse('schedule:course_delete', args=[self.master.pk]))
+        self.assertRedirects(response, reverse('schedule:course_detail', args=[self.master.pk]))
+        self.assertTrue(Course.objects.filter(pk=self.master.pk).exists())
+
+        subject = make_subject('Солод', course=self.grain)
+        self.client.post(reverse('schedule:course_delete', args=[self.grain.pk]))
+        self.assertFalse(Course.objects.filter(pk=self.grain.pk).exists())
+        self.assertTrue(Subject.objects.filter(pk=subject.pk).exists())
+
+    # --- групи ---------------------------------------------------------
+
+    def test_management_creates_edits_and_deletes_a_group(self):
+        response = self.client.post(reverse('schedule:group_add'), {
+            'name': 'ЗД-1', 'course': self.grain.pk,
+            'start_date': TODAY.isoformat(), 'end_date': '', 'notes': '',
+        })
+        group = Group.objects.get(name='ЗД-1')
+        self.assertRedirects(response, reverse('schedule:group_detail', args=[group.pk]))
+
+        self.client.post(reverse('schedule:group_edit', args=[group.pk]), {
+            'name': 'ЗД-2', 'course': self.grain.pk,
+            'start_date': TODAY.isoformat(), 'end_date': (TODAY - dt.timedelta(days=1)).isoformat(),
+        })
+        self.assertFalse(Group.objects.filter(name='ЗД-2').exists(),
+                         'завершення раніше за початок не приймається')
+
+        self.client.post(reverse('schedule:group_delete', args=[group.pk]))
+        self.assertFalse(Group.objects.filter(pk=group.pk).exists())
+
+    def test_a_teacher_cannot_touch_groups(self):
+        self.client.force_login(self.teacher)
+        self.client.post(reverse('schedule:group_delete', args=[self.group.pk]))
+        self.assertTrue(Group.objects.filter(pk=self.group.pk).exists())
+        self.assertRedirects(self.client.get(reverse('schedule:group_add')), reverse('dashboard:home'))
+
+    def test_the_edit_form_shows_dates_the_date_picker_can_read(self):
+        page = self.client.get(reverse('schedule:group_edit', args=[self.group.pk]))
+        self.assertContains(page, f'value="{MONTH_AGO.isoformat()}"')
+
+    # --- студенти ------------------------------------------------------
+
+    def test_a_new_student_gets_an_account_and_the_groups_dates(self):
+        response = self.client.post(reverse('schedule:student_add'), {
+            'mode': 'new',
+            'new-last_name': 'Коваль', 'new-first_name': 'Олена', 'new-patronymic': '',
+            'new-email': '', 'new-username': 'koval',
+            'new-password1': 'Very-long-pass-42', 'new-password2': 'Very-long-pass-42',
+            'group': self.group.pk, 'start_date': '', 'end_date': '',
+        })
+        self.assertRedirects(response, reverse('schedule:student_list'))
+        student = User.objects.get(username='koval')
+        self.assertEqual(student.roles, {User.Role.STUDENT})
+        enrollment = student.enrollments.get()
+        self.assertEqual((enrollment.group, enrollment.start_date, enrollment.end_date),
+                         (self.group, self.group.start_date, self.group.end_date))
+
+    def test_someone_already_on_the_platform_is_enrolled_without_a_second_account(self):
+        existing = User.objects.create_user(username='old', roles=[User.Role.STUDENT])
+        self.client.post(reverse('schedule:student_add'), {
+            'mode': 'existing', 'student': existing.pk, 'group': self.group.pk,
+            'start_date': TODAY.isoformat(), 'end_date': '',
+            # поля нового студента порожні — у цьому режимі їх не перевіряють
+            'new-username': '',
+        })
+        self.assertEqual(User.objects.filter(username='old').count(), 1)
+        self.assertEqual(existing.enrollments.get().start_date, TODAY)
+
+    def test_a_students_enrollment_and_name_are_edited_and_the_row_removed(self):
+        student = User.objects.create_user(
+            username='stud', last_name='Стара', roles=[User.Role.STUDENT])
+        enrollment = Enrollment.objects.create(group=self.group, student=student, start_date=MONTH_AGO)
+        response = self.client.post(reverse('schedule:student_edit', args=[enrollment.pk]), {
+            'group': self.group.pk, 'start_date': MONTH_AGO.isoformat(), 'end_date': TODAY.isoformat(),
+            'info-last_name': 'Нова', 'info-first_name': 'Ірина', 'info-patronymic': '', 'info-email': '',
+        })
+        self.assertRedirects(response, reverse('schedule:student_list'))
+        enrollment.refresh_from_db()
+        student.refresh_from_db()
+        self.assertEqual(enrollment.end_date, TODAY)
+        self.assertEqual(student.last_name, 'Нова')
+
+        back = reverse('schedule:group_detail', args=[self.group.pk])
+        response = self.client.post(
+            reverse('schedule:student_delete', args=[enrollment.pk]), {'next': back})
+        self.assertRedirects(response, back)
+        self.assertFalse(Enrollment.objects.filter(pk=enrollment.pk).exists())
+        self.assertTrue(User.objects.filter(pk=student.pk).exists(), 'обліковий запис лишається')
+
+    def test_a_foreign_next_is_ignored(self):
+        student = User.objects.create_user(username='stud', roles=[User.Role.STUDENT])
+        enrollment = Enrollment.objects.create(group=self.group, student=student, start_date=MONTH_AGO)
+        response = self.client.post(
+            reverse('schedule:student_delete', args=[enrollment.pk]), {'next': 'https://evil.example/'})
+        self.assertRedirects(response, reverse('schedule:student_list'))
+
+    def test_a_teacher_cannot_manage_students(self):
+        self.client.force_login(self.teacher)
+        self.assertRedirects(self.client.get(reverse('schedule:student_add')), reverse('dashboard:home'))
+        student = User.objects.create_user(username='stud', roles=[User.Role.STUDENT])
+        enrollment = Enrollment.objects.create(group=self.group, student=student, start_date=MONTH_AGO)
+        self.client.post(reverse('schedule:student_delete', args=[enrollment.pk]))
+        self.assertTrue(Enrollment.objects.filter(pk=enrollment.pk).exists())
+
+    def test_period_columns_carry_their_bounds_for_the_filter(self):
+        page = self.client.get(reverse('schedule:group_list')).content.decode()
+        self.assertIn('data-filter="period"', page)
+        self.assertIn(f'data-start="{MONTH_AGO.isoformat()}" data-end="{self.group.end_date.isoformat()}"', page)

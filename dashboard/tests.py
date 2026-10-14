@@ -5,6 +5,7 @@ from django.urls import reverse
 
 from accounts.models import User
 from schedule.models import Course, Enrollment, Group, GroupSubject, Subject
+from schedule.testing import make_subject
 
 TODAY = dt.date.today()
 MONTH_AGO = TODAY - dt.timedelta(days=30)
@@ -27,10 +28,9 @@ class RoleVisibilityTests(TestCase):
 
         cls.course = Course.objects.create(name='Майстер дистиляції')
         cls.other_course = Course.objects.create(name='Зернові дистиляти')
-        cls.subject = Subject.objects.create(name='Сенсорика', course=cls.course)
-        cls.other_subject_of_course = Subject.objects.create(
-            name='Ферментація', course=cls.course)
-        cls.other_subject = Subject.objects.create(name='Солод', course=cls.other_course)
+        cls.subject = make_subject('Сенсорика', course=cls.course)
+        cls.other_subject_of_course = make_subject('Ферментація', course=cls.course)
+        cls.other_subject = make_subject('Солод', course=cls.other_course)
 
         cls.own_group = Group.objects.create(name='МД-1', course=cls.course, start_date=MONTH_AGO)
         cls.foreign_group = Group.objects.create(name='ЗД-1', course=cls.other_course, start_date=MONTH_AGO)
@@ -182,16 +182,20 @@ class RoleVisibilityTests(TestCase):
         self.assertFalse(page.context['is_teacher'])
         self.assertIsNone(page.context.get('scope'))
 
-    def test_super_admin_group_pages_render_with_their_admin_links(self):
-        self.client.force_login(self.admin)
-        listing = self.client.get(reverse('schedule:group_list'))
-        detail = self.client.get(reverse('schedule:group_detail', args=[self.own_group.pk]))
-        self.assertEqual(listing.status_code, 200)
-        self.assertEqual(detail.status_code, 200)
-        self.assertIn(reverse('admin:schedule_group_add'), listing.content.decode())
-        self.assertIn(
-            reverse('admin:schedule_group_change', args=[self.own_group.pk]),
-            detail.content.decode())
+    def test_management_edits_groups_on_the_platform_not_in_the_admin(self):
+        for who in (self.admin, self.manager):
+            with self.subTest(user=who.username):
+                self.client.force_login(who)
+                listing = self.client.get(reverse('schedule:group_list')).content.decode()
+                detail = self.client.get(
+                    reverse('schedule:group_detail', args=[self.own_group.pk])).content.decode()
+                self.assertIn(reverse('schedule:group_add'), listing)
+                self.assertIn(reverse('schedule:group_edit', args=[self.own_group.pk]), detail)
+                self.assertIn(reverse('schedule:group_delete', args=[self.own_group.pk]), detail)
+                self.assertNotIn('/admin/schedule/group/', listing + detail)
+        self.client.force_login(self.teacher)
+        listing = self.client.get(reverse('schedule:group_list')).content.decode()
+        self.assertNotIn(reverse('schedule:group_add'), listing)
 
     def make_graduate_turned_teacher(self, username='graduate'):
         """Провчилась, випустилась — і згодом прийшла в штат викладачкою.
@@ -303,7 +307,7 @@ class EveryPageRendersForEveryRoleTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.course = Course.objects.create(name='Майстер дистиляції')
-        cls.subject = Subject.objects.create(name='Сенсорика', course=cls.course)
+        cls.subject = make_subject('Сенсорика', course=cls.course)
         cls.group = Group.objects.create(
             name='МД-1', course=cls.course, start_date=MONTH_AGO)
 
@@ -323,8 +327,7 @@ class EveryPageRendersForEveryRoleTests(TestCase):
         for index, name in enumerate(('teacher', 'manager_teacher', 'student_teacher')):
             GroupSubject.objects.create(
                 group=cls.group,
-                subject=Subject.objects.create(
-                    name=f'Предмет {index}', course=cls.course),
+                subject=make_subject(f'Предмет {index}', course=cls.course),
                 teacher=cls.users[name], start_date=MONTH_AGO)
         for name in ('student', 'student_teacher'):
             Enrollment.objects.create(
@@ -386,9 +389,11 @@ class EveryPageRendersForEveryRoleTests(TestCase):
         groups = self.client.get(reverse('schedule:group_list')).content.decode()
         self.assertIn(f'data-sort="{MONTH_AGO.isoformat()}"', groups)
 
-        subjects = self.client.get(
-            reverse('schedule:subject_list')).content.decode()
-        self.assertIn(f'data-sort="{self.subject.position}"', subjects)
+        # Номер предмета — у програмі курсу, тож і сортування за ним — на картці курсу.
+        link = self.subject.course_links.get()
+        program = self.client.get(
+            reverse('schedule:course_detail', args=[link.course_id])).content.decode()
+        self.assertIn(f'data-sort="{link.position}"', program)
 
         users = self.client.get(reverse('accounts:user_list')).content.decode()
         self.assertIn('data-sort="0"', users)      # супер-адмін — найстарша роль

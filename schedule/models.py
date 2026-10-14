@@ -10,6 +10,7 @@ class Course(models.Model):
     """A full program, e.g. «Майстер дистиляції» or «Зернові дистиляти»."""
 
     name = models.CharField('Назва курсу', max_length=200, unique=True)
+    description = models.TextField('Опис', blank=True)
 
     class Meta:
         ordering = ['name']
@@ -19,9 +20,22 @@ class Course(models.Model):
     def __str__(self):
         return self.name
 
+    @property
+    def ordered_program(self):
+        """Предмети курсу в порядку програми, кожен зі своїм номером у ній."""
+        return self.program.select_related('subject').prefetch_related('subject__teachers')
+
 
 class Subject(models.Model):
-    """A specific topic within a course, e.g. «Сенсорний аналіз», taught by one or more teachers.
+    """A topic taught by one or more teachers, e.g. «Сенсорний аналіз».
+
+    One subject can sit in the programmes of several courses — its number and
+    place in each programme live on `CourseSubject`, because «2.1» in one
+    course says nothing about another.
+
+    `teachers` is who *can* teach it. Who actually teaches it in a given group
+    is `GroupSubject.teacher`, so the same subject may have different teachers
+    in different groups and courses.
 
     Nothing here (nor in `ScheduleEntry`, `GroupSubject`, `Enrollment`) narrows
     its link to users by role. Roles are a set that grows over time, so a role
@@ -31,17 +45,12 @@ class Subject(models.Model):
     """
 
     name = models.CharField('Назва предмету', max_length=200, unique=True)
-    # Номер із програми курсу («2.1», «10.4»). Лишаємо рядком і як у джерелі:
-    # у графіку трапляються повтори (два «8.2», два «10.7»), тож це підпис для
-    # людини, а не ключ. Порядок тримає `position`, бо «10.1» < «2.1» за абеткою.
-    code = models.CharField('Номер у програмі', max_length=20, blank=True)
-    position = models.PositiveIntegerField('Порядок у програмі', default=0)
-    course = models.ForeignKey(
+    courses = models.ManyToManyField(
         Course,
-        on_delete=models.CASCADE,
+        through='CourseSubject',
         related_name='subjects',
-        verbose_name='Курс',
-        null=True,
+        blank=True,
+        verbose_name='Курси',
     )
     teachers = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
@@ -51,16 +60,53 @@ class Subject(models.Model):
     )
 
     class Meta:
-        ordering = ['course__name', 'position', 'name']
+        ordering = ['name']
         verbose_name = 'Предмет'
         verbose_name_plural = 'Предмети'
+
+    def __str__(self):
+        return self.name
+
+
+class CourseSubject(models.Model):
+    """A subject's place in one course's programme.
+
+    The number is kept as a string, as in the source: the programme has
+    repeats (two «8.2», two «10.7»), so it is a label for people, not a key.
+    Order is held by `position`, because «10.1» < «2.1» alphabetically.
+    """
+
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name='program', verbose_name='Курс',
+    )
+    subject = models.ForeignKey(
+        Subject, on_delete=models.CASCADE, related_name='course_links', verbose_name='Предмет',
+    )
+    code = models.CharField('Номер у програмі', max_length=20, blank=True)
+    position = models.PositiveIntegerField('Порядок у програмі', default=0)
+
+    class Meta:
+        ordering = ['course__name', 'position', 'subject__name']
+        verbose_name = 'Предмет у програмі курсу'
+        verbose_name_plural = 'Предмети в програмах курсів'
+        constraints = [
+            models.UniqueConstraint(fields=['course', 'subject'], name='unique_course_subject'),
+        ]
 
     def __str__(self):
         return f'{self.course.name} — {self.label}'
 
     @property
     def label(self):
-        return f'{self.code} {self.name}' if self.code else self.name
+        return f'{self.code} {self.subject.name}' if self.code else self.subject.name
+
+    def save(self, *args, **kwargs):
+        # Новий предмет без явного місця стає в кінець програми курсу.
+        if self._state.adding and not self.position and self.course_id:
+            last = CourseSubject.objects.filter(course_id=self.course_id).aggregate(
+                models.Max('position'))['position__max']
+            self.position = (last or 0) + 1
+        super().save(*args, **kwargs)
 
 
 class ScheduleEntryQuerySet(models.QuerySet):
@@ -419,7 +465,9 @@ class GroupSubject(DatedRange):
     def clean(self):
         errors = self.clean_dates()
         if self.subject_id and self.group_id:
-            if self.subject.course_id != self.group.course_id:
+            in_course = CourseSubject.objects.filter(
+                course_id=self.group.course_id, subject_id=self.subject_id).exists()
+            if not in_course:
                 errors['subject'] = 'Предмет не належить курсу цієї групи.'
         if errors:
             raise ValidationError(errors)

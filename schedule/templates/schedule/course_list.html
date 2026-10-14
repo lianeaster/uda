@@ -8,7 +8,6 @@
             <a href="{% url 'schedule:subject_list' %}" class="btn btn-secondary">Предмети</a>
             <a href="{% url 'schedule:group_list' %}" class="btn btn-secondary">Групи</a>
             {% if user.can_manage_users %}
-            <a href="{% url 'accounts:user_list' %}" class="btn btn-secondary">Користувачі</a>
             <a href="{% url 'schedule:course_add' %}" class="btn">+ Додати курс</a>
             {% endif %}
         </div>
@@ -18,33 +17,30 @@
     <table data-table>
         <thead>
             <tr>
-                <th>Назва курсу</th>
-                <th>Предмети</th>
+                {# Назва курсу унікальна — фільтр по ній нічого б не звужував. #}
+                <th data-filter="none">Назва курсу</th>
+                <th data-filter="none">Опис</th>
+                <th data-filter="none">Предметів у програмі</th>
+                <th data-filter="none">Груп</th>
                 {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
         </thead>
         <tbody>
         {% for course in courses %}
             <tr>
-                <td>{{ course.name }}</td>
-                <td>
-                    {% for s in course.subjects.all %}
-                        <span class="chip">{{ s.name }}</span>
-                    {% empty %}
-                        <span class="muted">— немає предметів —</span>
-                    {% endfor %}
-                </td>
+                <td><a href="{% url 'schedule:course_detail' course.pk %}">{{ course.name }}</a></td>
+                <td>{% if course.description %}{{ course.description|truncatewords:16 }}{% else %}<span class="muted">—</span>{% endif %}</td>
+                <td>{{ course.subject_count }}</td>
+                <td>{{ course.group_count }}</td>
                 {% if user.can_manage_users %}
                 <td class="row-actions">
-                    <form class="inline-form" method="post" action="{% url 'schedule:course_delete' course.pk %}" onsubmit="return confirm('Видалити курс {{ course.name }}? Усі його предмети також буде видалено.');">
-                        {% csrf_token %}
-                        <button type="submit" class="link-button danger-link">Видалити</button>
-                    </form>
+                    <a href="{% url 'schedule:course_edit' course.pk %}">Редагувати</a>
+                    {% include "schedule/includes/course_delete.html" with button_class="link-button danger-link" %}
                 </td>
                 {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="{% if user.can_manage_users %}3{% else %}2{% endif %}" class="muted">Ще немає жодного курсу.</td></tr>
+            <tr data-empty><td colspan="{% if user.can_manage_users %}5{% else %}4{% endif %}" class="muted">Ще немає жодного курсу.</td></tr>
         {% endfor %}
         </tbody>
     </table>

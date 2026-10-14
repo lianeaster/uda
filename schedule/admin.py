@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Course, Enrollment, Group, GroupSubject, ScheduleEntry, Subject
+from .models import Course, CourseSubject, Enrollment, Group, GroupSubject, ScheduleEntry, Subject
 
 
 @admin.register(ScheduleEntry)
@@ -17,15 +17,23 @@ class ScheduleEntryAdmin(admin.ModelAdmin):
             'group__course', 'group_subject__subject', 'group_subject__teacher')
 
 
+class CourseSubjectInline(admin.TabularInline):
+    model = CourseSubject
+    extra = 1
+    autocomplete_fields = ('subject',)
+
+
 @admin.register(Course)
 class CourseAdmin(admin.ModelAdmin):
     list_display = ('name',)
+    search_fields = ('name',)
+    inlines = (CourseSubjectInline,)
 
 
 @admin.register(Subject)
 class SubjectAdmin(admin.ModelAdmin):
-    list_display = ('name', 'course')
-    list_filter = ('course',)
+    list_display = ('name',)
+    list_filter = ('courses',)
     search_fields = ('name',)
     filter_horizontal = ('teachers',)
 
