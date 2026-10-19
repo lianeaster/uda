@@ -3,7 +3,9 @@
 сендвіча (`nav-narrow`) — на широкому екрані видно перші, на вузькому другі.
 {% endcomment %}
 <a class="{{ link_class }}" href="{% url 'schedule:home' %}">Розклад</a>
+<a class="{{ link_class }}" href="{% url 'tasks:list' %}">Мої задачі</a>
 <a class="{{ link_class }}" href="{% url 'accounts:person_list' %}">Картки</a>
 {% if user.can_manage_users %}
 <a class="{{ link_class }}" href="{% url 'accounts:user_list' %}">Користувачі</a>
+<a class="{{ link_class }}" href="{% url 'accounting:payroll' %}">Бухгалтерія</a>
 {% endif %}

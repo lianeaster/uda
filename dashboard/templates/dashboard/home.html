@@ -1,4 +1,5 @@
 {% extends "platform_base.html" %}
+{% load pricing %}
 {% block title %}Кабінет{% endblock %}
 {% block content %}
 <div class="container">
@@ -15,7 +16,7 @@
     {% endcomment %}
     <div class="tile-groups">
         <section class="tile-group">
-            <h2 class="tile-group-title">Розклад</h2>
+            <h2 class="tile-group-title">Розклад і задачі</h2>
             <div class="tile-group-list">
                 <a class="tile" href="{% url 'schedule:home' %}">
                     <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg></span>
@@ -42,6 +43,18 @@
                     <p class="tile-count"><strong>{{ proposals_pending }}</strong></p>
                 </a>
                 {% endif %}
+
+                <a class="tile" href="{% url 'tasks:list' %}">
+                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-checklist"></use></svg></span>
+                    <div class="tile-body">
+                        <h3>Мої задачі</h3>
+                        <p class="tile-meta">час братися</p>
+                        {% if tasks_overdue %}
+                            <p class="tile-news">Прострочено: {{ tasks_overdue }}</p>
+                        {% endif %}
+                    </div>
+                    <p class="tile-count"><strong>{{ tasks_due }}</strong></p>
+                </a>
             </div>
         </section>
 
@@ -132,6 +145,22 @@
                     </div>
                 </a>
                 {% endif %}
+            </div>
+        </section>
+        {% endif %}
+
+        {% if user.can_manage_users %}
+        <section class="tile-group">
+            <h2 class="tile-group-title">Бухгалтерія</h2>
+            <div class="tile-group-list">
+                <a class="tile" href="{% url 'accounting:payroll' %}">
+                    <span class="tile-icon"><svg class="ic" aria-hidden="true"><use href="#ic-ledger"></use></svg></span>
+                    <div class="tile-body">
+                        <h3>Виплати викладачам</h3>
+                        <p class="tile-meta">найближча {{ next_payout.payday|date:"d.m.Y" }} · викладачів: {{ next_payout.teachers|length }}</p>
+                    </div>
+                    <p class="tile-count"><strong>{{ next_payout.amount|uah }}</strong> ₴</p>
+                </a>
             </div>
         </section>
         {% endif %}

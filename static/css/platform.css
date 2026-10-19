@@ -323,3 +323,97 @@ html.platform {
   .platform .brand-sub { display: none; }
   .site-links-row { flex-direction: column; align-self: stretch; }
 }
+
+/* --- мої задачі ---------------------------------------------------------- */
+
+.task-add { margin-bottom: 8px; }
+.task-add:not([open]) { padding: 0; background: none; border: 0; box-shadow: none; }
+.task-add > summary { list-style: none; cursor: pointer; display: inline-flex; }
+.task-add > summary::-webkit-details-marker { display: none; }
+.task-add[open] > summary { margin-bottom: 16px; }
+.task-add textarea { width: 100%; }
+.checkbox-label { display: flex; align-items: center; gap: 8px; margin: 0; font-weight: 500; }
+.checkbox-label + small { display: block; margin: 4px 0 12px; }
+
+.task-list { list-style: none; margin: 0 0 8px; padding: 0; display: grid; gap: 8px; }
+.task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.task-body { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.task-body .chip { font-size: 12px; padding: 1px 8px; }
+.task-notes { margin: 4px 0 0; font-size: 0.9rem; color: var(--ink-soft); }
+.task-check {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    margin-top: 1px;
+    border: 2px solid var(--u-green);
+    border-radius: 6px;
+    background: var(--paper);
+    color: #fff;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+}
+.task-check:hover { background: var(--u-green-50); }
+.task-done .task-check { background: var(--u-green); }
+.task-done .task-body strong { text-decoration: line-through; color: var(--muted); }
+.task-overdue { border-color: var(--red); }
+.task-overdue .task-body > .muted { color: var(--red); }
+
+/* Календар задач — та сама сітка, що в розкладі, але нижчий: у дні рядки
+   назв, а не смуга годин. */
+.task-grid .month-grid-row { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+.task-grid .day-cell { min-height: 96px; min-width: 0; cursor: default; gap: 4px; padding: 8px; }
+.task-lists { margin-bottom: 28px; }
+.task-chip {
+    display: block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: var(--u-green-50);
+    border-left: 3px solid var(--u-green);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.task-chip.task-overdue { border-left-color: var(--red); background: rgba(179, 38, 30, 0.08); }
+.task-chip.task-done { opacity: 0.55; text-decoration: line-through; }
+@media (max-width: 640px) {
+  .task-grid .day-cell { min-height: 64px; padding: 4px; }
+  .task-chip { font-size: 0; padding: 0; height: 6px; }
+}
+
+/* --- бухгалтерія --------------------------------------------------------- */
+
+.payroll-summary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px;
+    margin: 0 0 20px;
+}
+.payroll-summary > div {
+    display: grid;
+    gap: 2px;
+    padding: 14px 18px;
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+}
+.payroll-summary strong { font-size: 1.5rem; color: var(--u-green); }
+.payroll-skipped { margin: 0 0 32px; padding-left: 20px; display: grid; gap: 4px; }
+.payroll-teacher h3 { font-size: 1.05rem; margin: 24px 0 10px; }
+.payroll-teacher .table-card { margin-bottom: 16px; overflow-x: auto; }
+
+@media print {
+  .platform .schedule-toolbar, .platform .alert { display: none !important; }
+  .payroll-teacher { break-inside: avoid; }
+  .platform .table-card { box-shadow: none; }
+}

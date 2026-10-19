@@ -1,0 +1,30 @@
+{% load tasks_extras %}
+{% comment %}Одна задача в списку: позначка «виконано», назва, термін, дії. `task` — tasks.Task.{% endcomment %}
+<li class="task-row{% if task.is_done %} task-done{% elif task.is_overdue %} task-overdue{% endif %}">
+    <form method="post" action="{% url 'tasks:done' task.pk %}" class="inline-form">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ request.get_full_path }}">
+        <input type="hidden" name="done" value="{% if task.is_done %}0{% else %}1{% endif %}">
+        <button type="submit" class="task-check" aria-label="{% if task.is_done %}Повернути в роботу{% else %}Позначити виконаною{% endif %}">{% if task.is_done %}✓{% endif %}</button>
+    </form>
+    <div class="task-body">
+        <strong>{{ task.title }}</strong>
+        <span class="muted">
+            до {{ task.due_date|date:"d.m.Y" }}
+            {% if task.is_shared %} · <span class="chip">спільна, керування</span>{% endif %}
+            {% if task.is_done %} · виконано {{ task.done_at|date:"d.m.Y" }}{% if task.done_by %}, {{ task.done_by.display_name }}{% endif %}{% endif %}
+        </span>
+        {% if task.notes %}<p class="task-notes">{{ task.notes|linebreaksbr }}</p>{% endif %}
+    </div>
+    <div class="row-actions">
+        {% if task.link %}<a href="{{ task.link }}">Відкрити</a>{% endif %}
+        {% if task|can_delete:user %}
+        <form class="inline-form" method="post" action="{% url 'tasks:delete' task.pk %}"
+              onsubmit="return confirm('Видалити задачу «{{ task.title|escapejs }}»?');">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="link-button danger-link">Видалити</button>
+        </form>
+        {% endif %}
+    </div>
+</li>

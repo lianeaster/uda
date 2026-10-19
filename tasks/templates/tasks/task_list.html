@@ -1,0 +1,98 @@
+{% extends "platform_base.html" %}
+{% block title %}Мої задачі{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>Мої задачі</h1>
+            <p class="muted">
+                Ваш календар справ — окремо від розкладу занять.
+                {% if user.can_manage_users %}Спільні задачі керування, як-от виплати викладачам, бачать усі менеджери.{% endif %}
+            </p>
+        </div>
+    </div>
+
+    <details class="inline-add-form task-add"{% if form.errors %} open{% endif %}>
+        <summary class="btn btn-small">+ Нова задача</summary>
+        <form method="post" action="{% url 'tasks:add' %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            {{ form.non_field_errors }}
+            <div class="form-row">
+                <div style="flex:3;">
+                    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+                    {{ form.title }}{{ form.title.errors }}
+                </div>
+                <div>
+                    <label for="{{ form.due_date.id_for_label }}">{{ form.due_date.label }}</label>
+                    {{ form.due_date }}{{ form.due_date.errors }}
+                </div>
+                <div>
+                    <label for="{{ form.remind_on.id_for_label }}">{{ form.remind_on.label }}</label>
+                    {{ form.remind_on }}{{ form.remind_on.errors }}
+                </div>
+            </div>
+            <div class="form-field">
+                <label for="{{ form.notes.id_for_label }}">{{ form.notes.label }}</label>
+                {{ form.notes }}
+            </div>
+            {% if form.shared %}
+            <label class="checkbox-label">{{ form.shared }} {{ form.shared.label }}</label>
+            <small class="muted">{{ form.shared.help_text }}</small>
+            {% endif %}
+            <p><button type="submit" class="btn btn-small">Додати</button></p>
+        </form>
+    </details>
+
+    <div class="task-lists">
+        {% if overdue %}
+        <section>
+            <h2 class="section-title">Прострочені</h2>
+            <ul class="task-list">{% for task in overdue %}{% include "tasks/includes/task_row.html" %}{% endfor %}</ul>
+        </section>
+        {% endif %}
+
+        <section>
+            <h2 class="section-title">Попереду</h2>
+            <ul class="task-list">
+            {% for task in upcoming %}{% include "tasks/includes/task_row.html" %}
+            {% empty %}<li class="muted">Відкритих задач немає.</li>{% endfor %}
+            </ul>
+        </section>
+    </div>
+
+    <div class="schedule-toolbar">
+        <div class="month-nav">
+            <a class="icon-btn" href="?month={{ prev_month|date:'Y-m-d' }}" aria-label="Попередній місяць">&larr;</a>
+            <strong class="month-label">{{ month_label }}</strong>
+            <a class="icon-btn" href="?month={{ next_month|date:'Y-m-d' }}" aria-label="Наступний місяць">&rarr;</a>
+        </div>
+    </div>
+
+    <div class="month-grid task-grid">
+        <div class="month-grid-header">
+            {% for label in weekday_labels %}<div>{{ label }}</div>{% endfor %}
+        </div>
+        {% for week in weeks %}
+        <div class="month-grid-row">
+            {% for day in week %}
+            <div class="day-cell{% if not day.in_month %} day-cell-out{% endif %}{% if day.is_today %} day-cell-today{% endif %}">
+                <span class="day-number">{{ day.date.day }}</span>
+                {% for task in day.tasks %}
+                    <span class="task-chip{% if task.is_done %} task-done{% elif task.is_overdue %} task-overdue{% endif %}"
+                          title="{{ task.title }}">{{ task.title }}</span>
+                {% endfor %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if done %}
+    <section>
+        <h2 class="section-title">Виконані</h2>
+        <ul class="task-list">{% for task in done %}{% include "tasks/includes/task_row.html" %}{% endfor %}</ul>
+    </section>
+    {% endif %}
+</div>
+{% endblock %}

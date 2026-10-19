@@ -1,0 +1,115 @@
+{% extends "platform_base.html" %}
+{% load pricing %}
+{% block title %}Виплати викладачам {{ report.payday|date:"d.m.Y" }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <h1>Виплати викладачам</h1>
+            <p class="muted">
+                Виплата {{ report.payday|date:"d.m.Y" }} — за заняття {{ period_label }}.
+                Рахується з розкладу: прийняті заняття × ставка викладача.
+            </p>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'tasks:list' %}" class="btn btn-secondary">Мої задачі</a>
+            <button type="button" class="btn" onclick="window.print()">Друкувати</button>
+        </div>
+    </div>
+
+    <div class="schedule-toolbar">
+        <div class="month-nav">
+            <a class="icon-btn" href="?payday={{ previous|date:'Y-m-d' }}" aria-label="Попередня виплата">&larr;</a>
+            <strong class="month-label">{{ report.payday|date:"d.m.Y" }}</strong>
+            <a class="icon-btn" href="?payday={{ following|date:'Y-m-d' }}" aria-label="Наступна виплата">&rarr;</a>
+        </div>
+        {% if not is_next %}<a href="{% url 'accounting:payroll' %}">До найближчої виплати</a>{% endif %}
+    </div>
+
+    <div class="payroll-summary">
+        <div><span class="muted">До виплати</span><strong>{{ report.amount|uah }}&nbsp;₴</strong></div>
+        <div><span class="muted">Викладачів</span><strong>{{ report.teachers|length }}</strong></div>
+        <div><span class="muted">Занять</span><strong>{{ report.lesson_count }}</strong></div>
+        <div><span class="muted">Годин</span><strong>{{ report.hours|hours }}</strong></div>
+    </div>
+
+    <div class="table-card">
+    <table data-table>
+        <thead>
+            <tr>
+                <th>Викладач</th>
+                <th>Занять</th>
+                <th>Годин</th>
+                <th>Ставка, ₴/год</th>
+                <th>До виплати, ₴</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for pay in report.teachers %}
+            <tr>
+                <td><a href="#teacher-{{ pay.teacher.pk }}">{{ pay.teacher.display_name }}</a></td>
+                <td data-sort="{{ pay.lessons|length }}">{{ pay.lessons|length }}</td>
+                <td data-sort="{{ pay.hours|stringformat:'f' }}">{{ pay.hours|hours }}</td>
+                <td data-sort="{{ pay.rate }}">{{ pay.rate|uah }}</td>
+                <td data-sort="{{ pay.amount }}"><strong>{{ pay.amount|uah }}</strong></td>
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="5" class="muted">
+                За цей період у розкладі немає прийнятих занять з викладачем — платити нікому.
+            </td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    {% if report.pending or report.without_teacher %}
+    <h2 class="section-title">Не ввійшло у виплату</h2>
+    <ul class="payroll-skipped">
+        {% for entry in report.pending %}
+        <li>
+            {{ entry.date|date:"d.m" }} {{ entry.start_time|time:"H:i" }}–{{ entry.end_time|time:"H:i" }},
+            {{ entry.group.name }} · {{ entry.title }} —
+            <a href="{% url 'schedule:proposal_list' %}">пропозиція ще на розгляді</a>
+        </li>
+        {% endfor %}
+        {% for entry in report.without_teacher %}
+        <li>
+            {{ entry.date|date:"d.m" }} {{ entry.start_time|time:"H:i" }}–{{ entry.end_time|time:"H:i" }},
+            {{ entry.group.name }} —
+            <a href="{% url 'schedule:home' %}?group={{ entry.group_id }}&month={{ entry.date|date:'Y-m-01' }}">день під курс без предмета, викладача не вказано</a>
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    {% if report.teachers %}
+    <h2 class="section-title">Розшифровка за заняттями</h2>
+    {% for pay in report.teachers %}
+    <section class="payroll-teacher" id="teacher-{{ pay.teacher.pk }}">
+        <h3>{{ pay.teacher.display_name }}
+            <span class="muted">· {{ pay.hours|hours }} год × {{ pay.rate|uah }} ₴ = {{ pay.amount|uah }} ₴</span>
+        </h3>
+        <div class="table-card">
+        <table>
+            <thead>
+                <tr><th>Дата</th><th>Час</th><th>Група</th><th>Предмет</th><th>Годин</th><th>Сума, ₴</th></tr>
+            </thead>
+            <tbody>
+            {% for lesson in pay.lessons %}
+                <tr>
+                    <td>{{ lesson.entry.date|date:"d.m.Y" }}</td>
+                    <td>{{ lesson.entry.start_time|time:"H:i" }}–{{ lesson.entry.end_time|time:"H:i" }}</td>
+                    <td>{{ lesson.entry.group.name }}</td>
+                    <td>{{ lesson.entry.title }}</td>
+                    <td>{{ lesson.hours|hours }}</td>
+                    <td>{{ lesson.amount|uah }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        </div>
+    </section>
+    {% endfor %}
+    {% endif %}
+</div>
+{% endblock %}

@@ -3,9 +3,11 @@ from django.shortcuts import render
 from django.views import View
 from django.views.generic import TemplateView
 
+from accounting import payroll
 from accounts.mixins import UserManagementRequiredMixin
 from accounts.models import User
 from schedule.models import Course, Enrollment, Group, ScheduleEntry, Subject
+from tasks.models import Task
 
 
 class DashboardView(LoginRequiredMixin, View):
@@ -24,6 +26,18 @@ class DashboardView(LoginRequiredMixin, View):
         # Картка є в кожного, тож тайл бачать усі роли — відрізняється лише
         # те, скільки чужих карток людині видно (`User.objects.visible_to`).
         context = {'people_count': User.objects.visible_to(user).count()}
+
+        # «Мої задачі» є в кожного. Число — те, про що вже час нагадувати;
+        # прострочене окремим рядком, як нові рішення на тайлі пропозицій.
+        if user.can_manage_users:
+            payroll.sync_payday_tasks()
+        tasks = Task.objects.for_user(user)
+        context.update({
+            'tasks_due': tasks.reminding().count(),
+            'tasks_overdue': tasks.overdue().count(),
+        })
+        if user.can_manage_users:
+            context['next_payout'] = payroll.statement(payroll.next_payday())
 
         if user.is_student and not (user.can_manage_users or user.is_teacher):
             # Група — єдиний шлях студента до своїх предметів і викладачів.

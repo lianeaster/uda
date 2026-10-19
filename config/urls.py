@@ -18,6 +18,8 @@ urlpatterns = [
     path('', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),
     path('schedule/', include('schedule.urls')),
+    path('tasks/', include('tasks.urls')),
+    path('accounting/', include('accounting.urls')),
 ]
 
 # Фото карток лежать у MEDIA_ROOT. На проді їх віддає веб-сервер, у DEBUG —
