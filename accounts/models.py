@@ -88,6 +88,14 @@ class User(AbstractUser):
     interests = models.TextField('Інтереси', blank=True)
     experience = models.TextField('Робочий досвід', blank=True)
 
+    # Скільки Академія платить викладачу за годину заняття. Порожньо —
+    # стандартна ставка (`schedule.pricing.STANDARD_RATE`). Бачать і правлять
+    # лише менеджер і супер-адмін — у картку «Про мене» поле не входить.
+    hourly_rate = models.PositiveIntegerField(
+        'Ставка за годину, грн', null=True, blank=True,
+        help_text='Порожньо — стандартна ставка 1000 грн.',
+    )
+
     objects = UserAccountManager()
 
     class Meta(AbstractUser.Meta):

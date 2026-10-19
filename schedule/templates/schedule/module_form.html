@@ -1,0 +1,19 @@
+{% extends "platform_base.html" %}
+{% block title %}{% if object %}{{ object.label }}{% else %}Новий модуль{% endif %}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page">
+        <h1>{% if object %}Редагування модуля{% else %}Новий модуль{% endif %}</h1>
+        <p class="muted">Предмети кладуться в модуль із форми предмета — у рядку курсу.</p>
+        <form method="post">
+            {% csrf_token %}
+            {% include "schedule/includes/form_fields.html" %}
+            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+        </form>
+        <p style="text-align:center;margin-top:16px;">
+            {% if object %}<a href="{% url 'schedule:module_detail' object.pk %}">&larr; До картки модуля</a>
+            {% else %}<a href="{% url 'schedule:course_list' %}">&larr; До курсів</a>{% endif %}
+        </p>
+    </div>
+</div>
+{% endblock %}

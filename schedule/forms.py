@@ -5,7 +5,9 @@ from django.contrib.auth.forms import UserCreationForm
 
 from accounts.models import User
 
-from .models import Course, CourseSubject, Enrollment, Group, GroupSubject, ScheduleEntry, Subject
+from .models import (
+    Course, CourseSubject, Enrollment, Group, GroupSubject, Module, ScheduleEntry, Subject,
+)
 from .services import DAY_END_HOUR, DAY_START_HOUR
 
 FROM_CHOICES = [(h, f'{h}:00') for h in range(DAY_START_HOUR, DAY_END_HOUR)]
@@ -130,9 +132,20 @@ class ScheduleEntryForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['name', 'description']
+        fields = ['name', 'description', 'excursion_price']
         labels = {'name': 'Назва курсу', 'description': 'Опис'}
         widgets = {'description': forms.Textarea(attrs={'rows': 4})}
+
+
+class ModuleForm(forms.ModelForm):
+    class Meta:
+        model = Module
+        fields = ['course', 'code', 'name', 'format']
+        labels = {'code': 'Номер у програмі'}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['course'].empty_label = 'Оберіть курс'
 
 
 class SubjectForm(forms.ModelForm):
@@ -155,17 +168,24 @@ class SubjectForm(forms.ModelForm):
 class CourseSubjectForm(forms.ModelForm):
     class Meta:
         model = CourseSubject
-        fields = ['course', 'code']
-        labels = {'course': 'Курс', 'code': '№ у програмі'}
+        fields = ['course', 'code', 'module', 'hours']
+        labels = {'course': 'Курс', 'code': '№ у програмі', 'module': 'Модуль', 'hours': 'Годин'}
         widgets = {
             'course': forms.Select(attrs={'aria-label': 'Курс'}),
             'code': forms.TextInput(attrs={'placeholder': '№',
                                            'aria-label': 'Номер у програмі курсу'}),
+            'module': forms.Select(attrs={'aria-label': 'Модуль'}),
+            'hours': forms.NumberInput(attrs={'placeholder': 'год', 'step': '0.5', 'min': '0',
+                                              'aria-label': 'Годин у програмі курсу'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['course'].empty_label = 'Оберіть курс'
+        # Модулі всіх курсів одним списком, із назвою курсу; чужий модуль
+        # відсіює `CourseSubject.clean`.
+        self.fields['module'].queryset = Module.objects.select_related('course')
+        self.fields['module'].empty_label = 'Без модуля'
 
 
 def course_subject_formset(subject=None, data=None, course=None):

@@ -19,7 +19,7 @@ class ImportProgramTests(TestCase):
         course = Course.objects.get(name=programs.COURSE)
         expected = list(programs.subjects())
         self.assertEqual(course.subjects.count(), len(expected))
-        for position, code, name, _module, _lecturers in expected:
+        for position, code, name, _module, _lecturers, _hours in expected:
             with self.subTest(code=code):
                 link = CourseSubject.objects.get(subject__name=name)
                 self.assertEqual(link.course, course)
@@ -31,7 +31,7 @@ class ImportProgramTests(TestCase):
         codes = list(
             Course.objects.get(name=programs.COURSE).program.values_list('code', flat=True)
         )
-        self.assertEqual(codes, [code for _, code, _, _, _ in programs.subjects()])
+        self.assertEqual(codes, [code for _, code, *_ in programs.subjects()])
         # за абеткою «10.1» стояло б перед «2.1» — саме тому є `position`
         self.assertLess(codes.index('2.1'), codes.index('10.1'))
 
@@ -725,3 +725,132 @@ class CatalogueManagementTests(TestCase):
         page = self.client.get(reverse('schedule:group_list')).content.decode()
         self.assertIn('data-filter="period"', page)
         self.assertIn(f'data-start="{MONTH_AGO.isoformat()}" data-end="{self.group.end_date.isoformat()}"', page)
+
+
+from decimal import Decimal
+
+from django.core.exceptions import ValidationError
+
+from . import pricing
+from .models import Module
+
+
+class ImportedPricingTests(TestCase):
+    """«Майстер» після імпорту: модулі, години, ставки — і вартість курсу."""
+
+    def test_the_master_course_adds_up_to_what_the_academy_agreed(self):
+        call_command('import_program', verbosity=0)
+        course = Course.objects.get(name=programs.COURSE)
+        self.assertEqual(course.modules.count(), 10)
+        self.assertEqual(course.excursion_price, 5000)
+        self.assertEqual(User.objects.get(username='ivan-bachurin').hourly_rate, 2000)
+        _, total = pricing.program_cost(course.ordered_program)
+        self.assertEqual(total.hours, Decimal('145'))
+        self.assertEqual(total.teachers, 161_000)        # 129 год × 1000 + 16 год Бачуріна × 2000
+        self.assertEqual(total.academy, 48_300)          # 30%
+        self.assertEqual(total.price, 209_300)
+
+    def test_reimport_keeps_what_managers_changed(self):
+        call_command('import_program', verbosity=0)
+        link = CourseSubject.objects.get(subject__name='Водка')
+        link.hours = Decimal('6')
+        link.save()
+        bachurin = User.objects.get(username='ivan-bachurin')
+        bachurin.hourly_rate = 2500
+        bachurin.save()
+        call_command('import_program', verbosity=0)
+        link.refresh_from_db()
+        bachurin.refresh_from_db()
+        self.assertEqual(link.hours, Decimal('6'))
+        self.assertEqual(bachurin.hourly_rate, 2500)
+
+
+class PricingTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.course = Course.objects.create(name='Курс')
+        cls.teacher = User.objects.create_user(username='t', roles=[User.Role.TEACHER])
+        cls.star = User.objects.create_user(username='s', hourly_rate=2000,
+                                            roles=[User.Role.TEACHER])
+
+    def link(self, hours, *teachers):
+        subject = make_subject(f'Предмет {hours}', course=self.course)
+        subject.teachers.set(teachers)
+        link = subject.course_links.get()
+        link.hours = hours
+        return link
+
+    def test_hour_costs_the_teacher_rate_plus_commission(self):
+        cost = pricing.link_cost(self.link(Decimal('3'), self.teacher))
+        self.assertEqual((cost.teachers, cost.academy, cost.price), (3000, 900, 3900))
+
+    def test_with_several_teachers_the_highest_rate_counts(self):
+        cost = pricing.link_cost(self.link(Decimal('2'), self.teacher, self.star))
+        self.assertEqual(cost.rate, 2000)
+
+    def test_a_subject_without_teachers_costs_the_standard_rate(self):
+        self.assertEqual(pricing.link_cost(self.link(Decimal('1.5'))).teachers, 1500)
+
+    def test_a_subject_without_hours_is_left_out_of_the_total(self):
+        rows, total = pricing.program_cost([self.link(None, self.teacher),
+                                            self.link(Decimal('1'), self.teacher)])
+        self.assertIsNone(rows[0][1])
+        self.assertEqual(total.teachers, 1000)
+
+
+class CostVisibilityTests(TestCase):
+    """Суми бачать менеджер і супер-адмін; решта — програму з годинами без грошей."""
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.course = Course.objects.create(name='Майстер дистиляції', excursion_price=5000)
+        cls.module = Module.objects.create(course=cls.course, code='2', name='Категорії напоїв')
+        cls.teacher = User.objects.create_user(
+            username='bachurin', last_name='Бачурін', hourly_rate=2000, roles=[User.Role.TEACHER])
+        cls.subject = make_subject('Водка', course=cls.course, code='2.4')
+        cls.subject.teachers.add(cls.teacher)
+        cls.subject.course_links.update(module=cls.module, hours=Decimal('4'))
+        cls.people = {
+            role: User.objects.create_user(username=role, roles=[role])
+            for role in (User.Role.SUPER_ADMIN, User.Role.MANAGER, User.Role.TEACHER,
+                         User.Role.STUDENT)
+        }
+
+    def pages(self):
+        return [reverse('schedule:course_detail', args=[self.course.pk]),
+                reverse('schedule:module_detail', args=[self.module.pk]),
+                reverse('schedule:subject_detail', args=[self.subject.pk])]
+
+    def test_managers_see_the_money(self):
+        for role in (User.Role.SUPER_ADMIN, User.Role.MANAGER):
+            self.client.force_login(self.people[role])
+            for url in self.pages():
+                with self.subTest(role=role, url=url):
+                    self.assertContains(self.client.get(url), '10 400')   # 4 год × 2000 + 30%
+
+    def test_everyone_else_sees_hours_but_no_money(self):
+        for role in (User.Role.TEACHER, User.Role.STUDENT):
+            self.client.force_login(self.people[role])
+            for url in self.pages():
+                with self.subTest(role=role, url=url):
+                    page = self.client.get(url)
+                    self.assertEqual(page.status_code, 200)
+                    self.assertContains(page, 'Водка')
+                    self.assertContains(page, 'Годин')
+                    for secret in ('₴', '2 000', '10 400', 'Викладачам',
+                                   'Академії 30%', '5 000'):
+                        self.assertNotContains(page, secret)
+
+    def test_the_rate_is_set_by_a_manager_on_the_user_form(self):
+        self.client.force_login(self.people[User.Role.MANAGER])
+        form = self.client.get(reverse('accounts:user_edit', args=[self.teacher.pk]))
+        self.assertContains(form, 'name="hourly_rate"')
+        self.client.force_login(self.teacher)
+        self.assertNotContains(self.client.get(reverse('accounts:account')), 'hourly_rate')
+
+    def test_a_module_of_another_course_is_refused(self):
+        foreign = Module.objects.create(course=Course.objects.create(name='Інший'), name='Чужий')
+        link = self.subject.course_links.get()
+        link.module = foreign
+        with self.assertRaises(ValidationError):
+            link.full_clean()

@@ -1,8 +1,10 @@
-{% comment %}Рядок «курс + номер у програмі» у формі предмета (формсет CourseSubject).{% endcomment %}
+{% comment %}Рядок «курс + номер + модуль + години» у формі предмета (формсет CourseSubject).{% endcomment %}
 <div class="repeat-row" data-repeat-row>
     {% for hidden in row.hidden_fields %}{{ hidden }}{% endfor %}
     <div class="repeat-field">{{ row.course }}{{ row.course.errors }}</div>
     <div class="repeat-code">{{ row.code }}{{ row.code.errors }}</div>
+    <div class="repeat-field">{{ row.module }}{{ row.module.errors }}</div>
+    <div class="repeat-hours">{{ row.hours }}{{ row.hours.errors }}</div>
     <span class="repeat-delete">{{ row.DELETE }}</span>
     <button type="button" class="repeat-remove" data-repeat-remove aria-label="Прибрати курс">&times;</button>
     {{ row.non_field_errors }}

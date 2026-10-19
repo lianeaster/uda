@@ -35,7 +35,7 @@
         <tbody>
         {% for subject in subjects %}
             <tr>
-                <td>{{ subject.name }}</td>
+                <td><a href="{% url 'schedule:subject_detail' subject.pk %}">{{ subject.name }}</a></td>
                 <td>
                     {% for link in subject.course_links.all %}
                         <a class="chip" href="{% url 'schedule:course_detail' link.course_id %}">{{ link.course.name }}{% if link.code %} · {{ link.code }}{% endif %}</a>

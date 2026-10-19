@@ -1,0 +1,23 @@
+{% load pricing %}
+{% comment %}
+Вартість курсу чи модуля — лише для менеджера й супер-адміна. `total` — Cost,
+`excursion` — ціна екскурсії з людини (необов'язково).
+{% endcomment %}
+{% if user.can_manage_users and total.hours %}
+<div class="cost-summary">
+    <p class="cost-summary-lead">
+        <strong>Вартість {{ what }}</strong> — скільки Академія має зібрати:
+        оплата викладачам + {{ commission }}% Академії на адміністрування, податки й банк.
+        Індивідуальний студент платить її сам; у групі вона ділиться між студентами.
+        Бачать лише менеджери й супер-адмін.
+    </p>
+    <dl class="course-facts">
+        <div><dt>Викладачам</dt><dd>{{ total.teachers|uah }}&nbsp;₴</dd></div>
+        <div><dt>Академії {{ commission }}%</dt><dd>{{ total.academy|uah }}&nbsp;₴</dd></div>
+        <div><dt>Індивідуально, студент платить</dt><dd class="cost-price">{{ total.price|uah }}&nbsp;₴</dd></div>
+        {% if excursion %}
+        <div><dt>Екскурсія — окремо, з людини</dt><dd>{{ excursion|uah }}&nbsp;₴</dd></div>
+        {% endif %}
+    </dl>
+</div>
+{% endif %}

@@ -1,0 +1,63 @@
+{% load pricing l10n %}
+{% comment %}
+Предмети програми з годинами. `rows` — [(рядок програми, вартість)], `hours` —
+разом годин, `total` — разом вартість. Гроші — лише коли `user.can_manage_users`:
+решті в'юшка їх навіть не рахує (вартість у рядку — None).
+{% endcomment %}
+{% with money=user.can_manage_users %}
+<div class="table-card">
+<table data-table class="program-table">
+    <thead>
+        <tr>
+            <th data-filter="none">№</th><th data-filter="none">Предмет</th><th>Хто веде</th><th class="num" data-filter="none">Годин</th>
+            {% if money %}
+            <th class="num">Ставка</th><th class="num" data-filter="none">Викладачам</th>
+            <th class="num" data-filter="none">Академії {{ commission }}%</th><th class="num" data-filter="none">Студенту</th>
+            {% endif %}
+        </tr>
+    </thead>
+    <tbody>
+    {% for link, cost in rows %}
+        <tr>
+            <td class="muted" data-sort="{{ link.position }}">{{ link.code|default:"—" }}</td>
+            <td><a href="{% url 'schedule:subject_detail' link.subject.pk %}">{{ link.subject.name }}</a></td>
+            <td>
+                {% for t in link.subject.teachers.all %}
+                    <span class="chip">{{ t.get_full_name|default:t.username }}</span>
+                {% empty %}
+                    <span class="muted">—</span>
+                {% endfor %}
+            </td>
+            <td class="num" data-sort="{{ link.hours|default_if_none:''|unlocalize }}">{{ link.hours|hours }}</td>
+            {% if money %}
+                {% if cost %}
+                <td class="num">{{ cost.rate|uah }}</td>
+                <td class="num" data-sort="{{ cost.teachers }}">{{ cost.teachers|uah }}</td>
+                <td class="num" data-sort="{{ cost.academy }}">{{ cost.academy|uah }}</td>
+                <td class="num" data-sort="{{ cost.price }}"><strong>{{ cost.price|uah }}</strong></td>
+                {% else %}
+                <td class="num muted" title="Годин не вказано">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                {% endif %}
+            {% endif %}
+        </tr>
+    {% empty %}
+        <tr data-empty><td colspan="{% if money %}8{% else %}4{% endif %}" class="muted">Предметів іще немає.</td></tr>
+    {% endfor %}
+    </tbody>
+    {% if rows %}
+    <tfoot>
+        <tr>
+            <th colspan="3">Разом</th>
+            <th class="num">{{ hours|hours }}</th>
+            {% if money %}
+            <th></th>
+            <th class="num">{{ total.teachers|uah }}</th>
+            <th class="num">{{ total.academy|uah }}</th>
+            <th class="num">{{ total.price|uah }}</th>
+            {% endif %}
+        </tr>
+    </tfoot>
+    {% endif %}
+</table>
+</div>
+{% endwith %}

@@ -2373,3 +2373,25 @@ th.is-inactive, td.is-inactive { color: var(--muted); opacity: 0.55; }
 .taught-in li { margin-bottom: 4px; }
 .filter-bar-wrap { flex-wrap: wrap; }
 a.chip { white-space: nowrap; }
+
+/* ---- програма з годинами й вартістю ---- */
+.repeat-row > .repeat-hours { flex: 0 0 90px; }
+.program-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.program-table tfoot th { border-top: 2px solid var(--border-strong); font-weight: 600; }
+.module-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 28px 0 10px; }
+.module-heading h3 { margin: 0; font-size: 1.05rem; }
+.module-price { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cost-summary {
+    margin-top: 16px;
+    padding: 18px 26px;
+    border: 1px dashed var(--border-strong);
+    border-radius: var(--radius-lg);
+}
+.cost-summary-lead { margin: 0 0 14px; max-width: 80ch; font-size: 0.92rem; }
+.cost-summary .course-facts { flex-wrap: wrap; gap: 14px 36px; }
+.cost-summary .course-facts dd { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
+.cost-summary .cost-price { color: var(--green); }
+@media (max-width: 640px) {
+    .table-card:has(.program-table) { overflow-x: auto; }
+    .repeat-row > .repeat-hours { flex-basis: 70px; }
+}

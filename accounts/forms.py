@@ -80,7 +80,8 @@ class UserCreateForm(RolesFieldMixin, UserCreationForm):
 class UserRoleForm(RolesFieldMixin, forms.ModelForm):
     class Meta:
         model = User
-        fields = ['first_name', 'last_name', 'email', 'is_active']
+        # Ставку правлять лише тут — у формі менеджера, а не в картці «Про мене».
+        fields = ['first_name', 'last_name', 'email', 'is_active', 'hourly_rate']
         labels = {
             'first_name': "Ім'я",
             'last_name': 'Прізвище',

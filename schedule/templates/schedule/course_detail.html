@@ -1,4 +1,5 @@
 {% extends "platform_base.html" %}
+{% load pricing %}
 {% block title %}{{ course.name }}{% endblock %}
 {% block content %}
 <div class="container">
@@ -23,47 +24,38 @@
             <p class="muted">Опису ще немає.{% if user.can_manage_users %} <a href="{% url 'schedule:course_edit' course.pk %}">Додати опис</a>{% endif %}</p>
         {% endif %}
         <dl class="course-facts">
-            <div><dt>Предметів у програмі</dt><dd>{{ program|length }}</dd></div>
+            <div><dt>Модулів</dt><dd>{{ course.modules.count }}</dd></div>
+            <div><dt>Предметів</dt><dd>{{ subject_count }}</dd></div>
+            <div><dt>Годин</dt><dd>{{ hours|hours }}</dd></div>
             <div><dt>Груп</dt><dd>{{ groups|length }}</dd></div>
         </dl>
     </div>
 
+    {% include "schedule/includes/cost_summary.html" with what="курсу" excursion=course.excursion_price %}
+
     <div class="page-header-row">
         <h2 class="section-title">Програма</h2>
         {% if user.can_manage_users %}
-        <a href="{% url 'schedule:subject_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:module_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати модуль</a>
+            <a href="{% url 'schedule:subject_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
+        </div>
         {% endif %}
     </div>
-    <div class="table-card">
-    <table data-table>
-        <thead>
-            <tr>
-                <th>№</th><th>Предмет</th><th>Хто може вести</th>
-                {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
-            </tr>
-        </thead>
-        <tbody>
-        {% for link in program %}
-            <tr>
-                <td class="muted" data-sort="{{ link.position }}">{{ link.code|default:"—" }}</td>
-                <td>{{ link.subject.name }}</td>
-                <td>
-                    {% for t in link.subject.teachers.all %}
-                        <span class="chip">{{ t.get_full_name|default:t.username }}</span>
-                    {% empty %}
-                        <span class="muted">— не призначено —</span>
-                    {% endfor %}
-                </td>
-                {% if user.can_manage_users %}
-                <td class="row-actions"><a href="{% url 'schedule:subject_edit' link.subject.pk %}">Редагувати</a></td>
-                {% endif %}
-            </tr>
-        {% empty %}
-            <tr data-empty><td colspan="{% if user.can_manage_users %}4{% else %}3{% endif %}" class="muted">У програмі курсу ще немає предметів.</td></tr>
-        {% endfor %}
-        </tbody>
-    </table>
-    </div>
+    {% for module, rows, module_hours, module_total in sections %}
+        <div class="module-heading">
+            <h3>
+                {% if module %}<a href="{% url 'schedule:module_detail' module.pk %}">{{ module.label }}</a>
+                {% else %}Поза модулями{% endif %}
+            </h3>
+            {% if module %}<span class="chip">{{ module.get_format_display }}</span>{% endif %}
+            <span class="muted">{{ module_hours|hours }} год</span>
+            {% if user.can_manage_users and module_total.hours %}<span class="module-price">{{ module_total.price|uah }}&nbsp;₴</span>{% endif %}
+        </div>
+        {% include "schedule/includes/program_table.html" with hours=module_hours total=module_total %}
+    {% empty %}
+        <p class="muted">У програмі курсу ще немає предметів.</p>
+    {% endfor %}
 
     <div class="page-header-row">
         <h2 class="section-title">Групи</h2>

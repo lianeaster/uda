@@ -1,4 +1,5 @@
 {% extends "platform_base.html" %}
+{% load pricing %}
 {% block title %}Курси{% endblock %}
 {% block content %}
 <div class="container">
@@ -21,6 +22,7 @@
                 <th data-filter="none">Назва курсу</th>
                 <th data-filter="none">Опис</th>
                 <th data-filter="none">Предметів у програмі</th>
+                <th data-filter="none">Годин</th>
                 <th data-filter="none">Груп</th>
                 {% if user.can_manage_users %}<th data-sort="false" data-filter="none"></th>{% endif %}
             </tr>
@@ -31,6 +33,7 @@
                 <td><a href="{% url 'schedule:course_detail' course.pk %}">{{ course.name }}</a></td>
                 <td>{% if course.description %}{{ course.description|truncatewords:16 }}{% else %}<span class="muted">—</span>{% endif %}</td>
                 <td>{{ course.subject_count }}</td>
+                <td>{{ course.hours|hours }}</td>
                 <td>{{ course.group_count }}</td>
                 {% if user.can_manage_users %}
                 <td class="row-actions">
@@ -40,7 +43,7 @@
                 {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="{% if user.can_manage_users %}5{% else %}4{% endif %}" class="muted">Ще немає жодного курсу.</td></tr>
+            <tr data-empty><td colspan="{% if user.can_manage_users %}6{% else %}5{% endif %}" class="muted">Ще немає жодного курсу.</td></tr>
         {% endfor %}
         </tbody>
     </table>

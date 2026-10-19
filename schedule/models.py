@@ -11,6 +11,11 @@ class Course(models.Model):
 
     name = models.CharField('Назва курсу', max_length=200, unique=True)
     description = models.TextField('Опис', blank=True)
+    excursion_price = models.PositiveIntegerField(
+        'Екскурсія, грн з людини', null=True, blank=True,
+        help_text='Поїздка на дистилерію. В індивідуальну ціну не входить — '
+                  'студент доплачує окремо й їде з іншою групою.',
+    )
 
     class Meta:
         ordering = ['name']
@@ -23,7 +28,57 @@ class Course(models.Model):
     @property
     def ordered_program(self):
         """Предмети курсу в порядку програми, кожен зі своїм номером у ній."""
+        return self.program.select_related('subject', 'module').prefetch_related(
+            'subject__teachers')
+
+
+class Module(models.Model):
+    """Розділ програми одного курсу: «2. Категорії напоїв», офлайн.
+
+    Модуль належить курсу, а не предмету: той самий предмет в іншому курсі
+    може стояти в іншому модулі. Тому зв'язок — на рядку програми
+    (`CourseSubject.module`).
+    """
+
+    class Format(models.TextChoices):
+        OFFLINE = 'offline', 'офлайн'
+        ONLINE = 'online', 'онлайн'
+
+    course = models.ForeignKey(
+        Course, on_delete=models.CASCADE, related_name='modules', verbose_name='Курс',
+    )
+    code = models.CharField('Номер', max_length=20, blank=True)
+    name = models.CharField('Назва модуля', max_length=200)
+    format = models.CharField('Формат', max_length=10, choices=Format.choices,
+                              default=Format.OFFLINE)
+    position = models.PositiveIntegerField('Порядок у програмі', default=0)
+
+    class Meta:
+        ordering = ['course__name', 'position', 'name']
+        verbose_name = 'Модуль'
+        verbose_name_plural = 'Модулі'
+        constraints = [
+            models.UniqueConstraint(fields=['course', 'name'], name='unique_course_module'),
+        ]
+
+    def __str__(self):
+        return f'{self.course.name} · {self.label}'
+
+    @property
+    def label(self):
+        return f'{self.code}. {self.name}' if self.code else self.name
+
+    @property
+    def ordered_program(self):
         return self.program.select_related('subject').prefetch_related('subject__teachers')
+
+    def save(self, *args, **kwargs):
+        # Як і предмет у програмі: новий модуль без місця стає в кінець курсу.
+        if self._state.adding and not self.position and self.course_id:
+            last = Module.objects.filter(course_id=self.course_id).aggregate(
+                models.Max('position'))['position__max']
+            self.position = (last or 0) + 1
+        super().save(*args, **kwargs)
 
 
 class Subject(models.Model):
@@ -84,6 +139,14 @@ class CourseSubject(models.Model):
     )
     code = models.CharField('Номер у програмі', max_length=20, blank=True)
     position = models.PositiveIntegerField('Порядок у програмі', default=0)
+    module = models.ForeignKey(
+        Module, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='program', verbose_name='Модуль',
+    )
+    # Години — у рядку програми, а не в предметі: в іншому курсі той самий
+    # предмет може бути довшим чи коротшим. Порожньо — ще не порахували.
+    hours = models.DecimalField('Годин', max_digits=5, decimal_places=1,
+                                null=True, blank=True)
 
     class Meta:
         ordering = ['course__name', 'position', 'subject__name']
@@ -99,6 +162,10 @@ class CourseSubject(models.Model):
     @property
     def label(self):
         return f'{self.code} {self.subject.name}' if self.code else self.subject.name
+
+    def clean(self):
+        if self.module_id and self.course_id and self.module.course_id != self.course_id:
+            raise ValidationError({'module': 'Цей модуль належить іншому курсу.'})
 
     def save(self, *args, **kwargs):
         # Новий предмет без явного місця стає в кінець програми курсу.

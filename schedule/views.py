@@ -1,10 +1,11 @@
 import calendar
 import datetime as dt
+from decimal import Decimal
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.db import transaction
-from django.db.models import Count, OuterRef, ProtectedError, Q, Subquery
+from django.db.models import Count, OuterRef, ProtectedError, Q, Subquery, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils import timezone
@@ -20,6 +21,7 @@ from .forms import (
     EnrollmentForm,
     GroupForm,
     GroupSubjectForm,
+    ModuleForm,
     NewStudentForm,
     ScheduleEntryForm,
     StudentInfoForm,
@@ -32,9 +34,11 @@ from .models import (
     Enrollment,
     Group,
     GroupSubject,
+    Module,
     ScheduleEntry,
     Subject,
 )
+from . import pricing
 from .services import build_month_grid, can_modify, can_review
 
 UK_MONTHS = [
@@ -292,17 +296,51 @@ class CourseListView(LoginRequiredMixin, ListView):
     context_object_name = 'courses'
 
     def get_queryset(self):
+        # Години — підзапитом: Sum поруч із Count по групах помножився б на їх кількість.
+        hours = CourseSubject.objects.filter(course=OuterRef('pk')).values('course').annotate(
+            total=Sum('hours')).values('total')
         return Course.objects.annotate(
             subject_count=Count('program', distinct=True),
             group_count=Count('groups', distinct=True),
+            hours=Subquery(hours),
         )
 
 
+def _program_rows(links, with_money):
+    """Рядки програми з вартістю (лише для тих, хто бачить гроші) і підсумок.
+
+    Без грошей вартість навіть не рахується — у шаблон вона не потрапить.
+    """
+    links = list(links)
+    hours = sum((link.hours for link in links if link.hours is not None), Decimal(0))
+    if not with_money:
+        return [(link, None) for link in links], hours, None
+    rows, total = pricing.program_cost(links)
+    return rows, hours, total
+
+
+def _program_sections(course, with_money):
+    """Програма курсу по модулях: [(модуль, рядки, годин, вартість)].
+
+    Модулі — у своєму порядку, навіть порожні (щойно створений модуль має
+    де бути видно). Предмети без модуля — окремим розділом наприкінці.
+    """
+    links = list(course.ordered_program)
+    sections = []
+    for module in course.modules.all():
+        mine = [link for link in links if link.module_id == module.pk]
+        sections.append((module, *_program_rows(mine, with_money)))
+    loose = [link for link in links if link.module_id is None]
+    if loose:
+        sections.append((None, *_program_rows(loose, with_money)))
+    return sections
+
+
 class CourseDetailView(LoginRequiredMixin, DetailView):
-    """Картка курсу: опис, програма з номерами й групи, що його проходять.
+    """Картка курсу: опис, програма по модулях з годинами й групи, що його проходять.
 
     Каталог курсів відкритий усім ролям, тож і картка теж. Групи — лише ті,
-    що людині видно й на сторінці груп.
+    що людині видно й на сторінці груп. Вартість — лише менеджеру й супер-адміну.
     """
 
     model = Course
@@ -312,10 +350,17 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+        with_money = user.can_manage_users
         groups = self.object.groups.annotate(student_count=Count('enrollments', distinct=True))
-        if not user.can_manage_users:
+        if not with_money:
             groups = groups.filter(pk__in=Group.objects.for_person(user))
-        context['program'] = self.object.ordered_program
+        sections = _program_sections(self.object, with_money)
+        context['sections'] = sections
+        context['subject_count'] = sum(len(rows) for _, rows, _, _ in sections)
+        context['hours'] = sum((hours for _, _, hours, _ in sections), Decimal(0))
+        if with_money:
+            context['total'] = sum((total for _, _, _, total in sections), pricing.Cost())
+            context['commission'] = pricing.COMMISSION_PERCENT
         context['groups'] = groups
         return context
 
@@ -356,6 +401,59 @@ class CourseDeleteView(UserManagementRequiredMixin, View):
         return redirect('schedule:course_list')
 
 
+class ModuleDetailView(LoginRequiredMixin, DetailView):
+    """Картка модуля: предмети з годинами; вартість — лише менеджеру й супер-адміну."""
+
+    model = Module
+    template_name = 'schedule/module_detail.html'
+    context_object_name = 'module'
+
+    def get_queryset(self):
+        return Module.objects.select_related('course')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        with_money = self.request.user.can_manage_users
+        rows, hours, total = _program_rows(self.object.ordered_program, with_money)
+        context.update(rows=rows, hours=hours, total=total)
+        if with_money:
+            context['commission'] = pricing.COMMISSION_PERCENT
+        return context
+
+
+class ModuleCreateView(UserManagementRequiredMixin, CreateView):
+    model = Module
+    form_class = ModuleForm
+    template_name = 'schedule/module_form.html'
+
+    def get_initial(self):
+        return {'course': self.request.GET.get('course')}
+
+    def get_success_url(self):
+        messages.success(self.request, f'Модуль «{self.object.label}» додано.')
+        return reverse('schedule:module_detail', args=[self.object.pk])
+
+
+class ModuleUpdateView(UserManagementRequiredMixin, UpdateView):
+    model = Module
+    form_class = ModuleForm
+    template_name = 'schedule/module_form.html'
+
+    def get_success_url(self):
+        messages.success(self.request, f'Модуль «{self.object.label}» збережено.')
+        return reverse('schedule:module_detail', args=[self.object.pk])
+
+
+class ModuleDeleteView(UserManagementRequiredMixin, View):
+    def post(self, request, pk):
+        module = get_object_or_404(Module, pk=pk)
+        course = module.course
+        module.delete()
+        messages.success(
+            request, f'Модуль «{module.label}» видалено. Його предмети лишилися в програмі курсу.')
+        return redirect('schedule:course_detail', pk=course.pk)
+
+
 class SubjectListView(LoginRequiredMixin, ListView):
     """Read-only for everyone; only managers get the add/edit/delete controls.
 
@@ -392,6 +490,35 @@ class SubjectListView(LoginRequiredMixin, ListView):
             context['scope'] = self.scope()
             context['mine_count'] = self.all_subjects().filter(teachers=user).count()
             context['total_count'] = self.all_subjects().count()
+        return context
+
+
+class SubjectDetailView(LoginRequiredMixin, DetailView):
+    """Картка предмета: хто може вести, у яких курсах і модулях, скільки годин.
+
+    Ставки викладачів, вартість і групи — лише менеджеру й супер-адміну.
+    """
+
+    model = Subject
+    template_name = 'schedule/subject_detail.html'
+    context_object_name = 'subject'
+
+    def get_queryset(self):
+        return Subject.objects.prefetch_related('teachers')
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        with_money = self.request.user.can_manage_users
+        links = self.object.course_links.select_related('course', 'module').prefetch_related(
+            'subject__teachers')
+        context['rows'], context['hours'], _ = _program_rows(links, with_money)
+        if with_money:
+            context['rate'] = pricing.subject_rate(self.object)
+            context['teacher_rates'] = [
+                (t, pricing.teacher_rate(t)) for t in self.object.teachers.all()]
+            context['commission'] = pricing.COMMISSION_PERCENT
+            context['taught_in'] = self.object.group_subjects.select_related(
+                'group__course', 'teacher').order_by('-start_date')
         return context
 
 

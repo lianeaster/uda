@@ -1,0 +1,88 @@
+{% extends "platform_base.html" %}
+{% load pricing l10n %}
+{% block title %}{{ subject.name }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="page-header page-header-row">
+        <div>
+            <p class="muted course-kicker">Предмет</p>
+            <h1>{{ subject.name }}</h1>
+        </div>
+        <div class="page-header-actions">
+            <a href="{% url 'schedule:subject_list' %}" class="btn btn-secondary">Усі предмети</a>
+            {% if user.can_manage_users %}
+            <a href="{% url 'schedule:subject_edit' subject.pk %}" class="btn">Редагувати</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <h2 class="section-title">Хто може вести</h2>
+    <p>
+        {% if user.can_manage_users %}
+            {% for t, rate in teacher_rates %}
+                <span class="chip">{{ t.get_full_name|default:t.username }} · {{ rate|uah }}&nbsp;₴/год</span>
+            {% empty %}
+                <span class="muted">— не призначено — рахуємо за стандартною ставкою {{ rate|uah }}&nbsp;₴/год</span>
+            {% endfor %}
+        {% else %}
+            {% for t in subject.teachers.all %}
+                <span class="chip">{{ t.get_full_name|default:t.username }}</span>
+            {% empty %}
+                <span class="muted">— не призначено —</span>
+            {% endfor %}
+        {% endif %}
+    </p>
+
+    <h2 class="section-title">У програмах курсів</h2>
+    {% with money=user.can_manage_users %}
+    <div class="table-card">
+    <table data-table class="program-table">
+        <thead>
+            <tr>
+                <th>Курс</th><th data-filter="none">№</th><th>Модуль</th><th class="num" data-filter="none">Годин</th>
+                {% if money %}
+                <th class="num">Ставка</th><th class="num" data-filter="none">Викладачам</th>
+                <th class="num" data-filter="none">Академії {{ commission }}%</th><th class="num" data-filter="none">Студенту</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for link, cost in rows %}
+            <tr>
+                <td><a href="{% url 'schedule:course_detail' link.course.pk %}">{{ link.course.name }}</a></td>
+                <td class="muted">{{ link.code|default:"—" }}</td>
+                <td>{% if link.module %}<a href="{% url 'schedule:module_detail' link.module.pk %}">{{ link.module.label }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+                <td class="num" data-sort="{{ link.hours|default_if_none:''|unlocalize }}">{{ link.hours|hours }}</td>
+                {% if money %}
+                    {% if cost %}
+                    <td class="num">{{ cost.rate|uah }}</td>
+                    <td class="num" data-sort="{{ cost.teachers }}">{{ cost.teachers|uah }}</td>
+                    <td class="num" data-sort="{{ cost.academy }}">{{ cost.academy|uah }}</td>
+                    <td class="num" data-sort="{{ cost.price }}"><strong>{{ cost.price|uah }}</strong></td>
+                    {% else %}
+                    <td class="num muted" title="Годин не вказано">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    {% endif %}
+                {% endif %}
+            </tr>
+        {% empty %}
+            <tr data-empty><td colspan="{% if money %}8{% else %}4{% endif %}" class="muted">Предмет поки не входить у жоден курс.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+    {% endwith %}
+
+    {% if taught_in %}
+    <h2 class="section-title">Де викладається</h2>
+    <ul class="taught-in">
+        {% for gs in taught_in %}
+        <li>
+            <a href="{% url 'schedule:group_detail' gs.group.pk %}">{{ gs.group.name }}</a>
+            <span class="muted">· {{ gs.group.course.name }} ·</span>
+            {{ gs.teacher.display_name }}
+        </li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+</div>
+{% endblock %}
