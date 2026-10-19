@@ -499,6 +499,11 @@ class DatedLinkQuerySet(models.QuerySet):
             models.Q(end_date__isnull=True) | models.Q(end_date__gte=on)
         )
 
+    def not_finished(self, on=None):
+        """Ті, що тривають, і ті, що ще попереду — без уже завершених."""
+        on = on or dt.date.today()
+        return self.filter(models.Q(end_date__isnull=True) | models.Q(end_date__gte=on))
+
 
 class GroupSubjectQuerySet(DatedLinkQuerySet):
     def for_teacher(self, user):

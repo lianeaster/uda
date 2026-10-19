@@ -868,8 +868,10 @@ class StudentListView(OwnScopeMixin, ListView):
             if not user.is_teacher:
                 return enrollments.none()
             enrollments = enrollments.for_teacher(user)
+        # Без завершених, але із запланованими: студент, якого щойно зарахували
+        # в групу, що стартує пізніше, мусить одразу з'явитися в списку.
         if self.request.GET.get('scope') != 'all':
-            enrollments = enrollments.active()
+            enrollments = enrollments.not_finished()
         return enrollments.order_by('student__last_name', 'student__first_name', 'group__name')
 
     def get_context_data(self, **kwargs):

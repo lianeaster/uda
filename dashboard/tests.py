@@ -141,6 +141,21 @@ class RoleVisibilityTests(TestCase):
         rows = self.client.get(reverse('schedule:student_list')).context['enrollments']
         self.assertEqual({e.student.username for e in rows}, {'student', 'outsider'})
 
+    def test_a_student_of_a_group_yet_to_start_is_listed_until_they_finish(self):
+        Enrollment.objects.filter(student=self.student).update(
+            start_date=TODAY + dt.timedelta(days=10))
+        self.client.force_login(self.manager)
+        url = reverse('schedule:student_list')
+        rows = self.client.get(url).context['enrollments']
+        self.assertIn('student', {e.student.username for e in rows})
+
+        Enrollment.objects.filter(student=self.student).update(
+            start_date=MONTH_AGO, end_date=TODAY - dt.timedelta(days=1))
+        rows = self.client.get(url).context['enrollments']
+        self.assertNotIn('student', {e.student.username for e in rows})
+        rows = self.client.get(url, {'scope': 'all'}).context['enrollments']
+        self.assertIn('student', {e.student.username for e in rows})
+
     # --- catalogue -----------------------------------------------------
 
     def test_teacher_sees_the_whole_catalogue_but_cannot_change_it(self):

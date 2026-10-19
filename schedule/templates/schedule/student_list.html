@@ -29,7 +29,7 @@
 
     <div class="filter-bar">
         <span class="filter-label">Показати:</span>
-        <a class="btn btn-small {% if scope != 'all' %}btn-secondary{% endif %}" href="?scope=active&who={{ who }}">Хто навчається зараз</a>
+        <a class="btn btn-small {% if scope != 'all' %}btn-secondary{% endif %}" href="?scope=active&who={{ who }}">Навчаються й заплановані</a>
         <a class="btn btn-small {% if scope == 'all' %}btn-secondary{% endif %}" href="?scope=all&who={{ who }}">Уся історія</a>
         <span class="muted">Студентів: {{ student_count }}</span>
     </div>
