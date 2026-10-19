@@ -523,12 +523,13 @@
     const notes = [];
     if (r.early) notes.push('Для старту зарано: це повний цикл на 60 днів. Радимо почати з меншого й повернутись до «Майстра» з базою.');
     if (r.otherDrink) notes.push('Курс про інший напій, але основа у вас спільна.');
+    if (r.ownDrink && r.percent < E.SHOW_FROM) notes.push('Курс саме про ваш напій, тож показуємо його, хоч решту програми він закриває лише частково.');
     return `
       <article class="cc-card${isNew ? ' is-new' : ''}" style="--i:${i + 1}" data-course="${r.id}">
         <div class="cc-card-head">
           ${ring(r.percent, from)}
           <div class="cc-card-text">
-            <span class="tag tag-accent">${KIND[c.kind]}</span>
+            <span class="tag tag-accent">${KIND[c.kind]}</span>${r.ownDrink ? ' <span class="tag tag-dark">Про ваш напій</span>' : ''}
             <h3>${esc(c.title)}</h3>
             <p>${esc(c.text)}</p>
             <p class="cc-why">Закриває ${why}.</p>
@@ -561,6 +562,9 @@
       ? state.words.map(id => E.WORD_BY[id].name)
       : [...state.drinks.map(id => E.DRINK_BY[id].name), ...state.stages.map(id => E.STAGE_BY[id].name)];
     const n = result.ready.length;
+    // Скільки курсів пройшли поріг — курс про напій показується й нижче нього.
+    const strong = result.ready.filter(r => r.percent >= E.SHOW_FROM).length;
+    const themed = result.ready.some(r => r.percent < E.SHOW_FROM);
     const keep = first ? null : window.scrollY;
     const before = first ? null : seen;
     // Кільця: уперше — з нуля, після правки — з того, що було; нове — з нуля.
@@ -576,9 +580,9 @@
         <header class="cc-result-head">
           <span class="cc-kicker">Розлито · ваш профіль</span>
           <h2><span>${esc(persona(prog))}</span></h2>
-          <p class="cc-hint">${n
-            ? `Ми склали програму під ваші відповіді й знайшли ${count(n, ['готовий курс, який підходить', 'готові курси, які підходять', 'готових курсів, які підходять'])} вам на ${E.SHOW_FROM}% і більше.`
-            : `Ми склали програму під ваші відповіді. Готового курсу, який підходив би вам на ${E.SHOW_FROM}% і більше, зараз немає — тож найкращий шлях індивідуальний.`}</p>
+          <p class="cc-hint">${strong
+            ? `Ми склали програму під ваші відповіді й знайшли ${count(strong, ['готовий курс, який підходить', 'готові курси, які підходять', 'готових курсів, які підходять'])} вам на ${E.SHOW_FROM}% і більше.`
+            : `Ми склали програму під ваші відповіді. Готового курсу, який підходив би вам на ${E.SHOW_FROM}% і більше, зараз немає — тож найкращий шлях індивідуальний.`}${themed ? ' Курс про ваш напій показуємо завжди.' : ''}</p>
           <div class="cc-recap">
             <span class="cc-chip cc-chip--level">${esc(prog.person.name)}</span>
             ${picked.map((name, i) => `<span class="cc-chip" style="--i:${i + 1}">${esc(name)}</span>`).join('')}

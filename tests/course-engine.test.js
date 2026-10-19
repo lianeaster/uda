@@ -36,20 +36,31 @@ const tests = {
     }
   },
 
-  'курси, що підходять менше ніж на 70%, не показуються'() {
+  'курси, що підходять менше ніж на 70%, не показуються — крім курсу про напій'() {
     assert.equal(E.SHOW_FROM, 70);
     for (const level of E.PERSON.map(p => p.id)) {
       for (const word of E.WORDS) {
         ready({ level, words: [word.id] }).forEach(r =>
-          assert.ok(r.percent >= 70 && r.percent <= 100, `${word.name}: ${r.id} ${r.percent}`));
+          assert.ok((r.percent >= 70 || r.ownDrink) && r.percent <= 100, `${word.name}: ${r.id} ${r.percent}`));
       }
     }
   },
 
-  'готові курси йдуть від найкращого'() {
+  'готові курси йдуть від найкращого, курс про напій — першим'() {
     const list = ready({ level: 'practitioner', words: ['ferment'] }).map(r => r.percent);
     assert.ok(list.length > 1);
     assert.deepEqual(list, [...list].sort((a, b) => b - a));
+    // Обрано джин — «Майстерня джину» перша, навіть коли вужчі курси мають більше
+    // відсотків, і є навіть на «увесь шлях», де вона закриває менше 70%.
+    for (const level of E.PERSON.map(p => p.id)) {
+      for (const stages of [[], ['sensory'], E.fullPath(['gin'])]) {
+        const first = ready({ level, drinks: ['gin'], stages })[0];
+        assert.equal(first.id, 'gin', `${level} ${stages.join('+')}`);
+        assert.ok(first.ownDrink);
+      }
+    }
+    const whole = ready({ level: 'practitioner', drinks: ['gin'], stages: E.fullPath(['gin']) });
+    assert.ok(whole[0].percent < 70 && whole.every(r => r.ownDrink || r.percent >= 70));
   },
 
   'зерно — це насамперед курси про зернові дистиляти, а не «Майстер»'() {

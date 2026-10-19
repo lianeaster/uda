@@ -7,7 +7,8 @@
 
    Правила, які тут зашито:
    - індивідуальний курс завжди підходить на 100%;
-   - курси, що підходять менше ніж на SHOW_FROM %, не показуються;
+   - курси, що підходять менше ніж на SHOW_FROM %, не показуються — крім
+     курсу про обраний напій: він показується завжди й стоїть першим;
    - програма = те, що людина обрала, плюс модулі, на які це спирається,
      рівно на один крок назад по матриці (DEPTH);
    - новачкові модулі про підприємство самі не додаються — лише якщо він
@@ -97,6 +98,10 @@
     'mc-starch': ['K2a', 'K4'],
     'mc-fruit': ['K2b', 'K4'],
   };
+
+  // Курс, присвячений самому напою: обрала людина напій — цей курс показується
+  // завжди й першим серед готових. Майстер-класи про сировину сюди не входять.
+  const DRINK_COURSE = { whisky: 'whisky', vodka: 'grain', gin: 'gin', bitters: 'gin', fruit: 'fruit' };
 
   // Готові курси, присвячені певному напою (ідентифікатори — з матриці).
   const COURSE_DRINKS = {
@@ -313,13 +318,14 @@
       const extra = [...cover].filter(id => !need.some(m => m.id === id));
       let fit = recall * (1 - BREADTH.weight * (extra.length / total) ** BREADTH.power);
       const theme = COURSE_DRINKS[course.id];
+      const ownDrink = prog.drinks.some(d => DRINK_COURSE[d] === course.id);
       const otherDrink = !!(theme && prog.drinks.length && !prog.drinks.some(d => theme.includes(d)));
       if (otherDrink) fit *= OTHER_DRINK;
       let percent = Math.round(fit * 100);
       const early = course.id === FLAGSHIP && !!prog.person.noBusiness;
       if (early) percent = Math.min(Math.round(fit * NOVICE_FLAGSHIP.factor * 100), NOVICE_FLAGSHIP.cap);
       return {
-        id: course.id, course, percent, early, otherDrink,
+        id: course.id, course, percent, early, ownDrink, otherDrink,
         hit: hit.map(m => m.id),
         miss: need.filter(m => !cover.has(m.id)).map(m => m.id),
         extra,
@@ -327,12 +333,14 @@
     }
 
     /* Результат: індивідуальний курс (завжди 100% і завжди перший) і готові
-       курси від SHOW_FROM %, найкращі зверху. */
+       курси від SHOW_FROM %, найкращі зверху. Курс про обраний напій (джин →
+       «Майстерня джину») — завжди й першим серед готових, зі своїм чесним
+       відсотком: людина, що обрала джин, шукає саме його. */
     function match(answers) {
       const prog = programme(answers);
       const ready = prog.modules.length
-        ? M.COURSES.map(c => score(c, prog)).filter(r => r.percent >= SHOW_FROM)
-            .sort((a, b) => b.percent - a.percent)
+        ? M.COURSES.map(c => score(c, prog)).filter(r => r.percent >= SHOW_FROM || r.ownDrink)
+            .sort((a, b) => (b.ownDrink - a.ownDrink) || (b.percent - a.percent))
         : [];
       return { programme: prog, individual: { id: 'individual', percent: 100 }, ready };
     }
