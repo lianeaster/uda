@@ -14,6 +14,11 @@ class ImportProgramTests(TestCase):
     def import_program(self, **options):
         call_command('import_program', verbosity=0, **options)
 
+    def master_codes(self, teacher):
+        """Номери предметів «Майстра», які веде людина (інші курси — окремо)."""
+        return sorted(CourseSubject.objects.filter(
+            course__name=programs.COURSE, subject__teachers=teacher).values_list('code', flat=True))
+
     def test_every_numbered_item_becomes_a_subject_of_the_course(self):
         self.import_program()
         course = Course.objects.get(name=programs.COURSE)
@@ -38,10 +43,7 @@ class ImportProgramTests(TestCase):
     def test_teachers_are_linked_to_what_the_schedule_says_they_teach(self):
         self.import_program()
         bachurin = User.objects.get(username='ivan-bachurin')
-        self.assertEqual(
-            sorted(bachurin.subjects.values_list('course_links__code', flat=True)),
-            ['2.2', '2.3', '2.4', '2.5'],
-        )
+        self.assertEqual(self.master_codes(bachurin), ['2.2', '2.3', '2.4', '2.5'])
         # один предмет може вести двоє — «8.2 Витримка в бочці»
         cask = Subject.objects.get(name='Витримка в бочці')
         self.assertEqual(
@@ -53,10 +55,7 @@ class ImportProgramTests(TestCase):
         self.import_program()
         # «Білько М.В» / «Білько М.В.» / «Билько М.» — та сама людина
         bilko = User.objects.get(username='maryna-bilko')
-        self.assertEqual(
-            sorted(bilko.subjects.values_list('course_links__code', flat=True)),
-            ['3.3', '3.6', '7.3', '8.2'],
-        )
+        self.assertEqual(self.master_codes(bilko), ['3.3', '3.6', '7.3', '8.2'])
         self.assertEqual(User.objects.filter(last_name__in=['Білько', 'Билько']).count(), 1)
 
     def test_lecturers_absent_from_the_platform_are_created_without_a_password(self):
@@ -978,3 +977,46 @@ class CoursePricesPageTests(TestCase):
         self.assertContains(page, '<details class="module-block" open>')
         self.assertContains(page, 'data-modules-toggle')
         self.assertNotContains(page, 'Early Bird')
+
+
+from . import workshops
+
+
+class AcademyCoursesTests(TestCase):
+    """Інші курси Академії з сайту: модулі, предмети, лектори, ціни."""
+
+    def test_every_course_lands_with_its_code_price_and_hours(self):
+        call_command('import_program', verbosity=0)
+        expected = {   # код: (годин, викладачам, група €)
+            'whisky': (32, 48_000, 580), 'ferm': (24, 24_000, 395), 'aging': (24, 35_000, 395),
+            'spirit': (32, 64_000, 670), 'grain': (32, 36_000, 445), 'gin': (32, 32_000, 445),
+            'fruit': (24, 24_000, None), 'master': (145, 161_000, 1200),
+        }
+        for code, (hours, teachers, group) in expected.items():
+            with self.subTest(code=code):
+                course = Course.objects.get(code=code)
+                _, total = pricing.program_cost(course.ordered_program)
+                self.assertEqual((total.hours, total.teachers, course.group_price_eur),
+                                 (Decimal(hours), teachers, group))
+                self.assertFalse(course.program.filter(module=None).exists())
+        self.assertEqual(Module.objects.get(course__code='fruit', code='1').format, 'online')
+
+    def test_reimport_adds_nothing_twice(self):
+        call_command('import_program', verbosity=0)
+        counts = (Course.objects.count(), Module.objects.count(), CourseSubject.objects.count())
+        call_command('import_program', verbosity=0)
+        self.assertEqual(
+            (Course.objects.count(), Module.objects.count(), CourseSubject.objects.count()), counts)
+
+    def test_a_course_under_its_old_name_is_found_and_renamed(self):
+        old = Course.objects.create(name='Зернові дистиляти')
+        workshops.apply(Course, Module, Subject, CourseSubject, User)
+        old.refresh_from_db()
+        self.assertEqual((old.name, old.code), ('Зернові дистиляти / горілка', 'grain'))
+        self.assertFalse(Course.objects.filter(name='Зернові дистиляти').exists())
+
+    def test_the_constructor_gets_every_group_price(self):
+        call_command('import_program', verbosity=0)
+        prices = pricing.public_prices()['courses']
+        self.assertEqual(set(prices), {'master', 'whisky', 'ferm', 'aging', 'spirit', 'grain', 'gin'})
+        self.assertEqual(prices['whisky']['eur'], 580)

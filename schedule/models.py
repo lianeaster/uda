@@ -10,6 +10,11 @@ class Course(models.Model):
     """A full program, e.g. «Майстер дистиляції» or «Зернові дистиляти»."""
 
     name = models.CharField('Назва курсу', max_length=200, unique=True)
+    # Той самий курс у матриці компетенцій і конструкторі на сайті
+    # (static/js/competency-data.js, core.content): «master», «whisky»…
+    # За ним конструктор бере з платформи групову ціну курсу.
+    code = models.CharField('Код у конструкторі', max_length=20, blank=True,
+                            help_text='Id курсу в матриці компетенцій: master, whisky, gin…')
     description = models.TextField('Опис', blank=True)
     excursion_price = models.PositiveIntegerField(
         'Екскурсія, грн з людини', null=True, blank=True,

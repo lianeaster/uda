@@ -1,5 +1,6 @@
-"""Заносить програму курсу (див. `schedule.programs`): модулі, предмети з
-годинами та їхніх викладачів зі ставками.
+"""Заносить програму «Майстра» (див. `schedule.programs`): модулі, предмети з
+годинами та їхніх викладачів зі ставками, — а за ним інші курси Академії
+(`schedule.workshops`).
 
 Номер і місце предмета команда звіряє з графіком щоразу. Години, модуль,
 екскурсію, групову ціну й ставку — лише там, де порожньо: їх правлять на платформі, і
@@ -10,7 +11,9 @@ from django.db import transaction
 
 from accounts.models import User
 
-from ... import programs
+from core import content
+
+from ... import programs, workshops
 from ...models import Course, CourseSubject, Module, Subject
 
 
@@ -36,8 +39,9 @@ class Command(BaseCommand):
         if made:
             self.created_teachers.append(f'курс «{course.name}»')
         for field, value in (('excursion_price', programs.EXCURSION_PRICE),
-                             ('group_price_eur', programs.GROUP_PRICE_EUR)):
-            if getattr(course, field) is None:
+                             ('group_price_eur', programs.GROUP_PRICE_EUR),
+                             ('code', programs.CODE)):
+            if not getattr(course, field):
                 setattr(course, field, value)
                 course.save(update_fields=[field])
 
@@ -88,6 +92,12 @@ class Command(BaseCommand):
         self._report('Створено викладачів', self.created_teachers, self.style.SUCCESS)
         self._report('Призначено', assigned, self.style.SUCCESS)
         self._report('Не призначено', self.blocked, self.style.ERROR)
+
+        # Інші курси Академії — чернетка з сайту (див. `schedule.workshops`).
+        notes = workshops.apply(
+            Course, Module, Subject, CourseSubject, User,
+            descriptions={c['id']: c['text'] for c in content.COURSES})
+        self._report('Інші курси', notes, self.style.WARNING)
 
         stray = course.program.exclude(subject_id__in=seen).select_related('subject')
         if stray:

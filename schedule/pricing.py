@@ -133,7 +133,7 @@ def public_prices():
 
     Модуль конструктора — компетентність матриці, і її ціна — сума предметів
     «Майстра», з яких вона складається. Тож сюди йде ціна кожного предмета
-    за id з матриці, курс НБУ й ціни готового «Майстра». Оплата викладачам і
+    за id з матриці, курс НБУ й групові ціни готових курсів (`Course.code`). Оплата викладачам і
     комісія окремо сюди не потрапляють. Курсу на платформі немає — None.
     """
     from . import exchange, programs
@@ -152,16 +152,18 @@ def public_prices():
             key = MATRIX_IDS.get(link.subject.name, link.code)
             subjects[key] = {'hours': float(cost.hours), 'uah': cost.price}
 
-    master = None
-    if course.group_price_eur:
-        group = from_eur(course.group_price_eur, rate)
-        master = {'eur': group.eur, 'uah': group.uah, 'earlyBird': None}
-        if course.excursion_price and group.uah is not None:
-            master['earlyBird'] = from_uah(group.uah - course.excursion_price, rate).__dict__
+    # Групові ціни готових курсів — за кодом курсу в матриці.
+    courses = {}
+    for other in Course.objects.exclude(code='').exclude(group_price_eur=None):
+        group = from_eur(other.group_price_eur, rate)
+        offer = {'eur': group.eur, 'uah': group.uah, 'earlyBird': None}
+        if other.excursion_price and group.uah is not None:
+            offer['earlyBird'] = from_uah(group.uah - other.excursion_price, rate).__dict__
+        courses[other.code] = offer
     return {
         'rate': float(rate) if rate else None,
         'rateDate': f'{euro.date:%d.%m.%Y}' if euro else None,
         'excursion': course.excursion_price,
         'subjects': subjects,
-        'courses': {'master': master} if master else {},
+        'courses': courses,
     }
