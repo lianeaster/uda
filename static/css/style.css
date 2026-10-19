@@ -2380,6 +2380,9 @@ a.chip { white-space: nowrap; }
    комірки, решту ширини забирає назва предмета. */
 .program-table .fit { width: 1%; white-space: nowrap; }
 .program-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+/* Кілька викладачів — одне під одним: колонка завширшки з найдовше ім'я,
+   а не з усі імена в ряд, і назві предмета лишається місце. */
+.program-table .teacher-stack .chip { display: table; margin: 2px 0; }
 .program-table tfoot th { border-top: 2px solid var(--border-strong); font-weight: 600; }
 
 .module-block { margin: 14px 0 0; }
