@@ -145,8 +145,10 @@ class CourseSubject(models.Model):
     )
     code = models.CharField('Номер у програмі', max_length=20, blank=True)
     position = models.PositiveIntegerField('Порядок у програмі', default=0)
+    # Програма курсу — це модулі, а модуль — предмети. Видалили модуль —
+    # його предмети зникають із програми курсу (з каталогу — ні).
     module = models.ForeignKey(
-        Module, on_delete=models.SET_NULL, null=True, blank=True,
+        Module, on_delete=models.CASCADE, null=True, blank=True,
         related_name='program', verbose_name='Модуль',
     )
     # Години — у рядку програми, а не в предметі: в іншому курсі той самий

@@ -4,7 +4,7 @@
 <div class="container">
     <div class="form-page">
         <h1>{% if object %}Редагування модуля{% else %}Новий модуль{% endif %}</h1>
-        <p class="muted">Предмети кладуться в модуль із форми предмета — у рядку курсу.</p>
+        <p class="muted">Програма курсу складається з модулів, модуль — із предметів. Предмети додаються з картки модуля.</p>
         <form method="post">
             {% csrf_token %}
             {% include "schedule/includes/form_fields.html" %}

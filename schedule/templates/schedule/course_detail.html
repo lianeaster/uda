@@ -42,7 +42,6 @@
             {% endif %}
             {% if user.can_manage_users %}
             <a href="{% url 'schedule:module_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати модуль</a>
-            <a href="{% url 'schedule:subject_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
             {% endif %}
         </div>
     </div>
@@ -51,7 +50,7 @@
         <summary class="module-heading">
             <h3>
                 {% if module %}<a href="{% url 'schedule:module_detail' module.pk %}">{{ module.label }}</a>
-                {% else %}Поза модулями{% endif %}
+                {% else %}Без модуля{% endif %}
             </h3>
             {% if module %}<span class="chip">{{ module.get_format_display }}</span>{% endif %}
             <span class="muted">{% if module_hours %}{{ module_hours|hours }} год{% else %}без годин{% endif %}</span>

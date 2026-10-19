@@ -4,7 +4,7 @@ from django.test import TestCase
 from accounts.models import User
 
 from . import programs
-from .models import Course, CourseSubject, Subject
+from .models import Course, CourseSubject, Module, Subject
 from .testing import make_subject
 
 
@@ -512,6 +512,8 @@ class CatalogueManagementTests(TestCase):
             username='tchr2', password='pw', last_name='Ражабов', roles=[User.Role.TEACHER])
         cls.master = Course.objects.create(name='Майстер дистиляції')
         cls.grain = Course.objects.create(name='Зернові дистиляти')
+        cls.categories = Module.objects.create(course=cls.master, code='2', name='Категорії напоїв')
+        cls.grain_programme = Module.objects.create(course=cls.grain, code='1', name='Програма курсу')
         cls.group = Group.objects.create(
             name='МД-1', course=cls.master, start_date=MONTH_AGO,
             end_date=TODAY + dt.timedelta(days=60))
@@ -539,8 +541,8 @@ class CatalogueManagementTests(TestCase):
     def test_one_subject_sits_in_several_courses_under_its_own_numbers(self):
         response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
             'Зернові дистиляти',
-            courses=[{'course': self.master.pk, 'code': '2.3'},
-                     {'course': self.grain.pk, 'code': '1.1'}],
+            courses=[{'course': self.master.pk, 'code': '2.3', 'module': self.categories.pk},
+                     {'course': self.grain.pk, 'code': '1.1', 'module': self.grain_programme.pk}],
             teachers=[self.teacher, self.second_teacher],
         ))
         self.assertRedirects(response, reverse('schedule:subject_list'))
@@ -552,8 +554,8 @@ class CatalogueManagementTests(TestCase):
 
     def test_the_same_course_twice_is_refused(self):
         response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
-            'Ром', courses=[{'course': self.master.pk, 'code': '2.6'},
-                            {'course': self.master.pk, 'code': '2.7'}]))
+            'Ром', courses=[{'course': self.master.pk, 'code': '2.6', 'module': self.categories.pk},
+                            {'course': self.master.pk, 'code': '2.7', 'module': self.categories.pk}]))
         self.assertEqual(response.status_code, 200)
         self.assertFalse(Subject.objects.filter(name='Ром').exists())
 
@@ -566,7 +568,8 @@ class CatalogueManagementTests(TestCase):
             'Горілка',
             courses=[
                 {'id': links[0].pk, 'course': self.grain.pk, 'code': '3', 'DELETE': 'on'},
-                {'id': links[1].pk, 'course': self.master.pk, 'code': '2.4.1'},
+                {'id': links[1].pk, 'course': self.master.pk, 'code': '2.4.1',
+                 'module': self.categories.pk},
             ],
             teachers=[self.second_teacher], existing=2)
         response = self.client.post(reverse('schedule:subject_edit', args=[subject.pk]), data)
@@ -576,6 +579,39 @@ class CatalogueManagementTests(TestCase):
         self.assertEqual(list(subject.course_links.values_list('course__name', 'code')),
                          [('Майстер дистиляції', '2.4.1')])
         self.assertEqual(list(subject.teachers.all()), [self.second_teacher])
+
+    def test_in_a_course_programme_a_subject_always_sits_in_a_module(self):
+        response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
+            'Ром', courses=[{'course': self.master.pk, 'code': '2.6'}]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Subject.objects.filter(name='Ром').exists())
+
+    def test_a_module_of_another_course_is_refused_by_the_form(self):
+        response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
+            'Ром', courses=[{'course': self.master.pk, 'code': '2.6',
+                             'module': self.grain_programme.pk}]))
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(Subject.objects.filter(name='Ром').exists())
+
+    def test_subjects_are_added_from_the_module_card_not_the_course_card(self):
+        course = self.client.get(reverse('schedule:course_detail', args=[self.master.pk]))
+        self.assertNotContains(course, reverse('schedule:subject_add'))
+        self.assertContains(course, reverse('schedule:module_add'))
+        card = self.client.get(reverse('schedule:module_detail', args=[self.categories.pk]))
+        add = f'{reverse("schedule:subject_add")}?module={self.categories.pk}'
+        self.assertContains(card, add)
+        form = self.client.get(add)
+        row = form.context['courses'].forms[0]
+        self.assertEqual((row.initial['course'], row.initial['module']),
+                         (self.master.pk, self.categories.pk))
+
+    def test_a_deleted_module_takes_its_subjects_out_of_the_programme(self):
+        subject = make_subject('Ром', course=self.master, code='2.6')
+        subject.course_links.update(module=self.categories)
+        response = self.client.post(reverse('schedule:module_delete', args=[self.categories.pk]))
+        self.assertRedirects(response, reverse('schedule:course_detail', args=[self.master.pk]))
+        self.assertFalse(CourseSubject.objects.filter(subject=subject).exists())
+        self.assertTrue(Subject.objects.filter(pk=subject.pk).exists(), 'у каталозі лишається')
 
     def test_teachers_are_picked_from_dropdowns_not_checkboxes(self):
         page = self.client.get(reverse('schedule:subject_add')).content.decode()
@@ -732,7 +768,6 @@ from decimal import Decimal
 from django.core.exceptions import ValidationError
 
 from . import pricing
-from .models import Module
 
 
 class ImportedPricingTests(TestCase):

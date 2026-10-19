@@ -12,7 +12,7 @@
             <a href="{% url 'schedule:course_detail' module.course.pk %}" class="btn btn-secondary">До курсу</a>
             {% if user.can_manage_users %}
             <a href="{% url 'schedule:module_edit' module.pk %}" class="btn">Редагувати</a>
-            <form class="inline-form" method="post" action="{% url 'schedule:module_delete' module.pk %}" onsubmit="return confirm('Видалити модуль «{{ module.label|escapejs }}»? Предмети лишаться в програмі курсу.');">
+            <form class="inline-form" method="post" action="{% url 'schedule:module_delete' module.pk %}" onsubmit="return confirm('Видалити модуль «{{ module.label|escapejs }}»?{% if rows %} Разом із ним із програми курсу зникнуть предмети ({{ rows|length }}) — у каталозі вони лишаться.{% endif %}');">
                 {% csrf_token %}
                 <button type="submit" class="btn btn-secondary danger-button">Видалити</button>
             </form>
@@ -33,7 +33,7 @@
     <div class="page-header-row">
         <h2 class="section-title">Предмети</h2>
         {% if user.can_manage_users %}
-        <a href="{% url 'schedule:subject_add' %}?course={{ module.course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
+        <a href="{% url 'schedule:subject_add' %}?module={{ module.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
         {% endif %}
     </div>
     {% include "schedule/includes/program_table.html" %}

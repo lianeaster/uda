@@ -185,14 +185,16 @@ class CourseSubjectForm(forms.ModelForm):
         # Модулі всіх курсів одним списком, із назвою курсу; чужий модуль
         # відсіює `CourseSubject.clean`.
         self.fields['module'].queryset = Module.objects.select_related('course')
-        self.fields['module'].empty_label = 'Без модуля'
+        self.fields['module'].empty_label = 'Оберіть модуль'
+        # У програмі курсу предмет завжди стоїть у модулі.
+        self.fields['module'].required = True
 
 
-def course_subject_formset(subject=None, data=None, course=None):
-    """Рядки «курс + номер» для форми предмета.
+def course_subject_formset(subject=None, data=None, module=None):
+    """Рядки «курс + номер + модуль + години» для форми предмета.
 
     Порожній рядок показуємо, лише коли курсів іще немає, — щоб було куди
-    вписати перший (з картки курсу він приходить уже з цим курсом).
+    вписати перший (з картки модуля він приходить уже з курсом і модулем).
     Незаповнений рядок формсет просто пропускає.
     """
     has_links = subject is not None and subject.pk and subject.course_links.exists()
@@ -200,7 +202,8 @@ def course_subject_formset(subject=None, data=None, course=None):
         Subject, CourseSubject, form=CourseSubjectForm,
         extra=0 if has_links else 1, can_delete=True,
     )
-    initial = [{'course': course}] if course and not has_links else None
+    initial = ([{'course': module.course_id, 'module': module.pk}]
+               if module is not None and not has_links else None)
     return formset_class(data, instance=subject, prefix='courses', initial=initial)
 
 

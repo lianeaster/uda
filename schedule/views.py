@@ -323,7 +323,9 @@ def _program_sections(course, with_money):
     """Програма курсу по модулях: [(модуль, рядки, годин, вартість)].
 
     Модулі — у своєму порядку, навіть порожні (щойно створений модуль має
-    де бути видно). Предмети без модуля — окремим розділом наприкінці.
+    де бути видно). Предмет без модуля в програмі бути не повинен: форма
+    цього не пропускає, а старі такі рядки перенесла міграція 0017. Якщо
+    все ж трапиться — окремий розділ наприкінці, щоб рядок не зник з очей.
     """
     links = list(course.ordered_program)
     sections = []
@@ -453,10 +455,13 @@ class ModuleUpdateView(UserManagementRequiredMixin, UpdateView):
 class ModuleDeleteView(UserManagementRequiredMixin, View):
     def post(self, request, pk):
         module = get_object_or_404(Module, pk=pk)
-        course = module.course
+        course, count = module.course, module.program.count()
         module.delete()
         messages.success(
-            request, f'Модуль «{module.label}» видалено. Його предмети лишилися в програмі курсу.')
+            request,
+            f'Модуль «{module.label}» видалено' + (
+                f' разом із предметами програми ({count}). У каталозі предметів вони лишилися.'
+                if count else '.'))
         return redirect('schedule:course_detail', pk=course.pk)
 
 
@@ -540,7 +545,9 @@ class SubjectFormView(UserManagementRequiredMixin, View):
 
     def get(self, request, pk=None):
         subject = self.get_subject()
-        courses = course_subject_formset(subject, course=request.GET.get('course'))
+        # Предмет додають у модуль — з картки модуля приходить ?module=.
+        module = Module.objects.filter(pk=request.GET.get('module') or None).first()
+        courses = course_subject_formset(subject, module=module)
         return self.render(SubjectForm(instance=subject), courses, subject)
 
     def post(self, request, pk=None):
