@@ -122,6 +122,22 @@ const tests = {
     assert.ok(!swapped.modules.some(m => m.id === 'K2b'));
   },
 
+  'джин і настоянки не зброджують: ні сировини, ні бродіння самі не додаються'() {
+    for (const drink of ['gin', 'bitters']) {
+      const everything = { level: 'practitioner', drinks: [drink], stages: E.fullPath([drink]) };
+      const got = ids(everything);
+      ['K2a', 'K2b', 'K2c', 'K4'].forEach(id => assert.ok(!got.includes(id), `${drink}: ${id} у програмі`));
+      assert.ok(got.includes('K7') && got.includes('K3'), `${drink}: перегонка й вода лишаються`);
+      assert.ok(!E.fullPath([drink]).includes('ferm'), `${drink}: «увесь шлях» без бродіння`);
+      assert.deepEqual(ids({ level: 'practitioner', drinks: [drink], stages: ['raw'] }).filter(id => id !== 'C7' && id !== 'C8'), ['K3']);
+    }
+    // Хто сам обрав бродіння — отримує його; сировини під джин так і немає.
+    const ferm = ids({ level: 'practitioner', drinks: ['gin'], stages: ['ferm'] });
+    assert.ok(ferm.includes('K4') && !ferm.some(id => ['K2a', 'K2b', 'K2c'].includes(id)));
+    // Джин разом із віскі: сировина — під віскі.
+    assert.ok(ids({ level: 'practitioner', drinks: ['gin', 'whisky'], stages: ['raw'] }).includes('K2a'));
+  },
+
   'прибраний модуль не повертається як основа'() {
     assert.ok(!ids({ level: 'practitioner', words: ['blend'], drop: ['K7'] }).includes('K7'));
   },

@@ -49,15 +49,17 @@
   // Напій. cats/raw — хто з групи «достатньо однієї» йому відповідає;
   // ctx — модуль «про ваш напій»; core — що означає сам напій як ключове слово;
   // tone — відтінок рідини в пляшці (лише тінти міді).
+  // Без raw — напій без власного бродіння: джин і настоянки роблять на
+  // готовому спирті й ботанікалах, сировина для бражки їм не потрібна.
   const DRINKS = [
     { id: 'whisky',  name: 'Віскі',                        adj: 'Солодовий',  tone: 'var(--copper)',
       cats: 'C2', raw: 'K2a', ctx: ['C2'], core: ['C2', 'K2a', 'K8'] },
     { id: 'vodka',   name: 'Водка й зернові дистиляти',    adj: 'Зерновий',   tone: 'var(--accent-200)',
       cats: 'C2', raw: 'K2a', ctx: ['C2'], core: ['C2', 'K2a', 'K5', 'K10'] },
     { id: 'gin',     name: 'Джин',                         adj: 'Ботанічний', tone: 'var(--accent-300)',
-      cats: 'C7', raw: 'K2a', ctx: ['C7'], core: ['C7', 'BOT'] },
+      cats: 'C7', ctx: ['C7'], core: ['C7', 'BOT'] },
     { id: 'bitters', name: 'Настоянки, вермут, біттери',   adj: 'Трав\'яний', tone: 'var(--accent-600)',
-      cats: 'C8', raw: 'K2a', ctx: ['C8'], core: ['C8', 'BOT'] },
+      cats: 'C8', ctx: ['C8'], core: ['C8', 'BOT'] },
     { id: 'fruit',   name: 'Фруктові дистиляти й бренді',  adj: 'Плодовий',   tone: 'var(--accent-700)',
       cats: 'C1', raw: 'K2b', ctx: ['C1'], core: ['C1', 'K2b', 'K8'] },
     { id: 'rum',     name: 'Ром і текіла',                 adj: 'Тростинний', tone: 'var(--accent-800)',
@@ -67,10 +69,15 @@
   ];
 
   // Основа, якій не кожен напій дає сенс: джину бочка не потрібна, віскі —
-  // ботанікали. Діє лише на модулі, які конструктор додає сам.
+  // ботанікали, а бродіння й сировина для бражки — лише напоям, які
+  // зброджують самі (у матриці перегонка спирається на бродіння, і без цього
+  // джин тягнув би за перегонкою зерно). Діє лише на модулі, які конструктор
+  // додає сам: обрав людина бродіння — воно в програмі.
+  const FERMENTED = DRINKS.filter(d => d.raw).map(d => d.id);
   const ONLY_FOR = {
     BOT: ['gin', 'bitters'],
     K8: ['whisky', 'fruit', 'rum', 'honey'],
+    K4: FERMENTED, K2a: FERMENTED, K2b: FERMENTED, K2c: FERMENTED,
   };
 
   // Про що курс насамперед — за його описом на сайті (core/content.py).
@@ -214,12 +221,13 @@
         ids.forEach(id => add(id, role, { ...extra, choice: ids.length === 1 ? group : null }));
       };
 
-      // 1. Цілі — те, що людина обрала сама.
+      // 1. Цілі — те, що людина обрала сама. Сировина — під напій; напою
+      // без бродіння (джин) зі станції «Сировина й вода» лишається вода.
       (answers.stages || []).map(id => STAGE_BY[id]).filter(Boolean).forEach(stage => {
         stage.comps.forEach(id => {
           if (id !== '@raw') add(id, 'goal');
-          else if (drinks.length || pick.raw) addGroup('raw', 'goal');
-          else M.GROUPS.raw.members.forEach(m => add(m, 'goal'));
+          else if (pick.raw || drinks.some(d => DRINK_BY[d].raw)) addGroup('raw', 'goal');
+          else if (!drinks.length) M.GROUPS.raw.members.forEach(m => add(m, 'goal'));
         });
       });
       words.forEach(w => w.comps.forEach(id => add(id, 'goal')));
