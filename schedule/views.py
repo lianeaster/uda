@@ -306,6 +306,12 @@ class CourseListView(LoginRequiredMixin, ListView):
         )
 
 
+def _commissions():
+    """Відсотки комісії для підписів у таблицях вартості."""
+    return {'base_commission': pricing.BASE_COMMISSION,
+            'individual_commission': pricing.INDIVIDUAL_COMMISSION}
+
+
 def _program_rows(links, with_money):
     """Рядки програми з вартістю (лише для тих, хто бачить гроші) і підсумок.
 
@@ -364,7 +370,7 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
             total = sum((total for _, _, _, total in sections), pricing.Cost())
             euro = exchange.today_rate()
             context.update(
-                total=total, euro=euro, commission=pricing.COMMISSION_PERCENT,
+                total=total, euro=euro, **_commissions(),
                 euro_is_today=bool(euro) and euro.date == timezone.localdate(),
                 offers=pricing.course_offers(self.object, total, euro and euro.rate),
             )
@@ -424,7 +430,7 @@ class ModuleDetailView(LoginRequiredMixin, DetailView):
         rows, hours, total = _program_rows(self.object.ordered_program, with_money)
         context.update(rows=rows, hours=hours, total=total)
         if with_money:
-            context['commission'] = pricing.COMMISSION_PERCENT
+            context.update(_commissions())
             context['euro'] = exchange.today_rate()
         return context
 
@@ -527,7 +533,7 @@ class SubjectDetailView(LoginRequiredMixin, DetailView):
             context['rate'] = pricing.subject_rate(self.object)
             context['teacher_rates'] = [
                 (t, pricing.teacher_rate(t)) for t in self.object.teachers.all()]
-            context['commission'] = pricing.COMMISSION_PERCENT
+            context.update(_commissions())
             context['taught_in'] = self.object.group_subjects.select_related(
                 'group__course', 'teacher').order_by('-start_date')
         return context

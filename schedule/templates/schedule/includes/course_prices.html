@@ -18,33 +18,35 @@
     </div>
     <div class="price-cards">
         <div class="price-card">
-            <h3>Для Академії</h3>
+            <h3>Вартість курсу для Академії</h3>
             {% include "schedule/includes/money.html" with m=offers.academy %}
-            <p class="muted">Оплата викладачам за всі {{ total.hours|hours }} год.</p>
+            <p class="muted">Викладачам {{ total.teachers|uah }}&nbsp;₴ за {{ total.hours|hours }} год + {{ base_commission }}% Академії ({{ total.academy|uah }}&nbsp;₴).</p>
         </div>
         <div class="price-card">
             <h3>Студент загальної групи</h3>
             {% if offers.group %}
                 {% include "schedule/includes/money.html" with m=offers.group exact_eur=True %}
-                <p class="muted">З людини, разом з екскурсією. Ціна в євро — у гривнях щодня за курсом.</p>
+                <p class="muted">З людини{% if course.excursion_price %}, разом з екскурсією{% endif %}. Ціна в євро — у гривнях щодня за курсом.</p>
             {% else %}
                 <p class="muted">Групову ціну не вказано. <a href="{% url 'schedule:course_edit' course.pk %}">Вказати</a></p>
             {% endif %}
         </div>
+        {% if course.excursion_price %}
         <div class="price-card">
             <h3>Early Bird</h3>
             {% if offers.early_bird %}
                 {% include "schedule/includes/money.html" with m=offers.early_bird %}
                 <p class="muted">Групова ціна мінус вартість екскурсії ({{ course.excursion_price|uah }}&nbsp;₴).</p>
             {% else %}
-                <p class="muted">Потрібні групова ціна й вартість екскурсії.</p>
+                <p class="muted">Потрібна групова ціна.</p>
             {% endif %}
         </div>
+        {% endif %}
         <div class="price-card price-card-accent">
             <h3>Індивідуальний студент</h3>
             {% include "schedule/includes/money.html" with m=offers.individual %}
             <p class="muted">
-                Години × ставки викладачів + {{ commission }}% Академії.
+                Викладачам + {{ individual_commission }}% Академії.
                 {% if course.excursion_price %}Екскурсія — окремо, {{ course.excursion_price|uah }}&nbsp;₴.{% endif %}
             </p>
         </div>

@@ -15,12 +15,13 @@
             <span class="money"><span class="money-uah">{{ total.teachers|uah }}&nbsp;₴</span>{% if euro %}<span class="money-eur">≈&nbsp;{{ total.teachers|eur:euro.rate }}&nbsp;€</span>{% endif %}</span>
         </div>
         <div class="price-card">
-            <h3>Академії {{ commission }}%</h3>
-            <span class="money"><span class="money-uah">{{ total.academy|uah }}&nbsp;₴</span>{% if euro %}<span class="money-eur">≈&nbsp;{{ total.academy|eur:euro.rate }}&nbsp;€</span>{% endif %}</span>
+            <h3>Вартість: + {{ base_commission }}% Академії</h3>
+            <span class="money"><span class="money-uah">{{ total.price|uah }}&nbsp;₴</span>{% if euro %}<span class="money-eur">≈&nbsp;{{ total.price|eur:euro.rate }}&nbsp;€</span>{% endif %}</span>
+            <p class="muted">Академії {{ total.academy|uah }}&nbsp;₴</p>
         </div>
         <div class="price-card price-card-accent">
-            <h3>Індивідуальний студент</h3>
-            <span class="money"><span class="money-uah">{{ total.price|uah }}&nbsp;₴</span>{% if euro %}<span class="money-eur">≈&nbsp;{{ total.price|eur:euro.rate }}&nbsp;€</span>{% endif %}</span>
+            <h3>Індивідуальний студент: + {{ individual_commission }}%</h3>
+            <span class="money"><span class="money-uah">{{ total.individual|uah }}&nbsp;₴</span>{% if euro %}<span class="money-eur">≈&nbsp;{{ total.individual|eur:euro.rate }}&nbsp;€</span>{% endif %}</span>
         </div>
     </div>
     <p class="muted cost-summary-note">Ці суми бачать лише менеджери й супер-адмін.</p>

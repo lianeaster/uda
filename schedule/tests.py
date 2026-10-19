@@ -784,8 +784,9 @@ class ImportedPricingTests(TestCase):
         _, total = pricing.program_cost(course.ordered_program)
         self.assertEqual(total.hours, Decimal('145'))
         self.assertEqual(total.teachers, 161_000)        # 129 год × 1000 + 16 год Бачуріна × 2000
-        self.assertEqual(total.academy, 48_300)          # 30%
-        self.assertEqual(total.price, 209_300)
+        self.assertEqual(total.academy, 32_200)          # базові 20%
+        self.assertEqual(total.price, 193_200)           # вартість курсу
+        self.assertEqual(total.individual, 209_300)      # індивідуально, +30%
 
     def test_reimport_keeps_what_managers_changed(self):
         call_command('import_program', verbosity=0)
@@ -819,7 +820,9 @@ class PricingTests(TestCase):
 
     def test_hour_costs_the_teacher_rate_plus_commission(self):
         cost = pricing.link_cost(self.link(Decimal('3'), self.teacher))
-        self.assertEqual((cost.teachers, cost.academy, cost.price), (3000, 900, 3900))
+        # Базово Академія бере 20%, з індивідуального студента — 30%.
+        self.assertEqual((cost.teachers, cost.academy, cost.price, cost.individual),
+                         (3000, 600, 3600, 3900))
 
     def test_with_several_teachers_the_highest_rate_counts(self):
         cost = pricing.link_cost(self.link(Decimal('2'), self.teacher, self.star))
@@ -874,8 +877,8 @@ class CostVisibilityTests(TestCase):
                     self.assertEqual(page.status_code, 200)
                     self.assertContains(page, 'Водка')
                     self.assertContains(page, 'Годин')
-                    for secret in ('₴', '2 000', '10 400', 'Викладачам',
-                                   'Академії 30%', '5 000'):
+                    for secret in ('₴', '2 000', '10 400', '9 600', 'Викладачам',
+                                   'Академії 20%', 'Індивідуально', '5 000'):
                         self.assertNotContains(page, secret)
 
     def test_the_rate_is_set_by_a_manager_on_the_user_form(self):
@@ -937,15 +940,15 @@ class CourseOffersTests(TestCase):
 
     def test_offers_are_in_hryvnias_with_euros(self):
         course = Course(group_price_eur=1200, excursion_price=5000)
-        total = pricing.Cost(Decimal('145'), 161_000, 48_300)
+        total = pricing.Cost(Decimal('145'), 161_000)
         offers = pricing.course_offers(course, total, Decimal('50'))
-        self.assertEqual(offers['academy'], pricing.Money(161_000, 3220))
+        self.assertEqual(offers['academy'], pricing.Money(193_200, 3864))     # викладачам + 20%
         self.assertEqual(offers['group'], pricing.Money(60_000, 1200))
         self.assertEqual(offers['early_bird'], pricing.Money(55_000, 1100))   # мінус екскурсія
         self.assertEqual(offers['individual'], pricing.Money(209_300, 4186))
 
     def test_without_a_group_price_there_are_no_group_offers(self):
-        offers = pricing.course_offers(Course(), pricing.Cost(Decimal('1'), 1000, 300), None)
+        offers = pricing.course_offers(Course(), pricing.Cost(Decimal('1'), 1000), None)
         self.assertIsNone(offers['group'])
         self.assertIsNone(offers['early_bird'])
         self.assertEqual(offers['individual'], pricing.Money(1300, None))
@@ -966,10 +969,21 @@ class CoursePricesPageTests(TestCase):
     def test_the_manager_sees_four_prices_and_todays_rate(self):
         self.client.force_login(self.manager)
         page = self.client.get(reverse('schedule:course_detail', args=[self.course.pk]))
-        for text in ('Для Академії', 'Студент загальної групи', 'Early Bird',
-                     'Індивідуальний студент', '1&nbsp;€ = 50,00&nbsp;₴',
-                     '60 000', '55 000', '3 900'):
+        for text in ('Вартість курсу для Академії', 'Студент загальної групи', 'Early Bird',
+                     'Індивідуальний студент', '1&nbsp;€ = 50,00&nbsp;₴', 'разом з екскурсією',
+                     '60 000', '55 000', '3 600', '3 900', 'Академії 20%'):
             self.assertContains(page, text)
+
+    def test_a_course_without_an_excursion_has_no_early_bird(self):
+        whisky = Course.objects.create(name='Майстерня віскі', group_price_eur=580)
+        module = Module.objects.create(course=whisky, code='1', name='День 1')
+        make_subject('Віскі світу', course=whisky).course_links.update(
+            module=module, hours=Decimal('8'))
+        self.client.force_login(self.manager)
+        page = self.client.get(reverse('schedule:course_detail', args=[whisky.pk]))
+        self.assertContains(page, 'Студент загальної групи')
+        self.assertNotContains(page, 'Early Bird')
+        self.assertNotContains(page, 'екскурсі')
 
     def test_modules_fold_for_everyone(self):
         self.client.force_login(self.student)

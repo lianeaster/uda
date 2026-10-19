@@ -1,15 +1,17 @@
 """Вартість навчання: години програми × ставка викладача + комісія Академії.
 
-Дві різні цифри, які легко сплутати:
+Три різні цифри, які легко сплутати:
 
-- **вартість** — скільки Академія має зібрати за предмет, модуль чи курс:
-  оплата викладачам + комісія. Індивідуальний студент платить її сам;
-- **ціна для людини в групі** — та сама вартість, поділена між студентами.
-  Тут її немає: групову ціну Академія ставить окремо.
+- **вартість** — базовий сценарій: година викладача + 20% Академії
+  (`BASE_COMMISSION`). Скільки Академія має зібрати за предмет, модуль чи курс;
+- **індивідуальна ціна** — година викладача + 30% (`INDIVIDUAL_COMMISSION`):
+  кожну зустріч узгоджують окремо, а ділити ці витрати нема з ким;
+- **ціна для людини в групі** — її Академія ставить окремо, у євро
+  (`Course.group_price_eur`); вартість ділиться між студентами групи.
 
-Комісія покриває адміністрування, податки й банк. Для індивідуального курсу
-її піднято з 20% до 30%: кожну зустріч узгоджують окремо, а ділити ці
-витрати нема з ким. Екскурсія у вартість не входить — `Course.excursion_price`.
+Комісія покриває адміністрування, податки й банк. Екскурсія є лише в
+«Майстрі» (`Course.excursion_price`): у групову ціну вона входить, в
+індивідуальну — ні.
 
 Суми бачать лише менеджер і супер-адмін (`user.can_manage_users`); решта —
 години без грошей. Тому в'юшки рахують вартість тільки для них.
@@ -18,8 +20,9 @@
 from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
-STANDARD_RATE = 1000       # грн за годину, якщо в картці викладача не вказано іншої
-COMMISSION_PERCENT = 30    # комісія Академії з індивідуального навчання
+STANDARD_RATE = 1000         # грн за годину, якщо в картці викладача не вказано іншої
+BASE_COMMISSION = 20         # комісія Академії в базовому сценарії, %
+INDIVIDUAL_COMMISSION = 30   # комісія з індивідуального навчання, %
 
 
 def teacher_rate(user):
@@ -43,18 +46,26 @@ def _whole(amount):
 @dataclass(frozen=True)
 class Cost:
     hours: Decimal = Decimal(0)
-    teachers: int = 0      # викладачам, грн
-    academy: int = 0       # комісія Академії, грн
+    teachers: int = 0        # викладачам, грн
     rate: int | None = None  # ставка години; у сумі кількох предметів її немає
 
     @property
+    def academy(self):
+        """Комісія Академії в базовому сценарії."""
+        return _whole(self.teachers * BASE_COMMISSION / 100)
+
+    @property
     def price(self):
-        """Скільки платить індивідуальний студент."""
+        """Вартість: викладачам + 20% Академії."""
         return self.teachers + self.academy
 
+    @property
+    def individual(self):
+        """Скільки платить індивідуальний студент: викладачам + 30%."""
+        return self.teachers + _whole(self.teachers * INDIVIDUAL_COMMISSION / 100)
+
     def __add__(self, other):
-        return Cost(self.hours + other.hours, self.teachers + other.teachers,
-                    self.academy + other.academy)
+        return Cost(self.hours + other.hours, self.teachers + other.teachers)
 
 
 def link_cost(link):
@@ -63,7 +74,7 @@ def link_cost(link):
         return None
     rate = subject_rate(link.subject)
     teachers = _whole(link.hours * rate)
-    return Cost(link.hours, teachers, _whole(teachers * COMMISSION_PERCENT / 100), rate)
+    return Cost(link.hours, teachers, rate)
 
 
 def program_cost(links):
@@ -96,10 +107,10 @@ def from_eur(eur, rate):
 def course_offers(course, total, rate):
     """Чотири ціни курсу для картки, у гривнях і євро на сьогодні.
 
-    - для Академії — скільки вона платить викладачам за всі години;
-    - студент загальної групи — групова ціна в євро (разом з екскурсією);
-    - Early Bird — групова мінус вартість екскурсії;
-    - індивідуальний студент — години × ставки + комісія, екскурсія окремо.
+    - вартість для Академії — викладачам за всі години + 20%;
+    - студент загальної групи — групова ціна в євро (з екскурсією, якщо вона є);
+    - Early Bird — групова мінус вартість екскурсії; без екскурсії — немає;
+    - індивідуальний студент — викладачам + 30%, екскурсія окремо.
     Групової ціни не вказано — групових пропозицій немає (None).
     """
     group = early_bird = None
@@ -108,10 +119,10 @@ def course_offers(course, total, rate):
         if course.excursion_price and group.uah is not None:
             early_bird = from_uah(group.uah - course.excursion_price, rate)
     return {
-        'academy': from_uah(total.teachers, rate),
+        'academy': from_uah(total.price, rate),
         'group': group,
         'early_bird': early_bird,
-        'individual': from_uah(total.price, rate),
+        'individual': from_uah(total.individual, rate),
     }
 
 
@@ -150,7 +161,7 @@ def public_prices():
         cost = link_cost(link)
         if cost is not None and cost.hours:
             key = MATRIX_IDS.get(link.subject.name, link.code)
-            subjects[key] = {'hours': float(cost.hours), 'uah': cost.price}
+            subjects[key] = {'hours': float(cost.hours), 'uah': cost.individual}
 
     # Групові ціни готових курсів — за кодом курсу в матриці.
     courses = {}
