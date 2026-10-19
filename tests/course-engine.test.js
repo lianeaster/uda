@@ -46,21 +46,25 @@ const tests = {
     }
   },
 
-  'готові курси йдуть від найкращого, курс про напій — першим'() {
-    const list = ready({ level: 'practitioner', words: ['ferment'] }).map(r => r.percent);
+  'готові курси: «Майстер» першим, далі від найкращого'() {
+    const list = ready({ level: 'practitioner', words: ['ferment'] });
     assert.ok(list.length > 1);
-    assert.deepEqual(list, [...list].sort((a, b) => b - a));
-    // Обрано джин — «Майстерня джину» перша, навіть коли вужчі курси мають більше
-    // відсотків, і є навіть на «увесь шлях», де вона закриває менше 70%.
+    const rest = list.filter(r => r.id !== E.FLAGSHIP).map(r => r.percent);
+    assert.deepEqual(rest, [...rest].sort((a, b) => b - a));
+    // Віскі на весь шлях: «Майстер» перший, хоч і не єдиний.
+    const whisky = ready({ level: 'practitioner', drinks: ['whisky'], stages: E.fullPath(['whisky']) });
+    assert.equal(whisky[0].id, E.FLAGSHIP);
+  },
+
+  'курс про обраний напій є завжди — на будь-якому рівні й маршруті'() {
     for (const level of E.PERSON.map(p => p.id)) {
-      for (const stages of [[], ['sensory'], E.fullPath(['gin'])]) {
-        const first = ready({ level, drinks: ['gin'], stages })[0];
-        assert.equal(first.id, 'gin', `${level} ${stages.join('+')}`);
-        assert.ok(first.ownDrink);
+      for (const stages of [[], ['sensory'], ['raw'], ['lab'], E.fullPath(['gin'])]) {
+        const gin = ready({ level, drinks: ['gin'], stages }).find(r => r.id === 'gin');
+        assert.ok(gin && gin.ownDrink, `${level} ${stages.join('+') || 'лише напій'}`);
       }
     }
-    const whole = ready({ level: 'practitioner', drinks: ['gin'], stages: E.fullPath(['gin']) });
-    assert.ok(whole[0].percent < 70 && whole.every(r => r.ownDrink || r.percent >= 70));
+    const whole = ready({ level: 'pro', drinks: ['gin'], stages: E.fullPath(['gin']) });
+    assert.ok(whole.every(r => r.ownDrink || r.percent >= 70));
   },
 
   'зерно — це насамперед курси про зернові дистиляти, а не «Майстер»'() {
