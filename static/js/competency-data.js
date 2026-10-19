@@ -6,8 +6,9 @@
    змінилося в обох.
 
    Предмети й лектори продубльовано з schedule/programs.py (графік 8-ї групи
-   «Майстра дистиляції»), з виправленою нумерацією 8.1/8.2. Склад курсів,
-   крім «Майстра», — чернетка за описами на сайті (core/content.py). */
+   «Майстра дистиляції»), з виправленою нумерацією 8.1/8.2. Склад інших
+   курсів — за їхніми програмами на платформі (schedule/workshops.py);
+   сенсорика й майстер-класи — ще за описами на сайті (core/content.py). */
 globalThis.UDA_MATRIX = (() => {
   // --- програма курсу (schedule/programs.py, графік 8-ї групи) -------------
   const MODULES = [
@@ -40,31 +41,33 @@ globalThis.UDA_MATRIX = (() => {
     { id: 'mc-fruit',  short: 'МК Фрукти',     name: 'Майстер-клас «Зброджування фруктів та винограду»' },
   ];
 
-  // Які курси розвивають компетентність. «Майстер» — за програмою; решта —
-  // чернетка за описами курсів на сайті, її треба звірити з програмами.
+  // Які курси розвивають компетентність. «Майстер» — за програмою (графік
+  // 8-ї групи); решта — за програмами курсів на платформі (schedule/workshops.py:
+  // сторінки курсів на сайті й програма онлайн-потоку фруктових). «Майстерня
+  // сенсорного аналізу» й майстер-класи — досі за описами на сайті.
   const COVERAGE = {
-    K1:  ['master', 'grain', 'whisky', 'gin', 'fruit'],
+    K1:  ['master'],
     K2a: ['master', 'grain', 'whisky', 'ferm', 'mc-starch'],
     K2b: ['master', 'fruit', 'ferm', 'mc-fruit'],
-    K2c: ['master', 'ferm'],
-    K3:  ['master', 'grain', 'whisky', 'ferm', 'fruit'],
+    K2c: ['master'],
+    K3:  ['master', 'grain', 'whisky', 'ferm'],
     K4:  ['master', 'grain', 'whisky', 'ferm', 'fruit', 'mc-starch', 'mc-fruit'],
     K5:  ['master', 'grain'],
-    K6:  ['master', 'grain', 'whisky', 'gin', 'fruit', 'mc-org'],
+    K6:  ['master', 'grain', 'whisky', 'gin', 'mc-org'],
     K7:  ['master', 'grain', 'whisky', 'gin', 'fruit'],
-    K8:  ['master', 'whisky', 'aging', 'fruit'],
-    K9:  ['master', 'gin', 'aging'],
-    K10: ['master', 'grain', 'gin'],
+    K8:  ['master', 'grain', 'whisky', 'aging', 'fruit'],
+    K9:  ['master', 'whisky', 'aging', 'fruit'],
+    K10: ['master', 'grain', 'fruit'],
     BOT: ['gin'],
-    C1:  ['master', 'fruit', 'aging', 'sensory', 'spirit'],
-    C2:  ['master', 'grain', 'whisky', 'aging', 'sensory', 'spirit'],
+    C1:  ['master', 'fruit', 'sensory', 'spirit'],
+    C2:  ['master', 'grain', 'whisky', 'sensory', 'spirit'],
     C6:  ['master', 'sensory', 'spirit'],
     C7:  ['master', 'gin', 'sensory', 'spirit'],
     C8:  ['master', 'gin', 'sensory', 'spirit'],
     K12: ['master', 'grain', 'whisky', 'gin', 'sensory', 'aging', 'fruit', 'spirit'],
-    K13: ['master', 'ferm'],
-    K14: ['master', 'spirit'],
-    K15: ['master', 'mc-org'],
+    K13: ['master', 'grain', 'gin', 'ferm'],
+    K14: ['master', 'fruit', 'spirit'],
+    K15: ['master', 'grain', 'whisky', 'ferm', 'mc-org'],
     K16: ['master', 'mc-org'],
     K17: ['master'],
     K18: ['master', 'mc-org'],

@@ -90,7 +90,7 @@
   const COURSE_FOCUS = {
     grain: ['C2', 'K2a', 'K3', 'K4', 'K5'],
     whisky: ['C2', 'K2a', 'K4', 'K6', 'K7'],
-    gin: ['C7', 'C8', 'BOT', 'K9'],
+    gin: ['C7', 'C8', 'BOT'],
     sensory: ['K12'],
     aging: ['K8'],
     ferm: ['K4', 'K13'],
