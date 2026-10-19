@@ -862,6 +862,7 @@ class CostVisibilityTests(TestCase):
 from unittest import mock
 from urllib.error import URLError
 
+from django.core.cache import cache
 from django.utils import timezone
 
 from . import exchange
@@ -870,6 +871,16 @@ from .models import EuroRate
 
 class EuroRateTests(TestCase):
     """Курс НБУ: питаємо раз на день, без НБУ — останній відомий."""
+
+    def setUp(self):
+        # Позначка «НБУ не відповів» живе в кеші й пережила б інші тести.
+        cache.clear()
+
+    def test_a_failed_nbu_is_not_asked_again_for_an_hour(self):
+        with mock.patch.object(exchange, 'fetch', side_effect=URLError('down')) as fetch:
+            exchange.today_rate()
+            exchange.today_rate()
+        fetch.assert_called_once()
 
     def test_the_rate_is_asked_once_a_day(self):
         with mock.patch.object(exchange, 'fetch', return_value=Decimal('50.4977')) as fetch:

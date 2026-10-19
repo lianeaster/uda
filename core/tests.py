@@ -98,3 +98,44 @@ class ConstructorEngineTests(unittest.TestCase):
             capture_output=True, text=True,
         )
         self.assertEqual(run.returncode, 0, run.stdout + run.stderr)
+
+
+class ConstructorPricesTests(TestCase):
+    """Ціни в конструкторі — з платформи: години «Майстра» × ставки + комісія."""
+
+    def setUp(self):
+        import datetime as dt
+        from decimal import Decimal
+
+        from django.core.management import call_command
+        from django.utils import timezone
+
+        from schedule.models import EuroRate
+
+        call_command('import_program', verbosity=0)
+        EuroRate.objects.create(date=timezone.localdate(), rate=Decimal('50'))
+        self.dt = dt
+
+    def prices(self):
+        import json
+        page = self.client.get(reverse('core:constructor')).content.decode()
+        raw = re.search(r'<script id="cc-prices" type="application/json">(.*?)</script>', page, re.S)
+        return json.loads(raw.group(1))
+
+    def test_every_paid_subject_of_the_matrix_has_a_price(self):
+        prices = self.prices()
+        source = (settings.BASE_DIR / 'static/js/competency-data.js').read_text(encoding='utf-8')
+        block = source[source.index('const SUBJECTS = {'):source.index('const DOMAINS')]
+        matrix = set(re.findall(r"'([\d.]+[ab]?)':\s*\[", block))
+        # Випускна робота безкоштовна — решта предметів матриці мають ціну.
+        self.assertEqual(set(prices['subjects']), matrix - {'10.9'})
+        self.assertEqual(prices['subjects']['2.2'], {'hours': 4.0, 'uah': 10400})   # Бачурін
+        self.assertEqual(prices['subjects']['8.1']['hours'], 3.0)                   # «8.2» у графіку
+        self.assertEqual(prices['rate'], 50.0)
+        self.assertEqual(prices['courses']['master']['uah'], 60000)
+        self.assertEqual(prices['courses']['master']['earlyBird']['uah'], 55000)
+
+    def test_only_what_the_student_pays_goes_public(self):
+        raw = str(self.prices())
+        for secret in ('teachers', 'academy', 'rate\': 2000', 'hourly'):
+            self.assertNotIn(secret, raw)

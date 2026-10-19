@@ -5,6 +5,8 @@ from django.templatetags.static import static
 from django.urls import reverse
 from django.views import View
 
+from schedule.pricing import public_prices
+
 from . import content
 from .forms import ConstructorRequestForm, ContactRequestForm
 
@@ -53,6 +55,7 @@ class HomeView(View):
             # Герой головної — конструктор курсів; заявку з нього приймає
             # ConstructorView, тут лише форма й картки.
             'catalog': constructor_catalog(),
+            'prices': public_prices(),
             'form': ConstructorRequestForm(),
         })
 
@@ -79,7 +82,8 @@ class ConstructorView(View):
     """Конструктор курсів — публічний, без входу.
 
     Підбір рахує скрипт на матриці компетенцій (static/js/course-engine.js);
-    звідси сторінка бере лише картки курсів із сайту й приймає заявку. Той
+    звідси сторінка бере картки курсів із сайту, ціни з платформи
+    (`schedule.pricing.public_prices`) і приймає заявку. Той
     самий віджет стоїть у героя головної й шле заявку сюди ж.
     """
 
@@ -94,6 +98,7 @@ class ConstructorView(View):
                 'наскільки вони вам підходять.'
             ),
             'catalog': constructor_catalog(),
+            'prices': public_prices(),
             'form': ConstructorRequestForm(),
         }
         ctx.update(extra)

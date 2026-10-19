@@ -1,8 +1,10 @@
 {% load static %}{% comment %}
 Дані матриці, підбір і сама гра — саме в такому порядку. Сторінці потрібні ще
-`catalog` у контексті та елементи #cc-app і #zapys.
+`catalog` і `prices` (ціни з платформи; None — без цін) у контексті та
+елементи #cc-app і #zapys.
 {% endcomment %}
 {{ catalog|json_script:"cc-catalog" }}
+{{ prices|json_script:"cc-prices" }}
 <script src="{% static 'js/competency-data.js' %}"></script>
 <script src="{% static 'js/course-engine.js' %}"></script>
 <script src="{% static 'js/constructor.js' %}"></script>

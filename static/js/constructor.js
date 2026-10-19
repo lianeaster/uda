@@ -12,6 +12,10 @@
   const engine = E.create(M);
   const catalog = Object.fromEntries(
     JSON.parse(document.getElementById('cc-catalog').textContent).map(c => [c.id, c]));
+  // Ціни з платформи (schedule.pricing.public_prices): предмет «Майстра» за id
+  // з матриці → години й ціна для студента, курс НБУ, ціни готових курсів.
+  // Немає — конструктор працює, як раніше, без цін.
+  const prices = JSON.parse(document.getElementById('cc-prices')?.textContent || 'null');
   const intro = document.getElementById('cc-intro');
   const enroll = document.getElementById('zapys');
   const form = document.getElementById('cc-form');
@@ -32,6 +36,30 @@
   };
   const count = (n, forms) => `${n} ${plural(n, forms)}`;
   const toggle = (list, id) => list.includes(id) ? list.filter(x => x !== id) : [...list, id];
+  // --- ціни ----------------------------------------------------------------
+  const num = n => Math.round(n).toLocaleString('uk-UA');
+  const inEur = n => prices && prices.rate ? Math.round(n / prices.rate) : null;
+  const hoursText = h => `${String(Math.round(h * 10) / 10).replace('.', ',')} год`;
+  // Гривні, під ними дрібно — євро за курсом НБУ.
+  const money = n => `<span class="cc-money"><b>${num(n)}&nbsp;₴</b>${inEur(n) !== null ? `<small>≈&nbsp;${num(inEur(n))}&nbsp;€</small>` : ''}</span>`;
+  // Ціна набору модулів. Кожен предмет — один раз; модуль без жодного
+  // предмета з ціною (напр. ботанічні спирти — поза «Майстром») — у `unpriced`.
+  function priceOf(comps) {
+    if (!prices) return null;
+    const seen = new Set(), unpriced = [];
+    let uah = 0, hours = 0;
+    comps.forEach(c => {
+      const own = c.main.filter(s => prices.subjects[s]);
+      if (!own.length) { unpriced.push(c); return; }
+      own.filter(s => !seen.has(s)).forEach(s => {
+        seen.add(s);
+        uah += prices.subjects[s].uah;
+        hours += prices.subjects[s].hours;
+      });
+    });
+    return { uah, hours, unpriced };
+  }
+
   // Програти CSS-анімацію класу ще раз, навіть якщо клас уже стоїть.
   const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
   // Крапля падає в пляшку, а над нею спливає, що саме долили.
@@ -408,12 +436,44 @@
         <div class="cc-mod-body">
           <span class="cc-role">${esc(role)}</span>
           <h4>${esc(c.title)}</h4>
+          ${modulePrice(c)}
           <p class="cc-out">${meter(m.level)}<b>Рівень «${M.LEVELS[m.level]}».</b> ${esc(c.levels[m.level])}</p>
           <p class="cc-topics">${topics.length ? 'Теми: ' + esc(topics.join(' · ')) : esc(c.can.join('. '))}</p>
           ${options}
         </div>
         <button type="button" class="cc-x" data-act="drop" data-id="${m.id}" aria-label="Прибрати модуль «${esc(c.title)}»" title="Прибрати модуль">×</button>
       </li>`;
+  }
+
+  function modulePrice(c) {
+    const p = priceOf([c]);
+    if (!p) return '';
+    return p.unpriced.length
+      ? '<p class="cc-mod-price"><span class="cc-muted">Ціну цього модуля назве менеджер</span></p>'
+      : `<p class="cc-mod-price">${money(p.uah)}<span class="cc-muted">${hoursText(p.hours)}</span></p>`;
+  }
+
+  function ownPrice(prog) {
+    const p = priceOf(prog.modules.map(m => m.comp));
+    if (!p || !p.uah) return '';
+    const rate = prices.rate ? ` за курсом НБУ на ${prices.rateDate}` : '';
+    const excursion = prices.excursion ? ` Екскурсія на дистилерію — окремо, ${num(prices.excursion)}&nbsp;₴.` : '';
+    const unpriced = p.unpriced.length
+      ? ` Без ціни ${p.unpriced.map(c => `«${esc(c.title)}»`).join(', ')} — її назве менеджер.` : '';
+    return `
+      <div class="cc-price">
+        <span class="cc-price-label">Вартість програми</span>
+        ${money(p.uah)}
+        <p class="cc-price-note">${hoursText(p.hours)} занять із викладачами Академії${rate}.${excursion}${unpriced}</p>
+      </div>`;
+  }
+
+  function readyPrice(id) {
+    const p = prices && prices.courses[id];
+    if (!p) return '';
+    const uah = p.uah !== null ? ` (≈&nbsp;${num(p.uah)}&nbsp;₴)` : '';
+    const early = p.earlyBird ? `, Early Bird — ${num(p.earlyBird.uah)}&nbsp;₴` : '';
+    return `<p class="cc-ready-price">Ціна: <b>${num(p.eur)}&nbsp;€</b> з людини${uah}${early}.</p>`;
   }
 
   function ownCard(prog, from, isNew) {
@@ -436,6 +496,7 @@
               <li><b>${prog.subjects.length}</b> ${plural(prog.subjects.length, ['тема', 'теми', 'тем'])}</li>
               <li><b>${Math.round(prog.share * 100)}%</b> повної програми Академії</li>
             </ul>
+            ${ownPrice(prog)}
           </div>
           <button type="button" class="btn btn-primary" data-act="enroll" data-id="individual">Записатись</button>
         </div>
@@ -471,6 +532,7 @@
             <h3>${esc(c.title)}</h3>
             <p>${esc(c.text)}</p>
             <p class="cc-why">Закриває ${why}.</p>
+            ${readyPrice(r.id)}
             ${notes.map(n => `<p class="cc-note">${n}</p>`).join('')}
           </div>
           <button type="button" class="btn btn-outline" data-act="enroll" data-id="${r.id}">Записатись</button>
@@ -606,6 +668,12 @@
     lines.push('', 'Індивідуальна програма:');
     prog.modules.forEach((m, i) => lines.push(
       `${i + 1}. ${m.comp.title} — ${m.role === 'goal' ? 'ціль' : m.role === 'drink' ? 'про напій' : 'основа'}, рівень «${M.LEVELS[m.level]}»`));
+    const p = priceOf(prog.modules.map(m => m.comp));
+    if (p && p.uah) {
+      const euros = inEur(p.uah) !== null ? ` (≈ ${num(inEur(p.uah))} €)` : '';
+      lines.push(`Вартість індивідуальної програми: ${num(p.uah)} ₴${euros}, ${hoursText(p.hours)}` +
+        (p.unpriced.length ? `; без ціни: ${p.unpriced.map(c => c.title).join(', ')}` : ''));
+    }
     if (state.extra.length) lines.push(`Додано вручну: ${state.extra.map(title).join(', ')}`);
     if (state.drop.length) lines.push(`Прибрано вручну: ${state.drop.map(title).join(', ')}`);
     if (result.ready.length) {

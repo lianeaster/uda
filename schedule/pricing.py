@@ -113,3 +113,55 @@ def course_offers(course, total, rate):
         'early_bird': early_bird,
         'individual': from_uah(total.price, rate),
     }
+
+
+# --- публічний конструктор курсів ---------------------------------------
+
+# Номери предметів у матриці компетенцій (static/js/competency-data.js)
+# виправлені там, де графік повторюється («8.2» двічі, «10.7» двічі);
+# решта збігається з номером у програмі «Майстра».
+MATRIX_IDS = {
+    'Альтернативна витримка': '8.1',
+    'Витримка в бочці': '8.2',
+    'Авторське право': '10.7a',
+    'Дистрибуція': '10.7b',
+}
+
+
+def public_prices():
+    """Ціни для конструктора курсів на сайті Академії — лише те, що платить студент.
+
+    Модуль конструктора — компетентність матриці, і її ціна — сума предметів
+    «Майстра», з яких вона складається. Тож сюди йде ціна кожного предмета
+    за id з матриці, курс НБУ й ціни готового «Майстра». Оплата викладачам і
+    комісія окремо сюди не потрапляють. Курсу на платформі немає — None.
+    """
+    from . import exchange, programs
+    from .models import Course
+
+    course = Course.objects.filter(name=programs.COURSE).first()
+    if course is None:
+        return None
+    euro = exchange.today_rate()
+    rate = euro.rate if euro else None
+
+    subjects = {}
+    for link in course.ordered_program:
+        cost = link_cost(link)
+        if cost is not None and cost.hours:
+            key = MATRIX_IDS.get(link.subject.name, link.code)
+            subjects[key] = {'hours': float(cost.hours), 'uah': cost.price}
+
+    master = None
+    if course.group_price_eur:
+        group = from_eur(course.group_price_eur, rate)
+        master = {'eur': group.eur, 'uah': group.uah, 'earlyBird': None}
+        if course.excursion_price and group.uah is not None:
+            master['earlyBird'] = from_uah(group.uah - course.excursion_price, rate).__dict__
+    return {
+        'rate': float(rate) if rate else None,
+        'rateDate': f'{euro.date:%d.%m.%Y}' if euro else None,
+        'excursion': course.excursion_price,
+        'subjects': subjects,
+        'courses': {'master': master} if master else {},
+    }
