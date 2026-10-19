@@ -132,7 +132,7 @@ class ScheduleEntryForm(forms.ModelForm):
 class CourseForm(forms.ModelForm):
     class Meta:
         model = Course
-        fields = ['name', 'description', 'excursion_price']
+        fields = ['name', 'description', 'group_price_eur', 'excursion_price']
         labels = {'name': 'Назва курсу', 'description': 'Опис'}
         widgets = {'description': forms.Textarea(attrs={'rows': 4})}
 

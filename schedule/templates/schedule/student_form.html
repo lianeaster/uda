@@ -62,7 +62,13 @@
     function sync() {
         var mode = form.querySelector('input[name=mode]:checked').value;
         form.querySelectorAll('[data-mode]').forEach(function (box) {
-            box.hidden = box.getAttribute('data-mode') !== mode;
+            var off = box.getAttribute('data-mode') !== mode;
+            box.hidden = off;
+            // Приховані обов'язкові поля інакше мовчки блокують відправку:
+            // браузер не пропускає форму, а показати помилку йому ніде.
+            box.querySelectorAll('input, select, textarea').forEach(function (field) {
+                field.disabled = off;
+            });
         });
     }
     radios.forEach(function (radio) { radio.addEventListener('change', sync); });

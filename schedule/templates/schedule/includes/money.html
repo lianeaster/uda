@@ -1,0 +1,6 @@
+{% load pricing %}
+{% comment %}Сума в гривнях, під нею дрібно — в євро за курсом НБУ. `m` — pricing.Money.{% endcomment %}
+<span class="money">
+    <span class="money-uah">{% if m.uah is not None %}{{ m.uah|uah }}&nbsp;₴{% else %}—{% endif %}</span>
+    {% if m.eur is not None %}<span class="money-eur">{% if m.uah is not None and not exact_eur %}≈&nbsp;{% endif %}{{ m.eur|uah }}&nbsp;€</span>{% endif %}
+</span>

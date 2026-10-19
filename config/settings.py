@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
 import os
+import sys
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -154,6 +155,10 @@ TIME_ZONE = 'Europe/Kyiv'
 USE_I18N = True
 
 USE_TZ = True
+
+# Курс євро НБУ для цін на платформі (`schedule.exchange`). Під час тестів у
+# мережу не ходимо: сторінки беруть курс із бази або показуються без євро.
+NBU_RATES_ONLINE = sys.argv[1:2] != ['test']
 
 
 # Static files (CSS, JavaScript, Images)

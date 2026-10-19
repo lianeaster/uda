@@ -1,5 +1,5 @@
 {% extends "platform_base.html" %}
-{% load pricing %}
+{% load pricing static %}
 {% block title %}{{ course.name }}{% endblock %}
 {% block content %}
 <div class="container">
@@ -31,28 +31,39 @@
         </dl>
     </div>
 
-    {% include "schedule/includes/cost_summary.html" with what="курсу" excursion=course.excursion_price %}
+    {% include "schedule/includes/course_prices.html" %}
 
     <div class="page-header-row">
         <h2 class="section-title">Програма</h2>
-        {% if user.can_manage_users %}
         <div class="page-header-actions">
+            {% if sections %}
+            <button type="button" class="btn btn-small btn-secondary" data-modules-toggle="close">Згорнути всі</button>
+            <button type="button" class="btn btn-small btn-secondary" data-modules-toggle="open">Розгорнути всі</button>
+            {% endif %}
+            {% if user.can_manage_users %}
             <a href="{% url 'schedule:module_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати модуль</a>
             <a href="{% url 'schedule:subject_add' %}?course={{ course.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
+            {% endif %}
         </div>
-        {% endif %}
     </div>
     {% for module, rows, module_hours, module_total in sections %}
-        <div class="module-heading">
+    <details class="module-block" open>
+        <summary class="module-heading">
             <h3>
                 {% if module %}<a href="{% url 'schedule:module_detail' module.pk %}">{{ module.label }}</a>
                 {% else %}Поза модулями{% endif %}
             </h3>
             {% if module %}<span class="chip">{{ module.get_format_display }}</span>{% endif %}
-            <span class="muted">{{ module_hours|hours }} год</span>
-            {% if user.can_manage_users and module_total.hours %}<span class="module-price">{{ module_total.price|uah }}&nbsp;₴</span>{% endif %}
-        </div>
+            <span class="muted">{% if module_hours %}{{ module_hours|hours }} год{% else %}без годин{% endif %}</span>
+            {% if user.can_manage_users and module_total.hours %}
+            <span class="module-price">
+                <span class="money-uah">{{ module_total.price|uah }}&nbsp;₴</span>
+                {% if euro %}<span class="money-eur">≈&nbsp;{{ module_total.price|eur:euro.rate }}&nbsp;€</span>{% endif %}
+            </span>
+            {% endif %}
+        </summary>
         {% include "schedule/includes/program_table.html" with hours=module_hours total=module_total %}
+    </details>
     {% empty %}
         <p class="muted">У програмі курсу ще немає предметів.</p>
     {% endfor %}
@@ -82,4 +93,5 @@
     </table>
     </div>
 </div>
+<script src="{% static 'js/modules.js' %}"></script>
 {% endblock %}

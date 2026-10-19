@@ -2376,22 +2376,55 @@ a.chip { white-space: nowrap; }
 
 /* ---- програма з годинами й вартістю ---- */
 .repeat-row > .repeat-hours { flex: 0 0 90px; }
-.program-table .num { text-align: right; white-space: nowrap; font-variant-numeric: tabular-nums; }
+/* Колонки «за змістом»: ширина 1% + без переносу стискає їх до найширшої
+   комірки, решту ширини забирає назва предмета. */
+.program-table .fit { width: 1%; white-space: nowrap; }
+.program-table .num { text-align: right; font-variant-numeric: tabular-nums; }
 .program-table tfoot th { border-top: 2px solid var(--border-strong); font-weight: 600; }
-.module-heading { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px; margin: 28px 0 10px; }
+
+.module-block { margin: 14px 0 0; }
+.module-block > .table-card { margin-top: 8px; }
+.module-heading {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px;
+    padding: 10px 4px; cursor: pointer; list-style: none;
+    border-bottom: 1px solid var(--border);
+}
+.module-heading::-webkit-details-marker { display: none; }
+.module-heading::before {
+    content: ''; width: 8px; height: 8px; flex: none;
+    border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
+    transform: rotate(-45deg); transition: transform .15s; opacity: .6;
+}
+.module-block[open] > .module-heading::before { transform: rotate(45deg); }
 .module-heading h3 { margin: 0; font-size: 1.05rem; }
-.module-price { margin-left: auto; font-weight: 600; font-variant-numeric: tabular-nums; }
+.module-price { margin-left: auto; display: inline-flex; flex-direction: column; align-items: flex-end; line-height: 1.2; }
+.module-price .money-uah { font-weight: 600; font-variant-numeric: tabular-nums; }
+html:not(.js) [data-modules-toggle] { display: none; }
+
+/* гривні, під ними дрібно — євро */
+.money { display: inline-flex; flex-direction: column; line-height: 1.15; }
+.money-uah { font-size: 1.35rem; font-weight: 600; font-variant-numeric: tabular-nums; }
+.money-eur { font-size: 0.8rem; color: var(--muted); font-variant-numeric: tabular-nums; }
+.module-price .money-uah { font-size: 1rem; }
+
 .cost-summary {
     margin-top: 16px;
-    padding: 18px 26px;
+    padding: 18px 22px 14px;
     border: 1px dashed var(--border-strong);
     border-radius: var(--radius-lg);
 }
-.cost-summary-lead { margin: 0 0 14px; max-width: 80ch; font-size: 0.92rem; }
-.cost-summary .course-facts { flex-wrap: wrap; gap: 14px 36px; }
-.cost-summary .course-facts dd { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
-.cost-summary .cost-price { color: var(--green); }
+.cost-summary-head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 20px; }
+.cost-summary-head h2 { margin: 0; font-size: 1.15rem; }
+.euro-rate { margin: 0; font-size: 0.88rem; }
+.price-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 14px; }
+.price-card { padding: 14px 16px; background: var(--paper); border: 1px solid var(--border); border-radius: var(--radius-lg); }
+.price-card h3 { margin: 0 0 8px; font-size: 0.85rem; font-weight: 600; color: var(--muted); }
+.price-card p { margin: 8px 0 0; font-size: 0.82rem; }
+.price-card-accent { border-color: var(--border-strong); }
+.price-card-accent .money-uah { color: var(--green); }
+.cost-summary-note { margin: 10px 0 0; font-size: 0.8rem; }
 @media (max-width: 640px) {
     .table-card:has(.program-table) { overflow-x: auto; }
     .repeat-row > .repeat-hours { flex-basis: 70px; }
+    .module-price { margin-left: 0; align-items: flex-start; }
 }

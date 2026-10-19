@@ -2,7 +2,7 @@
 годинами та їхніх викладачів зі ставками.
 
 Номер і місце предмета команда звіряє з графіком щоразу. Години, модуль,
-екскурсію й ставку — лише там, де порожньо: їх правлять на платформі, і
+екскурсію, групову ціну й ставку — лише там, де порожньо: їх правлять на платформі, і
 повторний імпорт не має затирати правки менеджерів."""
 
 from django.core.management.base import BaseCommand
@@ -35,9 +35,11 @@ class Command(BaseCommand):
         course, made = Course.objects.get_or_create(name=programs.COURSE)
         if made:
             self.created_teachers.append(f'курс «{course.name}»')
-        if course.excursion_price is None:
-            course.excursion_price = programs.EXCURSION_PRICE
-            course.save(update_fields=['excursion_price'])
+        for field, value in (('excursion_price', programs.EXCURSION_PRICE),
+                             ('group_price_eur', programs.GROUP_PRICE_EUR)):
+            if getattr(course, field) is None:
+                setattr(course, field, value)
+                course.save(update_fields=[field])
 
         modules = {}
         for position, code, name, module_format in programs.modules():

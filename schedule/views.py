@@ -38,7 +38,7 @@ from .models import (
     ScheduleEntry,
     Subject,
 )
-from . import pricing
+from . import exchange, pricing
 from .services import build_month_grid, can_modify, can_review
 
 UK_MONTHS = [
@@ -359,8 +359,13 @@ class CourseDetailView(LoginRequiredMixin, DetailView):
         context['subject_count'] = sum(len(rows) for _, rows, _, _ in sections)
         context['hours'] = sum((hours for _, _, hours, _ in sections), Decimal(0))
         if with_money:
-            context['total'] = sum((total for _, _, _, total in sections), pricing.Cost())
-            context['commission'] = pricing.COMMISSION_PERCENT
+            total = sum((total for _, _, _, total in sections), pricing.Cost())
+            euro = exchange.today_rate()
+            context.update(
+                total=total, euro=euro, commission=pricing.COMMISSION_PERCENT,
+                euro_is_today=bool(euro) and euro.date == timezone.localdate(),
+                offers=pricing.course_offers(self.object, total, euro and euro.rate),
+            )
         context['groups'] = groups
         return context
 
@@ -418,6 +423,7 @@ class ModuleDetailView(LoginRequiredMixin, DetailView):
         context.update(rows=rows, hours=hours, total=total)
         if with_money:
             context['commission'] = pricing.COMMISSION_PERCENT
+            context['euro'] = exchange.today_rate()
         return context
 
 

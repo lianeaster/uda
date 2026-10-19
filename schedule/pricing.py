@@ -74,3 +74,42 @@ def program_cost(links):
     rows = [(link, link_cost(link)) for link in links]
     total = sum((cost for _, cost in rows if cost), Cost())
     return rows, total
+
+
+# --- гривні й євро -----------------------------------------------------
+
+@dataclass(frozen=True)
+class Money:
+    """Сума в гривнях і її еквівалент в євро за курсом НБУ (None — курсу немає)."""
+    uah: int | None
+    eur: int | None
+
+
+def from_uah(uah, rate):
+    return Money(uah, _whole(uah / rate) if rate else None)
+
+
+def from_eur(eur, rate):
+    return Money(_whole(eur * rate) if rate else None, eur)
+
+
+def course_offers(course, total, rate):
+    """Чотири ціни курсу для картки, у гривнях і євро на сьогодні.
+
+    - для Академії — скільки вона платить викладачам за всі години;
+    - студент загальної групи — групова ціна в євро (разом з екскурсією);
+    - Early Bird — групова мінус вартість екскурсії;
+    - індивідуальний студент — години × ставки + комісія, екскурсія окремо.
+    Групової ціни не вказано — групових пропозицій немає (None).
+    """
+    group = early_bird = None
+    if course.group_price_eur:
+        group = from_eur(course.group_price_eur, rate)
+        if course.excursion_price and group.uah is not None:
+            early_bird = from_uah(group.uah - course.excursion_price, rate)
+    return {
+        'academy': from_uah(total.teachers, rate),
+        'group': group,
+        'early_bird': early_bird,
+        'individual': from_uah(total.price, rate),
+    }

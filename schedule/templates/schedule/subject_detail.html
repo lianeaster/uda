@@ -39,10 +39,10 @@
     <table data-table class="program-table">
         <thead>
             <tr>
-                <th>Курс</th><th data-filter="none">№</th><th>Модуль</th><th class="num" data-filter="none">Годин</th>
+                <th>Курс</th><th class="fit" data-filter="none">№</th><th>Модуль</th><th class="num fit" data-filter="none">Годин</th>
                 {% if money %}
-                <th class="num">Ставка</th><th class="num" data-filter="none">Викладачам</th>
-                <th class="num" data-filter="none">Академії {{ commission }}%</th><th class="num" data-filter="none">Студенту</th>
+                <th class="num fit">Ставка</th><th class="num fit" data-filter="none">Викладачам</th>
+                <th class="num fit" data-filter="none">Академії {{ commission }}%</th><th class="num fit" data-filter="none">Студенту</th>
                 {% endif %}
             </tr>
         </thead>
@@ -50,17 +50,17 @@
         {% for link, cost in rows %}
             <tr>
                 <td><a href="{% url 'schedule:course_detail' link.course.pk %}">{{ link.course.name }}</a></td>
-                <td class="muted">{{ link.code|default:"—" }}</td>
+                <td class="fit muted">{{ link.code|default:"—" }}</td>
                 <td>{% if link.module %}<a href="{% url 'schedule:module_detail' link.module.pk %}">{{ link.module.label }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
-                <td class="num" data-sort="{{ link.hours|default_if_none:''|unlocalize }}">{{ link.hours|hours }}</td>
+                <td class="num fit" data-sort="{{ link.hours|default_if_none:''|unlocalize }}">{{ link.hours|hours }}</td>
                 {% if money %}
                     {% if cost %}
-                    <td class="num">{{ cost.rate|uah }}</td>
-                    <td class="num" data-sort="{{ cost.teachers }}">{{ cost.teachers|uah }}</td>
-                    <td class="num" data-sort="{{ cost.academy }}">{{ cost.academy|uah }}</td>
-                    <td class="num" data-sort="{{ cost.price }}"><strong>{{ cost.price|uah }}</strong></td>
+                    <td class="num fit">{{ cost.rate|uah }}</td>
+                    <td class="num fit" data-sort="{{ cost.teachers }}">{{ cost.teachers|uah }}</td>
+                    <td class="num fit" data-sort="{{ cost.academy }}">{{ cost.academy|uah }}</td>
+                    <td class="num fit" data-sort="{{ cost.price }}"><strong>{{ cost.price|uah }}</strong></td>
                     {% else %}
-                    <td class="num muted" title="Годин не вказано">—</td><td class="num muted">—</td><td class="num muted">—</td><td class="num muted">—</td>
+                    <td class="num fit muted" title="Годин не вказано">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td>
                     {% endif %}
                 {% endif %}
             </tr>

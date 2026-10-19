@@ -16,6 +16,12 @@ class Course(models.Model):
         help_text='Поїздка на дистилерію. В індивідуальну ціну не входить — '
                   'студент доплачує окремо й їде з іншою групою.',
     )
+    # Групову ціну Академія ставить у євро, тож у гривнях вона щодня інша —
+    # за курсом НБУ (`EuroRate`). Early Bird — та сама ціна мінус екскурсія.
+    group_price_eur = models.PositiveIntegerField(
+        'Ціна для студента групи, €', null=True, blank=True,
+        help_text='З людини, разом з екскурсією. Early Bird — мінус вартість екскурсії.',
+    )
 
     class Meta:
         ordering = ['name']
@@ -604,3 +610,19 @@ def student_teachers(student, on=None):
     if on is not False:
         qs = qs.active(on)
     return get_user_model().objects.filter(group_subjects__in=qs).distinct()
+
+
+class EuroRate(models.Model):
+    """Офіційний курс євро НБУ на день — щоб не питати НБУ на кожну сторінку
+    і мати останній відомий курс, коли НБУ не відповідає (`schedule.exchange`)."""
+
+    date = models.DateField('Дата', unique=True)
+    rate = models.DecimalField('Гривень за 1 €', max_digits=10, decimal_places=4)
+
+    class Meta:
+        ordering = ['-date']
+        verbose_name = 'Курс євро НБУ'
+        verbose_name_plural = 'Курси євро НБУ'
+
+    def __str__(self):
+        return f'{self.date:%d.%m.%Y}: {self.rate} ₴/€'

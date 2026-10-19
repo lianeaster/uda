@@ -1,0 +1,54 @@
+{% load pricing %}
+{% comment %}
+Чотири ціни курсу — лише менеджеру й супер-адміну. Гривні — на сьогодні за
+курсом НБУ (`euro`), під ними дрібно — євро. `offers` — pricing.course_offers.
+{% endcomment %}
+{% if user.can_manage_users and total.hours %}
+<section class="cost-summary" aria-labelledby="course-prices-title">
+    <div class="cost-summary-head">
+        <h2 id="course-prices-title">Вартість курсу</h2>
+        <p class="muted euro-rate">
+            {% if euro %}
+                Курс НБУ на {{ euro.date|date:"d.m.Y" }}: <strong>1&nbsp;€ = {{ euro.rate|floatformat:2 }}&nbsp;₴</strong>
+                {% if not euro_is_today %} · сьогоднішнього курсу НБУ ще немає, це останній відомий{% endif %}
+            {% else %}
+                Курс НБУ зараз недоступний — суми в євро з'являться, щойно НБУ відповість.
+            {% endif %}
+        </p>
+    </div>
+    <div class="price-cards">
+        <div class="price-card">
+            <h3>Для Академії</h3>
+            {% include "schedule/includes/money.html" with m=offers.academy %}
+            <p class="muted">Оплата викладачам за всі {{ total.hours|hours }} год.</p>
+        </div>
+        <div class="price-card">
+            <h3>Студент загальної групи</h3>
+            {% if offers.group %}
+                {% include "schedule/includes/money.html" with m=offers.group exact_eur=True %}
+                <p class="muted">З людини, разом з екскурсією. Ціна в євро — у гривнях щодня за курсом.</p>
+            {% else %}
+                <p class="muted">Групову ціну не вказано. <a href="{% url 'schedule:course_edit' course.pk %}">Вказати</a></p>
+            {% endif %}
+        </div>
+        <div class="price-card">
+            <h3>Early Bird</h3>
+            {% if offers.early_bird %}
+                {% include "schedule/includes/money.html" with m=offers.early_bird %}
+                <p class="muted">Групова ціна мінус вартість екскурсії ({{ course.excursion_price|uah }}&nbsp;₴).</p>
+            {% else %}
+                <p class="muted">Потрібні групова ціна й вартість екскурсії.</p>
+            {% endif %}
+        </div>
+        <div class="price-card price-card-accent">
+            <h3>Індивідуальний студент</h3>
+            {% include "schedule/includes/money.html" with m=offers.individual %}
+            <p class="muted">
+                Години × ставки викладачів + {{ commission }}% Академії.
+                {% if course.excursion_price %}Екскурсія — окремо, {{ course.excursion_price|uah }}&nbsp;₴.{% endif %}
+            </p>
+        </div>
+    </div>
+    <p class="muted cost-summary-note">Ці суми бачать лише менеджери й супер-адмін.</p>
+</section>
+{% endif %}

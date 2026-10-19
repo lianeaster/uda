@@ -20,3 +20,11 @@ def hours(value):
         return '—'
     text = f'{value:f}'.rstrip('0').rstrip('.') if '.' in f'{value:f}' else f'{value}'
     return text.replace('.', ',')
+
+
+@register.filter
+def eur(amount, rate):
+    """Гривні → цілі євро за курсом; без курсу — порожньо."""
+    if amount is None or not rate:
+        return ''
+    return uah(round(amount / rate))

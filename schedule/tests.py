@@ -741,7 +741,10 @@ class ImportedPricingTests(TestCase):
     def test_the_master_course_adds_up_to_what_the_academy_agreed(self):
         call_command('import_program', verbosity=0)
         course = Course.objects.get(name=programs.COURSE)
-        self.assertEqual(course.modules.count(), 10)
+        self.assertEqual(course.modules.count(), 11)
+        self.assertEqual(course.ordered_program.first().subject.name,
+                         'Вступне слово: як проходить курс, випускна робота')
+        self.assertEqual(course.group_price_eur, 1200)
         self.assertEqual(course.excursion_price, 5000)
         self.assertEqual(User.objects.get(username='ivan-bachurin').hourly_rate, 2000)
         _, total = pricing.program_cost(course.ordered_program)
@@ -854,3 +857,78 @@ class CostVisibilityTests(TestCase):
         link.module = foreign
         with self.assertRaises(ValidationError):
             link.full_clean()
+
+
+from unittest import mock
+from urllib.error import URLError
+
+from django.utils import timezone
+
+from . import exchange
+from .models import EuroRate
+
+
+class EuroRateTests(TestCase):
+    """Курс НБУ: питаємо раз на день, без НБУ — останній відомий."""
+
+    def test_the_rate_is_asked_once_a_day(self):
+        with mock.patch.object(exchange, 'fetch', return_value=Decimal('50.4977')) as fetch:
+            self.assertEqual(exchange.today_rate().rate, Decimal('50.4977'))
+            exchange.today_rate()
+        fetch.assert_called_once()
+
+    def test_without_the_nbu_the_last_known_rate_is_used(self):
+        EuroRate.objects.create(date=TODAY - dt.timedelta(days=2), rate=Decimal('49.9'))
+        with mock.patch.object(exchange, 'fetch', side_effect=URLError('down')):
+            self.assertEqual(exchange.today_rate().rate, Decimal('49.9'))
+
+    def test_without_any_rate_there_is_none(self):
+        with mock.patch.object(exchange, 'fetch', side_effect=URLError('down')):
+            self.assertIsNone(exchange.today_rate())
+
+
+class CourseOffersTests(TestCase):
+    """Чотири ціни курсу: Академії, група, Early Bird, індивідуально."""
+
+    def test_offers_are_in_hryvnias_with_euros(self):
+        course = Course(group_price_eur=1200, excursion_price=5000)
+        total = pricing.Cost(Decimal('145'), 161_000, 48_300)
+        offers = pricing.course_offers(course, total, Decimal('50'))
+        self.assertEqual(offers['academy'], pricing.Money(161_000, 3220))
+        self.assertEqual(offers['group'], pricing.Money(60_000, 1200))
+        self.assertEqual(offers['early_bird'], pricing.Money(55_000, 1100))   # мінус екскурсія
+        self.assertEqual(offers['individual'], pricing.Money(209_300, 4186))
+
+    def test_without_a_group_price_there_are_no_group_offers(self):
+        offers = pricing.course_offers(Course(), pricing.Cost(Decimal('1'), 1000, 300), None)
+        self.assertIsNone(offers['group'])
+        self.assertIsNone(offers['early_bird'])
+        self.assertEqual(offers['individual'], pricing.Money(1300, None))
+
+
+class CoursePricesPageTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.course = Course.objects.create(name='Майстер дистиляції', group_price_eur=1200,
+                                           excursion_price=5000)
+        module = Module.objects.create(course=cls.course, code='1', name='Вступ')
+        subject = make_subject('Техніка безпеки', course=cls.course, code='1.1')
+        subject.course_links.update(module=module, hours=Decimal('3'))
+        EuroRate.objects.create(date=timezone.localdate(), rate=Decimal('50'))
+        cls.manager = User.objects.create_user(username='mgr', roles=[User.Role.MANAGER])
+        cls.student = User.objects.create_user(username='st', roles=[User.Role.STUDENT])
+
+    def test_the_manager_sees_four_prices_and_todays_rate(self):
+        self.client.force_login(self.manager)
+        page = self.client.get(reverse('schedule:course_detail', args=[self.course.pk]))
+        for text in ('Для Академії', 'Студент загальної групи', 'Early Bird',
+                     'Індивідуальний студент', '1&nbsp;€ = 50,00&nbsp;₴',
+                     '60 000', '55 000', '3 900'):
+            self.assertContains(page, text)
+
+    def test_modules_fold_for_everyone(self):
+        self.client.force_login(self.student)
+        page = self.client.get(reverse('schedule:course_detail', args=[self.course.pk]))
+        self.assertContains(page, '<details class="module-block" open>')
+        self.assertContains(page, 'data-modules-toggle')
+        self.assertNotContains(page, 'Early Bird')
