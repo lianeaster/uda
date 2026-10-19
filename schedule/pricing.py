@@ -29,14 +29,18 @@ def teacher_rate(user):
     return user.hourly_rate or STANDARD_RATE
 
 
-def subject_rate(subject):
-    """Ставка години предмета.
+def lecturers_rate(lecturers):
+    """Ставка години для тих, хто веде.
 
-    Одночасно заняття веде одна людина. Коли предмет можуть вести кілька
-    викладачів, беремо найвищу ставку — щоб вартість не вийшла заниженою.
+    Одночасно заняття веде одна людина. Коли їх кілька (чергуються), беремо
+    найвищу ставку — щоб вартість не вийшла заниженою.
     """
-    rates = [teacher_rate(t) for t in subject.teachers.all()]
-    return max(rates, default=STANDARD_RATE)
+    return max((teacher_rate(t) for t in lecturers), default=STANDARD_RATE)
+
+
+def subject_rate(subject):
+    """Ставка предмета за його каталогом викладачів (поза конкретним курсом)."""
+    return lecturers_rate(subject.teachers.all())
 
 
 def _whole(amount):
@@ -72,7 +76,7 @@ def link_cost(link):
     """Вартість предмета в програмі курсу (`CourseSubject`); None — годин немає."""
     if link.hours is None:
         return None
-    rate = subject_rate(link.subject)
+    rate = lecturers_rate(link.lecturers)
     teachers = _whole(link.hours * rate)
     return Cost(link.hours, teachers, rate)
 

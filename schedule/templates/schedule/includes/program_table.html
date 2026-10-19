@@ -25,7 +25,7 @@
             <td class="fit muted" data-sort="{{ link.position }}">{{ link.code|default:"—" }}</td>
             <td><a href="{% url 'schedule:subject_detail' link.subject.pk %}">{{ link.subject.name }}</a></td>
             <td class="fit teacher-stack">
-                {% for t in link.subject.teachers.all %}
+                {% for t in link.lecturers %}
                     <span class="chip">{{ t.get_full_name|default:t.username }}</span>
                 {% empty %}
                     <span class="muted">—</span>

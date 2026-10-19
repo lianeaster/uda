@@ -527,7 +527,7 @@ class SubjectDetailView(LoginRequiredMixin, DetailView):
         context = super().get_context_data(**kwargs)
         with_money = self.request.user.can_manage_users
         links = self.object.course_links.select_related('course', 'module').prefetch_related(
-            'subject__teachers')
+            'teachers', 'subject__teachers')
         context['rows'], context['hours'], _ = _program_rows(links, with_money)
         if with_money:
             context['rate'] = pricing.subject_rate(self.object)
@@ -734,13 +734,16 @@ def _fillable_subjects(group):
     """
     taken = set(group.group_subjects.values_list('subject_id', flat=True))
     ready, ambiguous = [], []
-    subjects = group.course.subjects.exclude(pk__in=taken).prefetch_related('teachers')
-    for subject in subjects:
-        teachers = list(subject.teachers.all())
+    # Предмет буває в кількох курсах з різними лекторами — беремо того, хто
+    # веде в курсі цієї групи (`CourseSubject.lecturers`).
+    links = group.course.program.exclude(subject_id__in=taken).select_related(
+        'subject').prefetch_related('teachers', 'subject__teachers')
+    for link in links:
+        teachers = link.lecturers
         if len(teachers) == 1:
-            ready.append((subject, teachers[0]))
+            ready.append((link.subject, teachers[0]))
         else:
-            ambiguous.append(subject)
+            ambiguous.append(link.subject)
     return ready, ambiguous
 
 

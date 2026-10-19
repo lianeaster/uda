@@ -5,6 +5,10 @@
     <div class="repeat-code">{{ row.code }}{{ row.code.errors }}</div>
     <div class="repeat-field">{{ row.module }}{{ row.module.errors }}</div>
     <div class="repeat-hours">{{ row.hours }}{{ row.hours.errors }}</div>
+    <label class="repeat-teachers">
+        <span class="muted">Хто веде в цьому курсі (від нього — ставка; порожньо — будь-хто з викладачів предмета):</span>
+        {{ row.teachers }}{{ row.teachers.errors }}
+    </label>
     <span class="repeat-delete">{{ row.DELETE }}</span>
     <button type="button" class="repeat-remove" data-repeat-remove aria-label="Прибрати курс">&times;</button>
     {{ row.non_field_errors }}

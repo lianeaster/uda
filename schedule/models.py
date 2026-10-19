@@ -40,7 +40,7 @@ class Course(models.Model):
     def ordered_program(self):
         """Предмети курсу в порядку програми, кожен зі своїм номером у ній."""
         return self.program.select_related('subject', 'module').prefetch_related(
-            'subject__teachers')
+            'teachers', 'subject__teachers')
 
 
 class Module(models.Model):
@@ -81,7 +81,8 @@ class Module(models.Model):
 
     @property
     def ordered_program(self):
-        return self.program.select_related('subject').prefetch_related('subject__teachers')
+        return self.program.select_related('subject').prefetch_related(
+            'teachers', 'subject__teachers')
 
     def save(self, *args, **kwargs):
         # Як і предмет у програмі: новий модуль без місця стає в кінець курсу.
@@ -160,6 +161,14 @@ class CourseSubject(models.Model):
     # предмет може бути довшим чи коротшим. Порожньо — ще не порахували.
     hours = models.DecimalField('Годин', max_digits=5, decimal_places=1,
                                 null=True, blank=True)
+    # Хто веде предмет саме в цьому курсі. Предмет один на всі курси
+    # (сенсорику в «Майстрі» веде Чехун, у зернових — Бачурін), а ставка, з
+    # якої рахується вартість, — того, хто веде тут. Порожньо — береться
+    # каталог предмета (`Subject.teachers`).
+    teachers = models.ManyToManyField(
+        settings.AUTH_USER_MODEL, blank=True, related_name='programme_links',
+        verbose_name='Хто веде в цьому курсі',
+    )
 
     class Meta:
         ordering = ['course__name', 'position', 'subject__name']
@@ -175,6 +184,11 @@ class CourseSubject(models.Model):
     @property
     def label(self):
         return f'{self.code} {self.subject.name}' if self.code else self.subject.name
+
+    @property
+    def lecturers(self):
+        """Хто веде предмет у цьому курсі, або — якщо не вказано — каталог предмета."""
+        return list(self.teachers.all()) or list(self.subject.teachers.all())
 
     def clean(self):
         if self.module_id and self.course_id and self.module.course_id != self.course_id:

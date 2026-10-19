@@ -15,9 +15,9 @@ class ImportProgramTests(TestCase):
         call_command('import_program', verbosity=0, **options)
 
     def master_codes(self, teacher):
-        """Номери предметів «Майстра», які веде людина (інші курси — окремо)."""
+        """Номери предметів, які людина веде саме в «Майстрі» (інші курси — окремо)."""
         return sorted(CourseSubject.objects.filter(
-            course__name=programs.COURSE, subject__teachers=teacher).values_list('code', flat=True))
+            course__name=programs.COURSE, teachers=teacher).values_list('code', flat=True))
 
     def test_every_numbered_item_becomes_a_subject_of_the_course(self):
         self.import_program()
@@ -26,8 +26,7 @@ class ImportProgramTests(TestCase):
         self.assertEqual(course.subjects.count(), len(expected))
         for position, code, name, _module, _lecturers, _hours in expected:
             with self.subTest(code=code):
-                link = CourseSubject.objects.get(subject__name=name)
-                self.assertEqual(link.course, course)
+                link = CourseSubject.objects.get(course=course, subject__name=name)
                 self.assertEqual(link.code, code)
                 self.assertEqual(link.position, position)
 
@@ -612,6 +611,26 @@ class CatalogueManagementTests(TestCase):
         self.assertFalse(CourseSubject.objects.filter(subject=subject).exists())
         self.assertTrue(Subject.objects.filter(pk=subject.pk).exists(), 'у каталозі лишається')
 
+    def test_who_teaches_in_this_course_is_saved_on_the_programme_row(self):
+        response = self.client.post(reverse('schedule:subject_add'), self.subject_payload(
+            'Сенсорика', teachers=[self.teacher, self.second_teacher],
+            courses=[{'course': self.master.pk, 'code': '6.4', 'module': self.categories.pk,
+                      'hours': '2', 'teachers': [str(self.second_teacher.pk)]}]))
+        self.assertRedirects(response, reverse('schedule:subject_list'))
+        link = CourseSubject.objects.get(subject__name='Сенсорика')
+        self.assertEqual(link.lecturers, [self.second_teacher])
+
+    def test_filling_a_group_takes_the_lecturer_of_its_own_course(self):
+        # Предмет у двох курсах з різними лекторами: у каталозі їх двоє,
+        # але в курсі групи — один, тож гуртом він додається з ним.
+        subject = make_subject('Сенсорика', course=self.master, code='6.4')
+        CourseSubject.objects.create(course=self.grain, subject=subject, code='4.3')
+        subject.teachers.set([self.teacher, self.second_teacher])
+        subject.course_links.get(course=self.master).teachers.set([self.second_teacher])
+        self.client.post(reverse('schedule:group_subjects_fill', args=[self.group.pk]))
+        taught = GroupSubject.objects.get(group=self.group, subject=subject)
+        self.assertEqual(taught.teacher, self.second_teacher)
+
     def test_teachers_are_picked_from_dropdowns_not_checkboxes(self):
         page = self.client.get(reverse('schedule:subject_add')).content.decode()
         self.assertIn('data-repeat-add', page)
@@ -790,7 +809,7 @@ class ImportedPricingTests(TestCase):
 
     def test_reimport_keeps_what_managers_changed(self):
         call_command('import_program', verbosity=0)
-        link = CourseSubject.objects.get(subject__name='Водка')
+        link = CourseSubject.objects.get(course__code='master', subject__name='Водка')
         link.hours = Decimal('6')
         link.save()
         bachurin = User.objects.get(username='ivan-bachurin')
@@ -1035,3 +1054,30 @@ class AcademyCoursesTests(TestCase):
         prices = pricing.public_prices()['courses']
         self.assertEqual(set(prices), {'master', 'whisky', 'ferm', 'aging', 'spirit', 'grain', 'gin'})
         self.assertEqual(prices['whisky']['eur'], 580)
+
+
+class SharedSubjectsTests(TestCase):
+    """Один предмет — у кількох курсах, і в кожному свій лектор і своя ставка."""
+
+    def test_the_rate_is_of_who_teaches_in_this_course(self):
+        call_command('import_program', verbosity=0)
+        tastings = Subject.objects.get(name='Дегустації та сенсорні тренування різних видів напоїв')
+        self.assertEqual(set(tastings.courses.values_list('code', flat=True)),
+                         {'master', 'whisky', 'grain'})
+        rates = {link.course.code: pricing.link_cost(link).rate
+                 for link in tastings.course_links.select_related('course')}
+        # у «Майстрі» веде Чехун, у зернових — Бачурін: ставки різні
+        self.assertEqual(rates, {'master': 1000, 'whisky': 1000, 'grain': 2000})
+
+    def test_workshops_reuse_master_subjects_instead_of_copies(self):
+        call_command('import_program', verbosity=0)
+        self.assertFalse(Subject.objects.filter(name='Вода у виробництві віскі').exists())
+        self.assertEqual(Subject.objects.get(name='Вода').course_links.count(), 2)
+        fruit = CourseSubject.objects.get(course__code='fruit', subject__name__startswith='Сировина, що містить цукор')
+        self.assertEqual((fruit.code, fruit.hours), ('2, 3', Decimal('6')))
+
+    def test_reimport_keeps_other_courses_lecturers_of_a_shared_subject(self):
+        call_command('import_program', verbosity=0)
+        call_command('import_program', verbosity=0)
+        tastings = Subject.objects.get(name='Дегустації та сенсорні тренування різних видів напоїв')
+        self.assertIn('ivan-bachurin', tastings.teachers.values_list('username', flat=True))

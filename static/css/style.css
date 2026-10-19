@@ -2432,3 +2432,5 @@ html:not(.js) [data-modules-toggle] { display: none; }
     .module-price { margin-left: 0; align-items: flex-start; }
 }
 .pricing-note { margin: 0 0 10px; font-size: 0.85rem; }
+.repeat-row > .repeat-teachers { flex-basis: 100%; display: grid; gap: 4px; font-size: 0.85rem; }
+.repeat-teachers select { width: 100%; }

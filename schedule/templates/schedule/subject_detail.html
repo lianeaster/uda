@@ -40,7 +40,7 @@
     <table data-table class="program-table">
         <thead>
             <tr>
-                <th>Курс</th><th class="fit" data-filter="none">№</th><th>Модуль</th><th class="num fit" data-filter="none">Годин</th>
+                <th>Курс</th><th class="fit" data-filter="none">№</th><th>Модуль</th><th class="fit">Хто веде</th><th class="num fit" data-filter="none">Годин</th>
                 {% if money %}
                 <th class="num fit">Ставка</th>
                 <th class="num fit" data-filter="none">Вартість</th>
@@ -54,6 +54,7 @@
                 <td><a href="{% url 'schedule:course_detail' link.course.pk %}">{{ link.course.name }}</a></td>
                 <td class="fit muted">{{ link.code|default:"—" }}</td>
                 <td>{% if link.module %}<a href="{% url 'schedule:module_detail' link.module.pk %}">{{ link.module.label }}</a>{% else %}<span class="muted">—</span>{% endif %}</td>
+                <td class="fit teacher-stack">{% for t in link.lecturers %}<span class="chip">{{ t.get_full_name|default:t.username }}</span>{% empty %}<span class="muted">—</span>{% endfor %}</td>
                 <td class="num fit" data-sort="{{ link.hours|default_if_none:''|unlocalize }}">{{ link.hours|hours }}</td>
                 {% if money %}
                     {% if cost %}
@@ -66,7 +67,7 @@
                 {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="{% if money %}7{% else %}4{% endif %}" class="muted">Предмет поки не входить у жоден курс.</td></tr>
+            <tr data-empty><td colspan="{% if money %}8{% else %}5{% endif %}" class="muted">Предмет поки не входить у жоден курс.</td></tr>
         {% endfor %}
         </tbody>
     </table>

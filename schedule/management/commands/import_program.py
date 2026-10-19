@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
             if is_new or link is None:
                 if not self.dry_run:
-                    CourseSubject.objects.create(
+                    link = CourseSubject.objects.create(
                         course=course, subject=subject, code=code, position=position,
                         module=module, hours=hours)
                 created.append(f'{code} {name}' + ('' if is_new else ' — додано в програму курсу'))
@@ -81,7 +81,11 @@ class Command(BaseCommand):
             teachers = [t for t in (self._resolve(label) for label in lecturer_labels) if t]
             teaching.update(t.pk for t in teachers)
             if teachers and not self.dry_run:
-                subject.teachers.set(teachers)
+                # Предмет спільний для кількох курсів — у каталог лише додаємо,
+                # а хто веде саме в «Майстрі», пишемо в рядок програми.
+                subject.teachers.add(*teachers)
+                if link is not None and not link.teachers.exists():
+                    link.teachers.set(teachers)
             if teachers:
                 assigned.append(
                     f'{code} {name} → {", ".join(t.get_full_name() or t.username for t in teachers)}'

@@ -168,8 +168,9 @@ class SubjectForm(forms.ModelForm):
 class CourseSubjectForm(forms.ModelForm):
     class Meta:
         model = CourseSubject
-        fields = ['course', 'code', 'module', 'hours']
-        labels = {'course': 'Курс', 'code': '№ у програмі', 'module': 'Модуль', 'hours': 'Годин'}
+        fields = ['course', 'code', 'module', 'hours', 'teachers']
+        labels = {'course': 'Курс', 'code': '№ у програмі', 'module': 'Модуль', 'hours': 'Годин',
+                  'teachers': 'Хто веде в цьому курсі'}
         widgets = {
             'course': forms.Select(attrs={'aria-label': 'Курс'}),
             'code': forms.TextInput(attrs={'placeholder': '№',
@@ -177,6 +178,8 @@ class CourseSubjectForm(forms.ModelForm):
             'module': forms.Select(attrs={'aria-label': 'Модуль'}),
             'hours': forms.NumberInput(attrs={'placeholder': 'год', 'step': '0.5', 'min': '0',
                                               'aria-label': 'Годин у програмі курсу'}),
+            'teachers': forms.SelectMultiple(attrs={'size': 3,
+                                                    'aria-label': 'Хто веде в цьому курсі'}),
         }
 
     def __init__(self, *args, **kwargs):
@@ -188,6 +191,9 @@ class CourseSubjectForm(forms.ModelForm):
         self.fields['module'].empty_label = 'Оберіть модуль'
         # У програмі курсу предмет завжди стоїть у модулі.
         self.fields['module'].required = True
+        # Від того, хто веде саме тут, рахується вартість (його ставка).
+        self.fields['teachers'].queryset = User.objects.with_role(User.Role.TEACHER)
+        self.fields['teachers'].help_text = ''
 
 
 def course_subject_formset(subject=None, data=None, module=None):
