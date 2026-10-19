@@ -56,6 +56,7 @@
                 <td {% include "schedule/includes/period_attrs.html" with obj=gs %}>{% include "schedule/includes/period.html" with obj=gs %}</td>
                 {% if subject_form %}
                 <td class="row-actions">
+                    <a href="{% url 'schedule:group_subject_edit' gs.pk %}">Редагувати</a>
                     <form class="inline-form" method="post" action="{% url 'schedule:group_subject_delete' gs.pk %}"
                           onsubmit="return confirm('Прибрати «{{ gs.subject.name }}» з групи? Записи розкладу за цим предметом теж зникнуть.');">
                         {% csrf_token %}

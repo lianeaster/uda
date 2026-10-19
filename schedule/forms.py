@@ -275,6 +275,54 @@ class GroupSubjectForm(forms.ModelForm):
         self.fields['end_date'].required = False
 
 
+class GroupSubjectEditForm(forms.ModelForm):
+    """Виправити предмет у групі: викладача чи період, коли помилилися.
+
+    Справжня зміна викладача посеред курсу — не тут, а в `TeacherChangeForm`:
+    історія не перезаписується.
+    """
+
+    class Meta:
+        model = GroupSubject
+        fields = ['teacher', 'start_date', 'end_date']
+        labels = {'teacher': 'Викладач', 'start_date': 'Початок вивчення',
+                  'end_date': 'Завершення'}
+        widgets = {'start_date': date_input(), 'end_date': date_input()}
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['teacher'].queryset = User.objects.with_role(User.Role.TEACHER)
+        self.fields['end_date'].required = False
+
+
+class TeacherChangeForm(forms.Form):
+    """Новий викладач предмета в групі з певної дати.
+
+    Поточний рядок закривається напередодні, новий відкривається з цієї дати
+    до того ж завершення; заняття розкладу з цієї дати переходять до нового.
+    """
+
+    teacher = forms.ModelChoiceField(queryset=User.objects.none(), label='Новий викладач',
+                                     empty_label='Оберіть викладача')
+    from_date = forms.DateField(label='З дати', widget=date_input())
+
+    def __init__(self, *args, link=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.link = link
+        self.fields['teacher'].queryset = User.objects.with_role(User.Role.TEACHER).exclude(
+            pk=link.teacher_id)
+
+    def clean_from_date(self):
+        day = self.cleaned_data['from_date']
+        if day <= self.link.start_date:
+            raise forms.ValidationError(
+                'Дата має бути пізніше за початок вивчення. Якщо викладач інший з самого '
+                'початку — виправте його вище.')
+        if self.link.end_date and day > self.link.end_date:
+            raise forms.ValidationError('Дата пізніша за завершення вивчення предмета.')
+        return day
+
+
 class EnrollmentForm(forms.ModelForm):
     """Навчання студента в одній групі.
 

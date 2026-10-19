@@ -20,12 +20,14 @@ from .forms import (
     CourseForm,
     EnrollmentForm,
     GroupForm,
+    GroupSubjectEditForm,
     GroupSubjectForm,
     ModuleForm,
     NewStudentForm,
     ScheduleEntryForm,
     StudentInfoForm,
     SubjectForm,
+    TeacherChangeForm,
     course_subject_formset,
 )
 from .models import (
@@ -758,6 +760,53 @@ class GroupSubjectCreateView(UserManagementRequiredMixin, View):
             error_text = ' '.join(f'{errors[0]}' for errors in form.errors.values())
             messages.error(request, f'Не вдалося додати предмет: {error_text or "Перевірте поля форми."}')
         return redirect('schedule:group_detail', pk=group.pk)
+
+
+class GroupSubjectUpdateView(UserManagementRequiredMixin, View):
+    """Предмет у групі: виправити викладача чи період, або змінити викладача з дати."""
+
+    template_name = 'schedule/group_subject_form.html'
+
+    def get_link(self, pk):
+        return get_object_or_404(
+            GroupSubject.objects.select_related('group__course', 'subject', 'teacher'), pk=pk)
+
+    def get(self, request, pk):
+        link = self.get_link(pk)
+        return self.render(link, GroupSubjectEditForm(instance=link), TeacherChangeForm(link=link))
+
+    def post(self, request, pk):
+        link = self.get_link(pk)
+        if request.POST.get('action') == 'change':
+            change = TeacherChangeForm(request.POST, link=link)
+            if change.is_valid():
+                self.change_teacher(link, **change.cleaned_data)
+                return redirect('schedule:group_detail', pk=link.group_id)
+            return self.render(link, GroupSubjectEditForm(instance=link), change)
+        form = GroupSubjectEditForm(request.POST, instance=link)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Предмет «{link.subject.name}» у групі збережено.')
+            return redirect('schedule:group_detail', pk=link.group_id)
+        return self.render(link, form, TeacherChangeForm(link=link))
+
+    @transaction.atomic
+    def change_teacher(self, link, teacher, from_date):
+        """Закрити поточний рядок напередодні й відкрити новий — історія лишається."""
+        new = GroupSubject.objects.create(
+            group=link.group, subject=link.subject, teacher=teacher,
+            start_date=from_date, end_date=link.end_date)
+        link.end_date = from_date - dt.timedelta(days=1)
+        link.save(update_fields=['end_date'])
+        moved = link.schedule_entries.filter(date__gte=from_date).update(group_subject=new)
+        messages.success(
+            self.request,
+            f'«{link.subject.name}»: з {from_date:%d.%m.%Y} веде {teacher.display_name}.'
+            + (f' Занять у розкладі перенесено: {moved}.' if moved else ''))
+
+    def render(self, link, form, change):
+        return render(self.request, self.template_name,
+                      {'link': link, 'form': form, 'change': change})
 
 
 class GroupSubjectDeleteView(UserManagementRequiredMixin, View):

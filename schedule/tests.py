@@ -310,6 +310,55 @@ class GroupSubjectManagementTests(TestCase):
     def setUp(self):
         self.client.force_login(self.manager)
 
+    # --- редагування предмета в групі ------------------------------------
+
+    def lesson(self):
+        return GroupSubject.objects.create(group=self.group, subject=self.solo,
+                                           teacher=self.teacher, start_date=MONTH_AGO)
+
+    def test_a_group_subject_can_be_corrected(self):
+        lesson = self.lesson()
+        detail = self.client.get(reverse('schedule:group_detail', args=[self.group.pk]))
+        self.assertContains(detail, reverse('schedule:group_subject_edit', args=[lesson.pk]))
+        response = self.client.post(reverse('schedule:group_subject_edit', args=[lesson.pk]), {
+            'action': 'edit', 'teacher': self.other_teacher.pk,
+            'start_date': MONTH_AGO.isoformat(), 'end_date': ''})
+        self.assertRedirects(response, reverse('schedule:group_detail', args=[self.group.pk]))
+        lesson.refresh_from_db()
+        self.assertEqual(lesson.teacher, self.other_teacher)
+
+    def test_a_new_teacher_from_a_date_keeps_the_history(self):
+        lesson = self.lesson()
+        def entry(day):
+            return ScheduleEntry.objects.create(
+                group=self.group, group_subject=lesson, date=day,
+                start_time=dt.time(10), end_time=dt.time(13),
+                source=ScheduleEntry.Source.ACADEMY, created_by=self.manager)
+        before, after = entry(TODAY - dt.timedelta(days=3)), entry(TODAY + dt.timedelta(days=3))
+        self.client.post(reverse('schedule:group_subject_edit', args=[lesson.pk]), {
+            'action': 'change', 'teacher': self.other_teacher.pk, 'from_date': TODAY.isoformat()})
+        lesson.refresh_from_db()
+        self.assertEqual((lesson.teacher, lesson.end_date), (self.teacher, TODAY - dt.timedelta(days=1)))
+        new = GroupSubject.objects.get(group=self.group, subject=self.solo, start_date=TODAY)
+        self.assertEqual(new.teacher, self.other_teacher)
+        before.refresh_from_db()
+        after.refresh_from_db()
+        self.assertEqual((before.group_subject, after.group_subject), (lesson, new))
+
+    def test_a_teacher_change_before_the_start_is_refused(self):
+        lesson = self.lesson()
+        response = self.client.post(reverse('schedule:group_subject_edit', args=[lesson.pk]), {
+            'action': 'change', 'teacher': self.other_teacher.pk,
+            'from_date': MONTH_AGO.isoformat()})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(GroupSubject.objects.filter(group=self.group, subject=self.solo).count(), 1)
+
+    def test_a_teacher_cannot_edit_a_group_subject(self):
+        lesson = self.lesson()
+        self.client.force_login(self.teacher)
+        self.assertRedirects(self.client.get(reverse('schedule:group_subject_edit', args=[lesson.pk])),
+                             reverse('dashboard:home'))
+
     def test_the_form_offers_only_this_courses_subjects(self):
         page = self.client.get(reverse('schedule:group_detail', args=[self.group.pk]))
         offered = set(page.context['subject_form'].fields['subject'].queryset)

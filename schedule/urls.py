@@ -21,6 +21,7 @@ urlpatterns = [
     path('groups/<int:pk>/delete/', views.GroupDeleteView.as_view(), name='group_delete'),
     path('groups/<int:pk>/subjects/add/', views.GroupSubjectCreateView.as_view(), name='group_subject_add'),
     path('groups/<int:pk>/subjects/fill/', views.GroupSubjectsFillView.as_view(), name='group_subjects_fill'),
+    path('group-subjects/<int:pk>/edit/', views.GroupSubjectUpdateView.as_view(), name='group_subject_edit'),
     path('group-subjects/<int:pk>/delete/', views.GroupSubjectDeleteView.as_view(), name='group_subject_delete'),
     path('students/', views.StudentListView.as_view(), name='student_list'),
     path('students/add/', views.StudentCreateView.as_view(), name='student_add'),

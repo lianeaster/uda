@@ -1,0 +1,31 @@
+{% extends "platform_base.html" %}
+{% block title %}{{ link.subject.name }} · {{ link.group.name }}{% endblock %}
+{% block content %}
+<div class="container">
+    <div class="form-page">
+        <p class="muted course-kicker"><a href="{% url 'schedule:group_detail' link.group.pk %}">{{ link.group.name }}</a> · {{ link.group.course.name }}</p>
+        <h1>{{ link.subject.name }}</h1>
+        <p class="muted">Зараз веде {{ link.teacher.display_name }}, {% include "schedule/includes/period.html" with obj=link %}</p>
+
+        <h2 class="form-section-title">Виправити</h2>
+        <p class="muted form-section-lead">Якщо під час додавання помилилися з викладачем чи датами.</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="edit">
+            {% include "schedule/includes/form_fields.html" with form=form %}
+            <button type="submit" class="btn" style="width:100%;">Зберегти</button>
+        </form>
+
+        <h2 class="form-section-title">Змінити викладача з дати</h2>
+        <p class="muted form-section-lead">Коли викладач змінюється посеред курсу. Попередній лишається в історії до цієї дати, новий веде з неї; заняття розкладу з цієї дати переходять до нового.</p>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change">
+            {% include "schedule/includes/form_fields.html" with form=change %}
+            <button type="submit" class="btn btn-secondary" style="width:100%;">Змінити викладача</button>
+        </form>
+
+        <p style="text-align:center;margin-top:16px;"><a href="{% url 'schedule:group_detail' link.group.pk %}">&larr; До групи</a></p>
+    </div>
+</div>
+{% endblock %}
