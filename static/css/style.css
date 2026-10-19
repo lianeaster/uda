@@ -2431,3 +2431,4 @@ html:not(.js) [data-modules-toggle] { display: none; }
     .repeat-row > .repeat-hours { flex-basis: 70px; }
     .module-price { margin-left: 0; align-items: flex-start; }
 }
+.pricing-note { margin: 0 0 10px; font-size: 0.85rem; }

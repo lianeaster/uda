@@ -36,6 +36,7 @@
         <a href="{% url 'schedule:subject_add' %}?module={{ module.pk }}" class="btn btn-small btn-secondary">+ Додати предмет</a>
         {% endif %}
     </div>
+    {% include "schedule/includes/pricing_note.html" %}
     {% include "schedule/includes/program_table.html" %}
 </div>
 {% endblock %}

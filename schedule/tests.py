@@ -971,7 +971,8 @@ class CoursePricesPageTests(TestCase):
         page = self.client.get(reverse('schedule:course_detail', args=[self.course.pk]))
         for text in ('Вартість курсу для Академії', 'Студент загальної групи', 'Early Bird',
                      'Індивідуальний студент', '1&nbsp;€ = 50,00&nbsp;₴', 'разом з екскурсією',
-                     '60 000', '55 000', '3 600', '3 900', 'Академії 20%'):
+                     '60 000', '55 000', '3 600', '3 900',
+                     '+ 20% комісії Академії', 'Інд. вартість'):
             self.assertContains(page, text)
 
     def test_a_course_without_an_excursion_has_no_early_bird(self):

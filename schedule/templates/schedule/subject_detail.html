@@ -34,6 +34,7 @@
     </p>
 
     <h2 class="section-title">У програмах курсів</h2>
+    {% include "schedule/includes/pricing_note.html" %}
     {% with money=user.can_manage_users %}
     <div class="table-card">
     <table data-table class="program-table">
@@ -41,9 +42,9 @@
             <tr>
                 <th>Курс</th><th class="fit" data-filter="none">№</th><th>Модуль</th><th class="num fit" data-filter="none">Годин</th>
                 {% if money %}
-                <th class="num fit">Ставка</th><th class="num fit" data-filter="none">Викладачам</th>
-                <th class="num fit" data-filter="none">Академії {{ base_commission }}%</th><th class="num fit" data-filter="none">Вартість</th>
-            <th class="num fit" data-filter="none" title="Викладачам + {{ individual_commission }}%">Індивідуально</th>
+                <th class="num fit">Ставка</th>
+                <th class="num fit" data-filter="none">Вартість</th>
+            <th class="num fit" data-filter="none">Інд. вартість</th>
                 {% endif %}
             </tr>
         </thead>
@@ -57,17 +58,15 @@
                 {% if money %}
                     {% if cost %}
                     <td class="num fit">{{ cost.rate|uah }}</td>
-                    <td class="num fit" data-sort="{{ cost.teachers }}">{{ cost.teachers|uah }}</td>
-                    <td class="num fit" data-sort="{{ cost.academy }}">{{ cost.academy|uah }}</td>
                     <td class="num fit" data-sort="{{ cost.price }}"><strong>{{ cost.price|uah }}</strong></td>
                 <td class="num fit" data-sort="{{ cost.individual }}">{{ cost.individual|uah }}</td>
                     {% else %}
-                    <td class="num fit muted" title="Годин не вказано">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td>
+                    <td class="num fit muted" title="Годин не вказано">—</td><td class="num fit muted">—</td><td class="num fit muted">—</td>
                     {% endif %}
                 {% endif %}
             </tr>
         {% empty %}
-            <tr data-empty><td colspan="{% if money %}9{% else %}4{% endif %}" class="muted">Предмет поки не входить у жоден курс.</td></tr>
+            <tr data-empty><td colspan="{% if money %}7{% else %}4{% endif %}" class="muted">Предмет поки не входить у жоден курс.</td></tr>
         {% endfor %}
         </tbody>
     </table>

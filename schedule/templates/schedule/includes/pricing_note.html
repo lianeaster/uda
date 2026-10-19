@@ -1,0 +1,4 @@
+{% comment %}Як рахується вартість у таблицях — один рядок на сторінку, лише менеджеру й супер-адміну.{% endcomment %}
+{% if user.can_manage_users %}
+<p class="muted pricing-note">Вартість — години × ставка викладача + {{ base_commission }}% комісії Академії. Інд. вартість — для індивідуальних слухачів: + {{ individual_commission }}%.</p>
+{% endif %}
