@@ -226,8 +226,7 @@
 .cc-price .cc-money b { font-size: 28px; }
 .cc-price .cc-money small { font-size: 13px; }
 .cc-card-text .cc-price-note { font-size: var(--small); color: var(--ink-muted); }
-.cc-mod-price { display: flex; align-items: flex-start; gap: 12px; margin: 0; font-size: var(--small); }
-.cc-mod-price .cc-money b { font-size: 17px; }
+.cc-mod-hours { margin: 0; font-size: var(--small); color: var(--ink-muted); }
 .cc-card-text .cc-ready-price { font-size: var(--small); color: var(--ink-soft); }
 .cc-ready-price b { color: var(--ink); }
 

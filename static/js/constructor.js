@@ -436,7 +436,7 @@
         <div class="cc-mod-body">
           <span class="cc-role">${esc(role)}</span>
           <h4>${esc(c.title)}</h4>
-          ${modulePrice(c)}
+          ${moduleHours(c)}
           <p class="cc-out">${meter(m.level)}<b>Рівень «${M.LEVELS[m.level]}».</b> ${esc(c.levels[m.level])}</p>
           <p class="cc-topics">${topics.length ? 'Теми: ' + esc(topics.join(' · ')) : esc(c.can.join('. '))}</p>
           ${options}
@@ -445,12 +445,11 @@
       </li>`;
   }
 
-  function modulePrice(c) {
+  // Ціни окремого модуля не показуємо — лише години: інакше з'являється
+  // спокуса прибрати частину програми через ціну. Ціна — одна, за всю програму.
+  function moduleHours(c) {
     const p = priceOf([c]);
-    if (!p) return '';
-    return p.unpriced.length
-      ? '<p class="cc-mod-price"><span class="cc-muted">Ціну цього модуля назве менеджер</span></p>'
-      : `<p class="cc-mod-price">${money(p.uah)}<span class="cc-muted">${hoursText(p.hours)}</span></p>`;
+    return p && !p.unpriced.length ? `<p class="cc-mod-hours">${hoursText(p.hours)}</p>` : '';
   }
 
   function ownPrice(prog) {
@@ -459,7 +458,7 @@
     const rate = prices.rate ? ` за курсом НБУ на ${prices.rateDate}` : '';
     const excursion = prices.excursion ? ` Екскурсія на дистилерію — окремо, ${num(prices.excursion)}&nbsp;₴.` : '';
     const unpriced = p.unpriced.length
-      ? ` Без ціни ${p.unpriced.map(c => `«${esc(c.title)}»`).join(', ')} — її назве менеджер.` : '';
+      ? ` ${p.unpriced.map(c => `«${esc(c.title)}»`).join(', ')} у цю суму не ${p.unpriced.length > 1 ? 'входять' : 'входить'} — вартість назве менеджер.` : '';
     return `
       <div class="cc-price">
         <span class="cc-price-label">Вартість програми</span>
