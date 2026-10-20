@@ -33,6 +33,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700&display=swap">
     <link rel="stylesheet" href="{% static 'css/center.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
     {% comment %}
     Анімації вмикаються класом `motion` ще до першого кадру — інакше
     логотип і лічильники спершу блимнули б готовими, а тоді почали б
@@ -88,46 +89,7 @@
         {% block content %}{% endblock %}
     </main>
 
-    <footer class="u-footer">
-        <div class="u-wrap">
-            <div class="u-footer-grid">
-                <div class="u-footer-about">
-                    <img src="{% static 'img/center/logo-inverse.png' %}" alt="Ukrainian Food Innovation Center" width="112" height="112">
-                    <p>Практичний центр, де сільськогосподарська сировина стає готовим продуктом — від ідеї до виходу на ринок.</p>
-                </div>
-
-                <nav class="u-footer-col" aria-label="Центр">
-                    <h2>Центр</h2>
-                    <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
-                    <a href="{% url 'center:services' %}">Послуги</a>
-                    <a href="{% url 'center:services' %}#incubator">Інкубатор</a>
-                    <a href="{% url 'center:home' %}#prostir">Простір</a>
-                    <a href="{% url 'center:home' %}#zayavka">Заявка</a>
-                </nav>
-
-                <nav class="u-footer-col" aria-label="Академії">
-                    <h2>Академії</h2>
-                    <a href="{% url 'core:home' %}">Академія дистиляції</a>
-                    <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
-                    <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
-                </nav>
-
-                <div class="u-footer-col">
-                    <h2>Контакти</h2>
-                    <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
-                    {% for mail in contacts.emails.values %}
-                    <span class="u-footer-mail"><small>{{ mail.label }}</small><a href="mailto:{{ mail.address }}">{{ mail.address }}</a></span>
-                    {% endfor %}
-                    <span>{{ contacts.address }}</span>
-                </div>
-            </div>
-
-            <div class="u-footer-base">
-                <span>&copy; {% now "Y" %} UFIC · Ukrainian Food Innovation Center</span>
-                <span class="u-leaves" aria-hidden="true"><i></i><i></i></span>
-            </div>
-        </div>
-    </footer>
+    {% include "includes/site_footer.html" with mark="img/center/logo-inverse.png" brand="UFIC · Ukrainian Food Innovation Center" %}
     <script src="{% static 'js/menu.js' %}"></script>
     <script src="{% static 'js/center.js' %}"></script>
     <script src="{% static 'js/reveal.js' %}"></script>

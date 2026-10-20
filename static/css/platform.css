@@ -288,28 +288,6 @@ html.platform {
 .platform .booking-row.color-rejected { background: var(--u-green-50); }
 .platform .modal-backdrop { background: rgba(31, 47, 24, 0.5); }
 
-/* --- підвал -------------------------------------------------------------- */
-
-.platform .site-footer { border-top: 0; color: rgba(255, 255, 255, 0.82); }
-.platform .footer-grid { padding: 56px 0 36px; }
-.platform .footer-mark { width: 88px; height: auto; }
-.platform .footer-lead { font-size: 16.5px; font-weight: 400; line-height: 1.55; color: rgba(255, 255, 255, 0.82); }
-.platform .footer-col { gap: 10px; }
-.platform .footer-col h2 { font-size: 13px; font-weight: 600; letter-spacing: 0.14em; color: var(--u-orange); }
-.platform .footer-col a,
-.platform .footer-plain { font-size: 16.5px; color: rgba(255, 255, 255, 0.82); overflow-wrap: anywhere; }
-.platform .footer-col a:hover { color: #fff; text-decoration-color: var(--u-orange); }
-.platform .footer-base { align-items: center; border-top-color: rgba(255, 255, 255, 0.14); font-size: 14.5px; }
-/* Два листки логотипа — підпис Центру, як у його підвалі (.u-leaves). */
-.footer-leaves { display: inline-flex; gap: 4px; }
-.footer-leaves i { width: 14px; height: 14px; border-radius: 100% 0; background: var(--u-orange); }
-.footer-leaves i + i { width: 10px; height: 10px; background: var(--u-blue); align-self: flex-start; }
-
-/* Контактам — ширшу колонку: пошта в ній найдовший рядок. Лише на широкому
-   екрані, щоб не перебити складання сітки в style.css. */
-@media (min-width: 901px) {
-  .platform .footer-grid { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 0.8fr)) minmax(0, 1.2fr); }
-}
 @media (max-width: 900px) {
   .platform .header-row { min-height: 0; }
   /* Без скрипта сендвіча немає, а трьом довгим назвам у рядку тісно; ті самі

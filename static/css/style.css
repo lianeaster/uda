@@ -1884,52 +1884,6 @@ body.modal-open { overflow: hidden; }
 .thanks-box h3 { margin: 0 0 8px; }
 .thanks-box p { font-size: 15px; color: var(--ink-soft); margin: 0; }
 
-/* — footer: навігація, контакти, соцмережі, і лише тоді копірайт — */
-.site-footer { background: var(--accent-900); color: var(--neutral-300); margin-top: 64px; }
-.footer-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
-    gap: 36px;
-    padding: 56px 0 40px;
-}
-.footer-about { display: flex; flex-direction: column; align-items: start; gap: 16px; }
-.footer-mark { width: 64px; height: 64px; object-fit: contain; }
-.footer-lead {
-    margin: 0;
-    max-width: 30em;
-    font-size: 14px;
-    line-height: 1.6;
-    color: color-mix(in srgb, var(--neutral-100) 72%, transparent);
-}
-.footer-col { display: flex; flex-direction: column; align-items: start; gap: 10px; }
-.footer-col h2 {
-    margin: 0 0 4px;
-    font-family: var(--font-body);
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: var(--accent-400);
-}
-.footer-col a,
-.footer-plain { font-size: 14px; color: var(--neutral-300); text-decoration: none; }
-.footer-col a:hover { color: var(--cream); text-decoration: underline; text-underline-offset: 3px; }
-.footer-base {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: 12px;
-    padding: 18px 0 28px;
-    border-top: 1px solid color-mix(in srgb, var(--neutral-100) 14%, transparent);
-    font-size: 13px;
-}
-.footer-note { color: color-mix(in srgb, var(--neutral-100) 62%, transparent); }
-
-@media (max-width: 900px) {
-    .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; }
-    .footer-about { grid-column: 1 / -1; }
-}
-
 @media (max-width: 900px) {
     /* Логотип зробив шапку вищою — на вузьких екранах ховаємо навігацію в другий рядок.
        Ширше за 900px меню з «Конструктором» стає в один рядок. */
@@ -2138,61 +2092,8 @@ body.modal-open { overflow: hidden; }
 }
 
 
-/* ---- footer: premium dark — */
-.site-footer { 
-  background: var(--accent-900); 
-  color: var(--neutral-300); 
-  margin-top: 80px;
-  border-top: 1px solid rgba(220, 200, 168, 0.2);
-}
-.footer-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) repeat(3, minmax(0, 1fr));
-  gap: 48px;
-  padding: 72px 0 48px;
-}
-.footer-about { display: flex; flex-direction: column; align-items: start; gap: 20px; }
-.footer-mark { width: 72px; height: 72px; object-fit: contain; }
-.footer-lead {
-  margin: 0;
-  max-width: 30em;
-  font-size: var(--body);
-  line-height: 1.7;
-  color: rgba(220, 200, 168, 0.7);
-  font-weight: 300;
-}
-.footer-col { display: flex; flex-direction: column; align-items: start; gap: 14px; }
-.footer-col h2 {
-  margin: 0 0 8px;
-  font-family: var(--font-body);
-  font-size: var(--tiny);
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--accent-400);
-}
-.footer-col a,
-.footer-plain { font-size: var(--body); color: var(--neutral-300); text-decoration: none; transition: color var(--duration-fast) var(--ease-out); }
-.footer-col a:hover { color: var(--cream); text-decoration: underline; text-underline-offset: 3px; }
-.footer-mail { display: flex; flex-direction: column; gap: 2px; }
-.footer-mail small { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--neutral-300); opacity: 0.7; }
-.footer-base {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 16px;
-  padding: 24px 0 32px;
-  border-top: 1px solid rgba(220, 200, 168, 0.15);
-  font-size: var(--small);
-}
-.footer-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--neutral-300); }
-.footer-brand .ic { width: 24px; height: 24px; color: var(--accent-400); }
-.footer-note { color: rgba(220, 200, 168, 0.5); }
-
-@media (max-width: 900px) {
-  .footer-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 36px; }
-  .footer-about { grid-column: 1 / -1; }
-}
+/* ---- footer: сам підвал — у footer.css, тут лише відступ від сторінки — */
+.uf-footer { margin-top: 80px; }
 
 @media (max-width: 900px) {
   .header-row { flex-wrap: wrap; row-gap: 10px; padding: 12px 20px; }
@@ -2222,8 +2123,6 @@ body.modal-open { overflow: hidden; }
   .hero-stat::before { display: none; }
   .flagship-facts { grid-template-columns: 1fr; gap: 16px; }
   .section-surface .container { padding: 40px 20px; }
-  .footer-grid { grid-template-columns: 1fr; gap: 32px; }
-  .footer-base { flex-direction: column; align-items: flex-start; }
 }
 
 /* ---- modern image handling: blur-up, responsive ---- */
@@ -2293,7 +2192,7 @@ picture img { width: 100%; height: auto; display: block; }
 }
 
 @media print {
-  .site-header, .site-footer, .hero-figure, .video-card, .btn, .tag { display: none !important; }
+  .site-header, .hero-figure, .video-card, .btn, .tag { display: none !important; }
   body { background: white; color: black; }
   .container { max-width: 100%; padding: 0; }
   a { text-decoration: underline; color: black !important; }

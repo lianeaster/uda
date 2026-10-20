@@ -33,9 +33,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/lora/v32/0QIvMX1D_JOuGQbT0gvTJPa787z5vb_C.woff2">
     <link rel="preload" as="font" type="font/woff2" crossorigin href="https://fonts.gstatic.com/s/ptsans/v17/jizfRExUiTo99u79D0KEwA.woff2">
+    {# Шрифт спільного підвалу; платформа підключає його у своїй темі. #}
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:wght@300;400;500;700&display=swap">
     {% endblock %}
 
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'css/footer.css' %}">
     {% block theme %}{% endblock %}
     {# Зі скриптом меню на вузькому екрані згортається під сендвіч — ще до першого кадру. #}
     <script>document.documentElement.classList.add('js');</script>
@@ -117,53 +120,7 @@
     {% block outro %}{% endblock %}
 
     {% block footer %}
-    <footer class="site-footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-about">
-                    <img class="footer-mark" src="{% static 'img/brand/logo-inverse.png' %}" alt="" width="64" height="64">
-                    <p class="footer-lead">
-                        Курси для крафтових виробників і професіоналів галузі: технологія,
-                        обладнання, сенсорика та практика на діючих виробництвах.
-                    </p>
-                </div>
-
-                <nav class="footer-col" aria-label="Сайт">
-                    <h2>Академія</h2>
-                    <a href="{% url 'core:home' %}">Головна</a>
-                    <a href="{% url 'core:courses' %}">Курси</a>
-                    <a href="{% url 'core:constructor' %}">Конструктор курсів</a>
-                    <a href="{% url 'core:lecturers' %}">Лектори</a>
-                    <a href="{% url 'core:lecturers' %}#zayavka">Консультація</a>
-                    <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
-                    <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
-                </nav>
-
-                <div class="footer-col">
-                    <h2>Контакти</h2>
-                    <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
-                    <span class="footer-mail"><small>{{ contacts.emails.distillation.label }}</small><a href="mailto:{{ contacts.emails.distillation.address }}">{{ contacts.emails.distillation.address }}</a></span>
-                    <span class="footer-plain">{{ contacts.address }}</span>
-                </div>
-
-                <div class="footer-col">
-                    <h2>Соцмережі</h2>
-                    {% for social in socials %}
-                        <a href="{{ social.url }}" target="_blank" rel="noopener">{{ social.name }}</a>
-                    {% endfor %}
-                    <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Навчальна платформа</a>
-                </div>
-            </div>
-
-            <div class="footer-base">
-                <span class="footer-brand">
-                    <svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg>
-                    &copy; 2021—{% now "Y" %} Українська Академія Дистиляції
-                </span>
-                <span class="footer-note">18+ · Споживай відповідально</span>
-            </div>
-        </div>
-    </footer>
+    {% include "includes/site_footer.html" with mark="img/brand/logo-inverse.png" since=2021 brand="Українська Академія Дистиляції" note="18+ · Споживай відповідально" %}
     {% endblock footer %}
     {% endblock body %}
     <script src="{% static 'js/menu.js' %}"></script>

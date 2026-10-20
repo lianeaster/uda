@@ -114,48 +114,7 @@ Alegreya Sans (див. коментар у `center/base.html`).
 {% endif %}
 {% endblock %}
 
-{% comment %}
-Підвал Центру, а не Академії: звідси видно обидві академії й сам Центр.
-Коротший за підвали сайтів — тут працюють, а не знайомляться.
-{% endcomment %}
+{# Підвал спільний для всіх сайтів; від платформи — лише знак у нижньому рядку. #}
 {% block footer %}
-<footer class="site-footer">
-    <div class="container">
-        <div class="footer-grid">
-            <div class="footer-about">
-                <img class="footer-mark" src="{% static 'img/platform/mark-light.svg' %}" alt="" width="62" height="57">
-                <p class="footer-lead">
-                    {{ platform_name }} — одна на обидві академії Центру: розклад,
-                    групи й картки викладачів і студентів.
-                </p>
-            </div>
-
-            <nav class="footer-col" aria-label="Центр">
-                <h2>Центр</h2>
-                <a href="{% url 'center:home' %}">{{ center_short_name }}</a>
-                <a href="{% url 'center:services' %}">Послуги</a>
-            </nav>
-
-            <nav class="footer-col" aria-label="Академії">
-                <h2>Академії</h2>
-                <a href="{% url 'core:home' %}">Академія дистиляції</a>
-                <a href="{% url 'center:food_academy' %}">{{ food_academy_name }}</a>
-            </nav>
-
-            <div class="footer-col">
-                <h2>Контакти</h2>
-                <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
-                {% for mail in contacts.emails.values %}
-                <span class="footer-mail"><small>{{ mail.label }}</small><a href="mailto:{{ mail.address }}">{{ mail.address }}</a></span>
-                {% endfor %}
-                <span class="footer-plain">{{ contacts.address }}</span>
-            </div>
-        </div>
-
-        <div class="footer-base">
-            <span>&copy; {% now "Y" %} UFIC · Ukrainian Food Innovation Center</span>
-            <span class="footer-leaves" aria-hidden="true"><i></i><i></i></span>
-        </div>
-    </div>
-</footer>
+{% include "includes/site_footer.html" with mark="img/platform/mark-light.svg" brand="UFIC · Ukrainian Food Innovation Center" %}
 {% endblock %}

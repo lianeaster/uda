@@ -544,26 +544,6 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-error { margin-top: -8px; font-size: 14px; color: #b3261e; }
 .u-thanks h3 { margin-bottom: 8px; }
 
-/* --- підвал -------------------------------------------------------------- */
-
-.u-footer { padding: 72px 0 32px; background: var(--green-900); color: rgba(255, 255, 255, 0.82); font-size: 16px; }
-.u-footer-grid { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.1fr; gap: 40px; }
-.u-footer-about img { width: 112px; height: 112px; }
-.u-footer-about p { margin-top: 18px; max-width: 24em; }
-.u-footer-col { display: flex; flex-direction: column; gap: 10px; }
-.u-footer-col h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
-.u-footer-col a { text-decoration: none; }
-.u-footer-col a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--orange); }
-.u-footer-mail { display: flex; flex-direction: column; gap: 2px; }
-.u-footer-mail small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
-.u-footer-base {
-  display: flex; justify-content: space-between; align-items: center; gap: 16px;
-  margin-top: 56px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px;
-}
-.u-leaves { display: inline-flex; gap: 4px; }
-.u-leaves i { width: 14px; height: 14px; border-radius: 100% 0; background: var(--orange); }
-.u-leaves i + i { width: 10px; height: 10px; background: var(--blue); align-self: flex-start; }
-
 /* --- сторінка послуг ----------------------------------------------------- */
 
 .u-intro { padding: 72px 0 48px; }
@@ -836,7 +816,6 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
   .u-row .u-btn { justify-self: start; }
   .u-who { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .u-dir-media, .u-gallery { position: static; order: 0 !important; }
-  .u-footer-grid { grid-template-columns: 1fr 1fr; }
   .u-path { grid-template-columns: 1fr; gap: 14px; }
   .u-path li { display: grid; grid-template-columns: 72px 1fr; column-gap: 18px; row-gap: 2px; text-align: left; align-items: center; }
   .u-path li > strong { align-self: end; }
@@ -899,8 +878,6 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
   .u-case { padding: 28px 22px; border-radius: var(--radius); }
   .u-form { padding: 24px 20px; }
   .u-stages { grid-template-columns: 1fr; }
-  .u-footer-grid { grid-template-columns: 1fr; }
-  .u-footer-base { flex-direction: column; align-items: flex-start; }
   .u-plan-scroll { padding: 14px; }
   .u-map-root { padding: 10px 20px 10px 10px; border-radius: 28px; }
   .u-map-root img { width: 56px; height: 56px; }
