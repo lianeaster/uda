@@ -115,7 +115,9 @@
                 <div class="u-footer-col">
                     <h2>Контакти</h2>
                     <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
-                    <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                    {% for mail in contacts.emails.values %}
+                    <span class="u-footer-mail"><small>{{ mail.label }}</small><a href="mailto:{{ mail.address }}">{{ mail.address }}</a></span>
+                    {% endfor %}
                     <span>{{ contacts.address }}</span>
                 </div>
             </div>

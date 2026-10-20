@@ -554,6 +554,8 @@ a.u-map-node:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
 .u-footer-col h2 { font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--orange); margin-bottom: 6px; }
 .u-footer-col a { text-decoration: none; }
 .u-footer-col a:hover { color: #fff; text-decoration: underline; text-decoration-color: var(--orange); }
+.u-footer-mail { display: flex; flex-direction: column; gap: 2px; }
+.u-footer-mail small { font-size: 12px; letter-spacing: .08em; text-transform: uppercase; opacity: .6; }
 .u-footer-base {
   display: flex; justify-content: space-between; align-items: center; gap: 16px;
   margin-top: 56px; padding-top: 24px; border-top: 1px solid rgba(255, 255, 255, 0.14); font-size: 14px;

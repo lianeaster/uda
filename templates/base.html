@@ -142,7 +142,7 @@
                 <div class="footer-col">
                     <h2>Контакти</h2>
                     <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
-                    <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                    <span class="footer-mail"><small>{{ contacts.emails.distillation.label }}</small><a href="mailto:{{ contacts.emails.distillation.address }}">{{ contacts.emails.distillation.address }}</a></span>
                     <span class="footer-plain">{{ contacts.address }}</span>
                 </div>
 

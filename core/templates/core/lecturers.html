@@ -32,7 +32,7 @@
             <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-people"></use></svg></span>
             <h3 style="margin:0;">Хочете читати в Академії?</h3>
             <p class="card-body" style="font-size:16px;max-width:40em;">Ми відкриті до технологів, науковців і практиків, які готові ділитись досвідом зі студентами.</p>
-            <a class="btn btn-primary" href="mailto:{{ contacts.email }}">Написати нам</a>
+            <a class="btn btn-primary" href="mailto:{{ contacts.emails.distillation.address }}">Написати нам</a>
         </div>
     </div>
 </section>
@@ -51,8 +51,8 @@
                         <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
                     </div>
                     <div>
-                        <div class="label">Пошта</div>
-                        <a href="mailto:{{ contacts.email }}">{{ contacts.email }}</a>
+                        <div class="label">Пошта Академії</div>
+                        <a href="mailto:{{ contacts.emails.distillation.address }}">{{ contacts.emails.distillation.address }}</a>
                     </div>
                     <div>
                         <div class="label">Адреса</div>

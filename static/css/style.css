@@ -2174,6 +2174,8 @@ body.modal-open { overflow: hidden; }
 .footer-col a,
 .footer-plain { font-size: var(--body); color: var(--neutral-300); text-decoration: none; transition: color var(--duration-fast) var(--ease-out); }
 .footer-col a:hover { color: var(--cream); text-decoration: underline; text-underline-offset: 3px; }
+.footer-mail { display: flex; flex-direction: column; gap: 2px; }
+.footer-mail small { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--neutral-300); opacity: 0.7; }
 .footer-base {
   display: flex;
   justify-content: space-between;
