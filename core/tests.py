@@ -70,6 +70,19 @@ class CoursesPageTests(TestCase):
                                  rf'[^<]*</p>\s*<span class="card-kicker">Офлайн · {price} €</span>')
         self.assertNotContains(page, 'Онлайн · 980 €')
 
+    def test_master_shows_regular_and_early_bird_price(self):
+        for name in ('core:courses', 'core:home'):
+            with self.subTest(page=name):
+                page = self.client.get(reverse(name))
+                self.assertContains(page, '<div class="value">1200 €</div>'
+                                          '<div class="value-note">Early Bird — 980 €</div>', html=True)
+                self.assertContains(page, '<a class="btn btn-primary" href="/academy/lecturers/#zayavka">'
+                                          'Записатися на курс</a>', html=True)
+
+    def test_discount_is_announced_above_all_courses(self):
+        self.assertContains(self.client.get(reverse('core:courses')),
+                            'знижка 20% на всі курси')
+
 
 class ConstructorRequestTests(TestCase):
     url = '/academy/constructor/'

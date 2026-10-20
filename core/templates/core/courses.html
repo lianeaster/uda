@@ -7,7 +7,8 @@
     <div class="container">
         <span class="tag tag-outline tag-lg" data-reveal>Навчальні програми</span>
         <h1 data-reveal>Курси та майстерні Академії</h1>
-        <p data-reveal>«Майстер дистиляції»: онлайн — 980 €, офлайн + онлайн — 1200 €. Майстерні — від 395 €. Членам АКДУ та випускникам Академії знижка 20%.</p>
+        <p data-reveal>Сертифікаційна програма, майстерні та одноденні майстер-класи — для крафтових виробників, професіоналів галузі та ентузіастів.</p>
+        <p class="intro-note" data-reveal><svg class="ic" aria-hidden="true"><use href="#ic-diploma"></use></svg>Членам АКДУ та випускникам Академії — знижка 20% на всі курси</p>
     </div>
 </section>
 
@@ -22,10 +23,10 @@
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-screen"></use></svg><div><div class="label">Формат</div><div class="value">Онлайн / Офлайн</div></div></div>
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg><div><div class="label">Старт</div><div class="value">{{ next_intake }}</div></div></div>
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-clock"></use></svg><div><div class="label">Тривалість</div><div class="value">60 днів</div></div></div>
-                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">{{ flagship.price_eur }} €</div><div class="value-note">Early Bird — {{ flagship.early_bird_eur }} €</div></div></div>
                 </div>
                 <div class="flagship-actions">
-                    <a class="btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
+                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Записатися на курс</a>
                 </div>
             </div>
             <img class="flagship-media" src="{% static 'img/'|add:flagship.image %}" alt="{{ flagship.title }}" width="560" height="560">

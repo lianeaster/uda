@@ -82,10 +82,10 @@
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-screen"></use></svg><div><div class="label">Формат</div><div class="value">Онлайн / Офлайн</div></div></div>
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg><div><div class="label">Старт</div><div class="value">{{ next_intake }}</div></div></div>
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-clock"></use></svg><div><div class="label">Тривалість</div><div class="value">60 днів</div></div></div>
-                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">980 € / 1200 €</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">{{ flagship.price_eur }} €</div><div class="value-note">Early Bird — {{ flagship.early_bird_eur }} €</div></div></div>
                 </div>
                 <div class="flagship-actions">
-                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Зареєструватись</a>
+                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Записатися на курс</a>
                     <a class="btn btn-outline" href="{% url 'core:courses' %}">Усі програми</a>
                 </div>
             </div>
