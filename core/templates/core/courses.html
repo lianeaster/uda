@@ -7,7 +7,7 @@
     <div class="container">
         <span class="tag tag-outline tag-lg" data-reveal>Навчальні програми</span>
         <h1 data-reveal>Курси та майстерні Академії</h1>
-        <p data-reveal>Онлайн — 980 €, офлайн + онлайн — 1200 €. Членам АКДУ та випускникам Академії знижка 20%.</p>
+        <p data-reveal>«Майстер дистиляції»: онлайн — 980 €, офлайн + онлайн — 1200 €. Майстерні — від 395 €. Членам АКДУ та випускникам Академії знижка 20%.</p>
     </div>
 </section>
 
@@ -45,7 +45,7 @@
                 <span class="tag tag-accent">{{ course.tag }}</span>
                 <h3>{{ course.title }}</h3>
                 <p class="card-body">{{ course.text }}</p>
-                <span class="card-kicker">Онлайн · 980 €</span>
+                <span class="card-kicker">{{ course.format }} · {{ course.price_eur }} €</span>
             </article>
             {% endfor %}
         </div>

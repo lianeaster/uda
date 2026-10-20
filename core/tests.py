@@ -51,6 +51,26 @@ class ConstructorPageTests(TestCase):
         self.assertEqual({card['id'] for card in constructor_catalog()}, matrix)
 
 
+class CoursesPageTests(TestCase):
+    """Сторінка курсів — ціни майстерень як на distillingacademy.com.ua/courses."""
+
+    def test_every_workshop_shows_its_own_price(self):
+        page = self.client.get(reverse('core:courses'))
+        for title, price in (('Зернові дистиляти / горілка', 445),
+                             ('Майстерня віскі та солодові дистиляти', 580),
+                             ('Майстерня джину та настоянок', 445),
+                             ('Майстерня сенсорного аналізу', 395),
+                             ('Майстерня витримки', 395),
+                             ('Правила спиртового бродіння', 395),
+                             ('Майстерня фруктових дистилятів та бренді', 445),
+                             ('Спецкурс-інтенсив Spirit Course', 670)):
+            with self.subTest(course=title):
+                self.assertRegex(page.content.decode(),
+                                 rf'<h3>{re.escape(title)}</h3>\s*<p class="card-body">'
+                                 rf'[^<]*</p>\s*<span class="card-kicker">Офлайн · {price} €</span>')
+        self.assertNotContains(page, 'Онлайн · 980 €')
+
+
 class ConstructorRequestTests(TestCase):
     url = '/academy/constructor/'
     data = {
