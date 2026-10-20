@@ -1,14 +1,15 @@
 {% load static %}{% comment %}
 Один підвал на всі сайти: Центр, обидві академії й платформу. Головне в ньому —
 контакти, і вони скрізь ті самі; меню нижче й дрібніше, теж однакове. Від
-сайту залежить лише нижній рядок: знак, копірайт і примітка.
+сайту залежать фарби й шрифти (theme) і нижній рядок: знак, копірайт і примітка.
 
 Параметри: mark (шлях до знака в static), brand (власник копірайту),
-since (необов'язковий рік початку), note
+since (необов'язковий рік початку), theme (необов'язкова тема, напр.
+«academy» → .uf-footer--academy у style.css), note
 (необов'язкова примітка праворуч, напр. «18+» для дистиляції).
-Стилі — static/css/footer.css, однакові для всіх тем.
+Розкладка — static/css/footer.css, спільна для всіх сайтів.
 {% endcomment %}
-<footer class="uf-footer">
+<footer class="uf-footer{% if theme %} uf-footer--{{ theme }}{% endif %}">
     <div class="uf-wrap">
         <section class="uf-contacts" aria-labelledby="uf-contacts-title">
             <h2 class="uf-kicker" id="uf-contacts-title">Контакти</h2>

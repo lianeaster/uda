@@ -2092,8 +2092,19 @@ body.modal-open { overflow: hidden; }
 }
 
 
-/* ---- footer: сам підвал — у footer.css, тут лише відступ від сторінки — */
+/* ---- footer: розкладка спільна (footer.css), тут — відступ від сторінки
+   й фарби та шрифти Академії дистиляції — */
 .uf-footer { margin-top: 80px; }
+.uf-footer.uf-footer--academy {
+  --uf-bg: var(--accent-900);
+  --uf-text: var(--neutral-300);
+  --uf-muted: rgba(220, 200, 168, 0.6);
+  --uf-strong: var(--cream);
+  --uf-line: rgba(220, 200, 168, 0.18);
+  --uf-accent: var(--accent-400);
+  --uf-font: var(--font-body);
+  --uf-font-big: var(--font-head);
+}
 
 @media (max-width: 900px) {
   .header-row { flex-wrap: wrap; row-gap: 10px; padding: 12px 20px; }
