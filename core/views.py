@@ -117,7 +117,8 @@ def graduate_photos(course_id=None):
     Бренди йдуть по черзі, щоб дві пляшки одного виробника не стояли поруч.
     """
     graduates = [g for g in content.GRADUATES if course_id is None or course_id in g['courses']]
-    queues = [[{'src': 'graduates/' + src, 'brand': g['brand'], 'url': g['link'][1]}
+    queues = [[{'src': 'graduates/' + src, 'image': static('img/graduates/' + src),
+                'brand': g['brand'], 'url': g['link'][1]}
                for src, _source in g['photos']] for g in graduates]
     photos = []
     while any(queues):

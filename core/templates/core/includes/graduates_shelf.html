@@ -1,7 +1,8 @@
 {% load static %}{% comment %}
-Полиця випускників на головній: фото пляшок і виробництв однією стрічкою, що
-повільно пливе. Два однакові набори — для безшовного повтору; другий прихований
-від читачів екрана й клавіатури. `graduates` — з `views.graduate_photos`.
+Полиця випускників на головній — жива вітрина: вісім фотокарток стоять на
+місці, а по одній перевертаються й показують наступну пляшку
+(static/js/vitrine.js бере їх з #vitrine-photos). Без скрипта — просто вісім
+фото. `graduates` — з `views.graduate_photos`, бренди по черзі.
 {% endcomment %}
 <section class="page-section grad-shelf" id="polytsia" aria-labelledby="polytsia-title">
     <div class="container">
@@ -9,11 +10,17 @@
             <span class="section-kicker" data-reveal>Полиця випускників</span>
             <h2 id="polytsia-title" data-reveal>Не соромно ставити на полицю</h2>
         </div>
-    </div>
-    <div class="grad-reel">
-        <div class="grad-reel-track">
-            {% for photo in graduates %}{% include "core/includes/graduate_photo.html" %}{% endfor %}
-            {% for photo in graduates %}{% include "core/includes/graduate_photo.html" with copy=True %}{% endfor %}
+        <div class="vitrine" data-vitrine data-reveal>
+            {% for photo in graduates|slice:":8" %}
+            <a class="vitrine-card" href="{{ photo.url }}" target="_blank" rel="noopener" style="--tilt: {{ photo.tilt }}">
+                <span class="vitrine-flip">
+                    <span class="vitrine-face"><img src="{{ photo.image }}" alt="{{ photo.brand }}" loading="lazy" width="640" height="800"></span>
+                    <span class="vitrine-face vitrine-back" aria-hidden="true"><img alt="" width="640" height="800"></span>
+                </span>
+                <span class="grad-photo-name">{{ photo.brand }}</span>
+            </a>
+            {% endfor %}
         </div>
+        {{ graduates|json_script:"vitrine-photos" }}
     </div>
 </section>

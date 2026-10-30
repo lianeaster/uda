@@ -1,4 +1,5 @@
 import datetime as dt
+import json
 import re
 import shutil
 import subprocess
@@ -254,7 +255,7 @@ class LecturerPageTests(TestCase):
 
 
 class GraduatesShelfTests(TestCase):
-    """Пляшки випускників: стрічка на головній, кілька фото — на сторінці курсу."""
+    """Пляшки випускників: жива вітрина на головній, кілька фото — на сторінці курсу."""
 
     photos = sum(len(g['photos']) for g in content.GRADUATES)
 
@@ -264,8 +265,29 @@ class GraduatesShelfTests(TestCase):
         shelf = html.index('id="polytsia"')
         self.assertLess(html.index('class="lecturer-reel"'), html.index('data-reveal>Відгуки</span>'))
         self.assertLess(html.index('data-reveal>Відгуки</span>'), shelf)
-        # Кожне фото двічі: другий набір — для безшовного повтору.
-        self.assertEqual(html.count('class="grad-photo"'), 2 * self.photos)
+
+    def test_no_template_comment_leaks_onto_a_page(self):
+        # `{# … #}` у Django — лише однорядковий; перенесений на другий рядок
+        # він виводиться текстом.
+        pages = [reverse('core:home'), reverse('core:courses'), reverse('core:lecturers'),
+                 reverse('core:course', args=[content.COURSE_PAGES['master']['slug']]),
+                 reverse('core:lecturer', args=['ivan-bachurin'])]
+        for url in pages:
+            with self.subTest(page=url):
+                self.assertNotContains(self.client.get(url), '{#')
+
+    def test_home_vitrine_shows_eight_and_hands_the_rest_to_the_script(self):
+        page = self.client.get(reverse('core:home'))
+        html = page.content.decode()
+        self.assertEqual(html.count('class="vitrine-card"'), 8)
+        data = json.loads(re.search(r'<script id="vitrine-photos" type="application/json">(.*?)</script>',
+                                    html, re.S).group(1))
+        self.assertEqual(len(data), self.photos)
+        for photo in data:
+            self.assertTrue(photo['image'].startswith('/static/img/graduates/'))
+        # Перші вісім на вітрині — від різних брендів, наскільки їх вистачає.
+        first = [p['brand'] for p in data[:8]]
+        self.assertEqual(len(set(first[:len(content.GRADUATES)])), len(content.GRADUATES))
 
     def test_course_page_shows_only_its_own_graduates(self):
         for course_id, page in content.COURSE_PAGES.items():
@@ -299,7 +321,7 @@ class GraduatesShelfTests(TestCase):
                     self.assertTrue((settings.BASE_DIR / 'static/img/graduates' / src).exists(), src)
                     self.assertTrue(source.startswith('http'))
         html = self.client.get(reverse('core:home')).content.decode()
-        for link in re.findall(r'<a class="grad-photo"[^>]*>', html):
+        for link in re.findall(r'<a class="vitrine-card"[^>]*>', html):
             self.assertIn('rel="noopener"', link)
 
 

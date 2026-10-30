@@ -13,9 +13,9 @@
   --copper-light: #d4b89a;
 
   /* Контрастна фарба — патина: тим кольором мідь укривається з часом, і на
-     колірному колі він навпроти міді. Її мало (мітки, вибране, одна-дві
-     панелі), основу далі тримають пергамент і мідь. Щоб змінити фарбу,
-     досить цих шести значень. */
+     колірному колі він навпроти міді. Її мало (мітки, вибране, кілька
+     панелей та інформаційні картки .card-stack), основу далі тримають
+     пергамент і мідь. Щоб змінити фарбу, досить цих шести значень. */
   --contrast: #2a6b66;
   --contrast-dark: #1d4f4c;
   --contrast-deep: #143b39;
@@ -1703,20 +1703,10 @@ body.modal-open { overflow: hidden; }
   .print-card-photo, .print-card-under { transition: none; }
 }
 
-/* Полиця випускників на головній: фото пляшок однією стрічкою (та сама
-   анімація marquee). Фото — фотокартки в кремовій рамці з нахилом; на
-   наведенні вирівнюються й показують назву бренду. На сторінці курсу ті самі
-   фото стоять нерухомою сіткою (.grad-grid). */
+/* Пляшки випускників. На сторінці курсу — нерухома сітка (.grad-grid) з
+   фотокарток у кремовій рамці з нахилом; на наведенні картка вирівнюється
+   й показує назву бренду. На головній — жива вітрина (.vitrine, нижче). */
 .grad-shelf .section-header { margin-bottom: 8px; }
-.grad-reel {
-  overflow: hidden;
-  padding: 18px 0 10px;
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-          mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
-}
-.grad-reel-track { display: flex; width: max-content; animation: marquee 80s linear infinite; }
-.grad-reel:hover .grad-reel-track,
-.grad-reel:focus-within .grad-reel-track { animation-play-state: paused; }
 .grad-photo {
   position: relative;
   flex: none;
@@ -1759,10 +1749,57 @@ body.modal-open { overflow: hidden; }
   .grad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .grad-reel { overflow-x: auto; -webkit-mask-image: none; mask-image: none; padding-inline: 16px; }
-  .grad-reel-track { animation: none; }
-  .grad-reel-track > [aria-hidden="true"] { display: none; }
   .grad-photo { transition: none; }
+}
+
+/* Жива вітрина на головній: вісім фотокарток, що по одній перевертаються
+   на наступну пляшку (static/js/vitrine.js). Картка двостороння: лице й
+   зворот — дві однакові рамки, обертається .vitrine-flip. */
+.vitrine {
+  display: grid; gap: 30px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  margin-top: 28px; padding-top: 8px;
+}
+.vitrine-card {
+  position: relative;
+  display: block;
+  aspect-ratio: 4 / 5;
+  perspective: 1100px;
+  transform: rotate(var(--tilt));
+  transition: transform 500ms cubic-bezier(.2, .8, .2, 1);
+}
+.vitrine-flip {
+  position: absolute; inset: 0;
+  transform-style: preserve-3d;
+  transition: transform 900ms cubic-bezier(.45, .05, .25, 1);
+}
+.vitrine-card.is-flipped .vitrine-flip { transform: rotateY(180deg); }
+.vitrine-face {
+  position: absolute; inset: 0;
+  padding: 6px;
+  background: var(--cream);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 12px 28px rgba(26, 22, 23, 0.16);
+  -webkit-backface-visibility: hidden;
+          backface-visibility: hidden;
+}
+.vitrine-back { transform: rotateY(180deg); }
+.vitrine-face img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 11px; }
+.vitrine-back img:not([src]) { visibility: hidden; }
+.vitrine-card .grad-photo-name { z-index: 2; }
+.vitrine-card:hover,
+.vitrine-card:focus-visible { transform: rotate(0deg) translateY(-6px); outline: none; }
+.vitrine-card:hover .grad-photo-name,
+.vitrine-card:focus-visible .grad-photo-name { opacity: 1; transform: none; }
+@media (max-width: 860px) {
+  .vitrine { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; }
+  .vitrine-card:nth-child(n+7) { display: none; }
+}
+@media (max-width: 560px) {
+  .vitrine { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vitrine-card, .vitrine-flip { transition: none; }
 }
 
 /* Стрічка лекторів на головній: картки повільно пливуть уліво (та сама
@@ -2216,7 +2253,39 @@ body.modal-open { overflow: hidden; }
 }
 .course-text p { font-size: 17px; line-height: 1.7; color: var(--ink-soft); max-width: 40em; }
 .course-highlight { height: auto; }
-.course-highlight .card-body { font-family: var(--font-head); font-size: 20px; line-height: 1.5; color: var(--ink); }
+.course-highlight .card-body { font-family: var(--font-head); font-size: 20px; line-height: 1.5; }
+
+/* Інформаційні картки (.card-stack: «Кому це потрібно», «Як проходить
+   навчання», заклики) — темно-зелена площина патини з кремовим текстом,
+   щоб не губилися бежеве на бежевому. Мідь лишається акцентом: підписи й
+   кільце піктограми, на наведенні піктограма заливається міддю. */
+.card.card-stack {
+  background: linear-gradient(160deg, var(--contrast-dark) 0%, var(--contrast-deep) 100%);
+  border-color: transparent;
+  color: var(--contrast-100);
+  -webkit-backdrop-filter: none;
+          backdrop-filter: none;
+}
+.card.card-stack:hover {
+  border-color: transparent;
+  box-shadow: 0 18px 40px rgba(20, 59, 57, 0.32);
+}
+.card.card-stack h3 { color: var(--cream); }
+.card.card-stack .card-body { color: var(--contrast-100); }
+.card.card-stack .card-kicker { color: var(--copper-light); }
+.card.card-stack .icon-badge {
+  background: rgba(250, 246, 239, 0.06);
+  border-color: rgba(212, 184, 154, 0.55);
+  color: var(--copper-light);
+}
+.card.card-stack:hover .icon-badge {
+  background: var(--copper);
+  border-color: var(--copper);
+  color: var(--cream);
+}
+.card.card-stack a:not(.btn) { color: var(--copper-light); }
+.card.card-stack .btn-outline { border-color: rgba(250, 246, 239, 0.55); color: var(--cream); }
+.card.card-stack .btn-outline:hover { background: rgba(250, 246, 239, 0.12); border-color: var(--cream); color: var(--cream); }
 
 /* Список із мідними позначками: «Що ви дізнаєтеся», організаційні дрібниці. */
 .check-list {
