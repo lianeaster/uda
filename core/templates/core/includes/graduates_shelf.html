@@ -1,0 +1,19 @@
+{% load static %}{% comment %}
+Полиця випускників на головній: фото пляшок і виробництв однією стрічкою, що
+повільно пливе. Два однакові набори — для безшовного повтору; другий прихований
+від читачів екрана й клавіатури. `graduates` — з `views.graduate_photos`.
+{% endcomment %}
+<section class="page-section grad-shelf" id="polytsia" aria-labelledby="polytsia-title">
+    <div class="container">
+        <div class="section-header">
+            <span class="section-kicker" data-reveal>Полиця випускників</span>
+            <h2 id="polytsia-title" data-reveal>Не соромно ставити на полицю</h2>
+        </div>
+    </div>
+    <div class="grad-reel">
+        <div class="grad-reel-track">
+            {% for photo in graduates %}{% include "core/includes/graduate_photo.html" %}{% endfor %}
+            {% for photo in graduates %}{% include "core/includes/graduate_photo.html" with copy=True %}{% endfor %}
+        </div>
+    </div>
+</section>

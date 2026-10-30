@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<section class="page-intro">
+    <div class="container">
+        <nav class="crumbs" aria-label="Ви тут"><a href="{% url 'core:lecturers' %}">Лектори</a> <span aria-hidden="true">›</span> {{ person.name }}</nav>
+        <div class="lecturer-hero">
+            {# Стос фото: data-pos 0 — верхня картка; гортає static/js/stack.js. #}
+            <div class="photo-stack" data-stack data-reveal role="group" aria-label="Фото: {{ person.name }}">
+                <div class="photo-stack-cards" data-stack-cards>
+                    {% for src in photos %}
+                    <figure class="stack-card" data-pos="{{ forloop.counter0 }}"><img src="{% static 'img/'|add:src %}" alt="{% if forloop.first %}{{ person.name }}{% else %}{{ person.name }}, фото {{ forloop.counter }}{% endif %}" width="640" height="800"{% if not forloop.first %} loading="lazy"{% endif %}></figure>
+                    {% endfor %}
+                </div>
+                {% if photos|length > 1 %}
+                <div class="stack-dots">
+                    {% for src in photos %}<button type="button" data-go="{{ forloop.counter0 }}" aria-current="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="Фото {{ forloop.counter }} з {{ photos|length }}"></button>{% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            <div class="lecturer-hero-text" data-reveal>
+                <span class="tag tag-outline tag-lg">{{ person.role }}</span>
+                <h1>{{ person.name }}</h1>
+                {% for paragraph in about %}<p>{{ paragraph }}</p>{% endfor %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if courses %}
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>{% if courses|length == 1 %}Курс, який веде{% else %}Курси, які веде{% endif %}</h2>
+        <div class="courses-grid course-others">
+            {% for course in courses %}
+            <a class="course-card" data-reveal href="{{ course.url }}">
+                <div class="course-media">
+                    <img src="{% static 'img/'|add:course.image %}" alt="{{ course.title }}" loading="lazy" width="560" height="560">
+                    <span class="icon-badge icon-badge-float"><svg class="ic" aria-hidden="true"><use href="#{{ course.icon }}"></use></svg></span>
+                </div>
+                <div class="course-content">
+                    <span class="tag tag-accent">{{ course.tag }}</span>
+                    <h3>{{ course.title }}</h3>
+                    <p class="card-body">{{ course.short }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+{% if master_topics %}
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Теми в курсі «Майстер дистиляції»</h2>
+        <ul class="check-list" data-reveal>
+            {% for topic in master_topics %}<li>{{ topic }}</li>{% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}
+
+<section class="page-section">
+    <div class="container">
+        <div class="card card-stack card-tinted-soft" data-reveal style="padding:40px;">
+            <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-cap"></use></svg></span>
+            <h3 style="margin:0;">Хочете навчатися в Академії?</h3>
+            <p class="card-body" style="font-size:16px;max-width:40em;">Оберіть готовий курс або зберіть власну програму в конструкторі — за три запитання.</p>
+            <div class="hero-actions" style="margin:0;">
+                <a class="btn btn-primary" href="{% url 'core:constructor' %}">Зібрати свій курс</a>
+                <a class="btn btn-outline" href="{% url 'core:courses' %}">Усі курси</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Інші лектори</h2>
+        <div class="grid-cards cols-230 print-grid">
+            {% for other in others %}
+            {% include "core/includes/lecturer_card.html" with person=other %}
+            {% endfor %}
+        </div>
+        <div style="text-align: center; margin-top: 32px;" data-reveal>
+            <a class="btn btn-ghost" href="{% url 'core:lecturers' %}">Усі лектори →</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

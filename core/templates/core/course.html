@@ -1,0 +1,206 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block content %}
+
+<section class="page-intro course-intro">
+    <div class="container">
+        <nav class="crumbs" aria-label="Ви тут"><a href="{% url 'core:courses' %}">Курси</a> <span aria-hidden="true">›</span> {{ course.name }}</nav>
+        <div class="flagship course-hero" data-reveal>
+            <div class="flagship-body">
+                <span class="tag tag-lg">{{ course.kind }}</span>
+                <h1>{{ course.name }}</h1>
+                <p class="lead">{{ course.lead }}</p>
+                <div class="flagship-facts">
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-screen"></use></svg><div><div class="label">Формат</div><div class="value">{{ course.format }}</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg><div><div class="label">Старт</div><div class="value">{{ course.start|default:"За набором групи" }}</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-clock"></use></svg><div><div class="label">Тривалість</div><div class="value">{{ course.duration }}</div></div></div>
+                    <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">{{ course.price_eur }} €</div>{% if course.early_bird_eur %}<div class="value-note">Early Bird — {{ course.early_bird_eur }} €</div>{% else %}<div class="value-note">з людини, у групі</div>{% endif %}</div></div>
+                </div>
+                <div class="flagship-actions">
+                    <a class="btn btn-primary" href="#zayavka">Записатися на курс</a>
+                    <a class="btn btn-outline" href="{% url 'core:constructor' %}">Підібрати програму під себе</a>
+                </div>
+            </div>
+            <img class="flagship-media" src="{% static 'img/'|add:course.image %}" alt="{{ course.name }}" width="560" height="560">
+        </div>
+        <p class="intro-note" data-reveal><svg class="ic" aria-hidden="true"><use href="#ic-diploma"></use></svg>Членам АКДУ та випускникам Академії — знижка 20%</p>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container course-about">
+        <div class="course-text" data-reveal>
+            <h2>Про курс</h2>
+            {% for paragraph in course.intro %}<p>{{ paragraph }}</p>{% endfor %}
+        </div>
+        <aside class="card card-stack card-tinted course-highlight" data-reveal>
+            <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-flask"></use></svg></span>
+            <span class="card-kicker">Особливість курсу</span>
+            <p class="card-body">{{ course.highlight }}</p>
+        </aside>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Що ви дізнаєтеся</h2>
+        <ul class="check-list" data-reveal>
+            {% for item in course.learn %}<li>{{ item }}</li>{% endfor %}
+        </ul>
+    </div>
+</section>
+
+{% if course.plan %}
+<section class="section-surface">
+    <div class="container">
+        <h2 data-reveal>Програма курсу</h2>
+        <ol class="course-plan">
+            {% for title, items in course.plan %}
+            <li class="course-plan-block" data-reveal>
+                <h3>{{ title }}</h3>
+                <ul>{% for item in items %}<li>{{ item }}</li>{% endfor %}</ul>
+            </li>
+            {% endfor %}
+        </ol>
+    </div>
+</section>
+{% endif %}
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Кому буде цікаво</h2>
+        <div class="grid-cards cols-230">
+            {% for item in course.audience %}
+            <div class="card card-stack" data-reveal>
+                <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>
+                <h3>{{ item.title }}</h3>
+                <p class="card-body">{{ item.text }}</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Лектори</h2>
+        <div class="grid-cards cols-230 print-grid">
+            {% for person in course.lecturers %}
+            {% include "core/includes/lecturer_card.html" %}
+            {% endfor %}
+        </div>
+    </div>
+</section>
+
+{% include "core/includes/graduates_course.html" %}
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Як проходить навчання</h2>
+        <div class="grid-cards cols-230">
+            <div class="card card-stack" data-reveal>
+                <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-calendar"></use></svg></span>
+                <h3>Де і коли</h3>
+                <p class="card-body">{{ contacts.address }}, у приміщенні Академії.{% if course.weekdays %} Заняття — {{ course.weekdays }}.{% endif %}</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-checklist"></use></svg></span>
+                <h3>Все включено</h3>
+                <p class="card-body">У вартість входять навчальні матеріали, кава-брейки й дегустації. Записи лекцій і презентації лишаються в особистому кабінеті.</p>
+            </div>
+            <div class="card card-stack" data-reveal>
+                <span class="icon-badge"><svg class="ic" aria-hidden="true"><use href="#ic-diploma"></use></svg></span>
+                <h3>Диплом</h3>
+                <p class="card-body">{{ course.diploma }}.</p>
+            </div>
+        </div>
+        {% if course.notes %}
+        <ul class="check-list course-notes" data-reveal>
+            {% for note in course.notes %}<li>{{ note }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+    </div>
+</section>
+
+<section class="page-section">
+    <div class="container">
+        <h2 data-reveal>Інші курси</h2>
+        <div class="courses-grid course-others">
+            {% for other in others %}
+            <a class="course-card" data-reveal href="{{ other.url }}">
+                <div class="course-media">
+                    <img src="{% static 'img/'|add:other.image %}" alt="{{ other.title }}" loading="lazy" width="560" height="560">
+                    <span class="icon-badge icon-badge-float"><svg class="ic" aria-hidden="true"><use href="#{{ other.icon }}"></use></svg></span>
+                </div>
+                <div class="course-content">
+                    <span class="tag tag-accent">{{ other.tag }}</span>
+                    <h3>{{ other.title }}</h3>
+                    <p class="card-body">{{ other.short }}</p>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+        <div style="text-align: center; margin-top: 32px;" data-reveal>
+            <a class="btn btn-ghost" href="{% url 'core:courses' %}">Усі курси →</a>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block outro %}
+<section class="consult-band" id="zayavka">
+    <div class="container">
+        <div class="consult-grid">
+            <div data-reveal>
+                <h2>Запис на курс «{{ course.name }}»</h2>
+                <p>Залиште контакти — менеджер Академії зателефонує, розповість про найближчий потік і відповість на питання.</p>
+                <div class="consult-contacts">
+                    <div>
+                        <div class="label">Телефон</div>
+                        <a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a>
+                    </div>
+                    <div>
+                        <div class="label">Пошта Академії</div>
+                        <a href="mailto:{{ contacts.emails.distillation.address }}">{{ contacts.emails.distillation.address }}</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="consult-form" data-reveal>
+                {% if submitted %}
+                    <div class="thanks-box">
+                        <h3>Дякуємо!</h3>
+                        <p>Ми зв'яжемось із вами протягом робочого дня.</p>
+                    </div>
+                {% else %}
+                    <h3>Записатися</h3>
+                    <form method="post" action="{% url 'core:course' course.slug %}#zayavka" style="display:grid;gap:16px;">
+                        {% csrf_token %}
+                        <div>
+                            <label for="{{ form.name.id_for_label }}">Ім'я</label>
+                            {{ form.name }}
+                            {{ form.name.errors }}
+                        </div>
+                        <div>
+                            <label for="{{ form.phone.id_for_label }}">Телефон</label>
+                            {{ form.phone }}
+                            {{ form.phone.errors }}
+                        </div>
+                        <div>
+                            <label for="{{ form.email.id_for_label }}">Email</label>
+                            {{ form.email }}
+                        </div>
+                        <div class="consent-row">
+                            {{ form.consent }}
+                            <label for="{{ form.consent.id_for_label }}">Погоджуюсь з <a href="https://distillingacademy.com.ua/privacy" target="_blank" rel="noopener">політикою конфіденційності</a></label>
+                        </div>
+                        {{ form.consent.errors }}
+                        <button type="submit" class="btn btn-primary btn-block">Записатися на курс</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

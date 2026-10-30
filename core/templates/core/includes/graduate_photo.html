@@ -1,0 +1,1 @@
+{% load static %}<a class="grad-photo" href="{{ photo.url }}" target="_blank" rel="noopener" style="--tilt: {{ photo.tilt }}"{% if copy %} aria-hidden="true" tabindex="-1"{% endif %}><img src="{% static 'img/'|add:photo.src %}" alt="{{ photo.brand }}" loading="lazy" width="640" height="800"><span class="grad-photo-name">{{ photo.brand }}</span></a>

@@ -1,0 +1,14 @@
+{% comment %}
+Що роблять випускники саме цього курсу — кілька нерухомих фото пляшок.
+Немає відомих випускників — немає й блоку. `graduates` — з `views.graduate_photos`.
+{% endcomment %}
+{% if graduates %}
+<section class="page-section" id="vypusknyky">
+    <div class="container">
+        <h2 data-reveal>Що роблять випускники курсу</h2>
+        <div class="grad-grid" data-reveal>
+            {% for photo in graduates %}{% include "core/includes/graduate_photo.html" %}{% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}

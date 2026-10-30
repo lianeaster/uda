@@ -1607,68 +1607,190 @@ body.modal-open { overflow: hidden; }
   .builder-art li:nth-child(n) { margin-left: 0; }
 }
 
-/* — lecturers: circular portraits with hover bio overlay — */
-.lecturer { position: relative; }
-.lecturer-photo {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  border-radius: var(--radius-pill);
-  overflow: hidden;
-  background: var(--accent-100);
+/* Сторінка лектора: стос фото ліворуч, біографія праворуч. */
+.lecturer-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 360px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
 }
-.lecturer-photo img { 
-  position: absolute; 
-  inset: 0; 
-  width: 100%; 
-  height: 100%; 
-  object-fit: cover; 
-  transition: transform var(--duration-slow) var(--ease-out);
+.lecturer-hero-text h1 { margin: 18px 0 20px; }
+.lecturer-hero-text p { font-size: 17px; line-height: 1.7; color: var(--ink-soft); max-width: 40em; }
+@media (max-width: 860px) {
+  .lecturer-hero { grid-template-columns: 1fr; gap: 28px; }
+  .lecturer-hero .photo-stack { max-width: 300px; }
 }
-.lecturer:hover .lecturer-photo img { transform: scale(1.08); }
-.lecturer-overlay {
+
+/* Стос фото лектора: вертикальні картки 4:5 лежать одна на одній, як
+   знімки на столі. Позицію в стосі задає data-pos (0 — зверху), переходи —
+   transform; верхня, що йде під низ, спершу відлітає вбік (.is-flying). */
+.lecturer-hero { grid-template-columns: minmax(0, 400px) minmax(0, 1fr); }
+.photo-stack { width: 100%; max-width: 400px; justify-self: center; }
+.photo-stack-cards { position: relative; aspect-ratio: 4 / 5; margin: 0 12% 0 10%; }
+.stack-card {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, transparent 40%, rgba(26, 22, 23, 0.85) 100%);
-  opacity: 0;
-  transition: opacity var(--duration-base) var(--ease-out);
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 24px;
-  border-radius: var(--radius-pill);
-}
-.lecturer:hover .lecturer-overlay { opacity: 1; }
-.lecturer-overlay .tag { 
-  background: rgba(250, 246, 239, 0.9); 
-  backdrop-filter: blur(10px);
-  color: var(--copper-dark);
-  border: 1px solid rgba(212, 192, 154, 0.5);
-  transform: translateY(10px);
-  transition: transform var(--duration-base) var(--ease-out), opacity var(--duration-base) var(--ease-out);
-  opacity: 0;
-}
-.lecturer:hover .lecturer-overlay .tag { transform: translateY(0); opacity: 1; transition-delay: 50ms; }
-.lecturer-overlay h3 { 
-  color: var(--cream); 
-  margin: 8px 0 4px; 
-  transform: translateY(10px);
-  transition: transform var(--duration-base) var(--ease-out), opacity var(--duration-base) var(--ease-out);
-  opacity: 0;
-}
-.lecturer:hover .lecturer-overlay h3 { transform: translateY(0); opacity: 1; transition-delay: 100ms; }
-.lecturer-overlay p { 
-  color: rgba(250, 246, 239, 0.8); 
-  font-size: var(--small); 
   margin: 0;
-  transform: translateY(10px);
-  transition: transform var(--duration-base) var(--ease-out), opacity var(--duration-base) var(--ease-out);
-  opacity: 0;
+  padding: 7px;
+  background: var(--cream);
+  border-radius: 18px;
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 14px 36px rgba(26, 22, 23, 0.16);
+  transition: transform 700ms cubic-bezier(.2, .8, .2, 1), opacity 500ms ease, box-shadow 300ms ease;
+  will-change: transform;
 }
-.lecturer:hover .lecturer-overlay p { transform: translateY(0); opacity: 1; transition-delay: 150ms; }
-.lecturer .tag { margin-top: 16px; }
-.lecturer h3 { margin: 12px 0 6px; }
-.lecturer p { font-size: var(--small); color: var(--ink-muted); margin: 0; }
+.stack-card img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 12px; }
+.stack-card[data-pos="0"] { z-index: 5; transform: rotate(-1.5deg); }
+.stack-card[data-pos="1"] { z-index: 4; transform: translate(15%, 4%) rotate(7deg) scale(.94); }
+.stack-card[data-pos="2"] { z-index: 3; transform: translate(-13%, 6%) rotate(-9deg) scale(.9); }
+.stack-card:not([data-pos="0"]):not([data-pos="1"]):not([data-pos="2"]) {
+  z-index: 1; opacity: 0; transform: translate(0, 5%) rotate(2deg) scale(.86);
+}
+/* Під верхньою — лише тінь: обличчя знизу не відволікають від головного фото. */
+.stack-card:not([data-pos="0"]) img { filter: saturate(.75) brightness(.96); }
+.photo-stack.is-live .photo-stack-cards { cursor: pointer; }
+.photo-stack.is-live .photo-stack-cards:hover .stack-card[data-pos="0"] {
+  transform: rotate(-.5deg) translateY(-4px);
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 22px 48px rgba(26, 22, 23, 0.22);
+}
+.stack-card.is-flying[data-pos="0"] { transform: translate(70%, -6%) rotate(14deg); }
+.stack-dots { display: flex; justify-content: center; gap: 8px; margin-top: 22px; }
+.stack-dots button {
+  width: 8px; height: 8px; padding: 0;
+  border: 0; border-radius: var(--radius-pill);
+  background: var(--border-strong);
+  cursor: pointer;
+  transition: width 300ms var(--ease-out), background 300ms var(--ease-out);
+}
+.stack-dots button[aria-current="true"] { width: 24px; background: var(--copper); }
+.stack-dots button:focus-visible { outline: 2px solid var(--copper); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .stack-card { transition: none; }
+}
+
+/* Картка лектора-фотокартка — у парі зі стосом на його сторінці: та сама
+   кремова рамка й тінь; якщо фото більше, з-під портрета визирає наступне.
+   Картки в сітці нахилені по черзі то вліво, то вправо — як на столі. */
+.print-card { display: block; color: inherit; text-decoration: none; --tilt: -1.2deg; }
+.print-card-photos { position: relative; display: block; aspect-ratio: 4 / 5; margin: 0 9% 22px 3%; }
+.print-card-photo,
+.print-card-under {
+  position: absolute;
+  inset: 0;
+  padding: 6px;
+  background: var(--cream);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 12px 30px rgba(26, 22, 23, 0.14);
+  transition: transform 500ms cubic-bezier(.2, .8, .2, 1), box-shadow 300ms ease;
+}
+.print-card-photo img,
+.print-card-under img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 11px; }
+.print-card-photo { z-index: 2; transform: rotate(var(--tilt)); }
+.print-card-under { z-index: 1; transform: translate(8%, 2%) rotate(5deg) scale(.95); }
+.print-card-under img { filter: saturate(.75) brightness(.96); }
+.print-card:hover .print-card-photo,
+.print-card:focus-visible .print-card-photo {
+  transform: rotate(0deg) translateY(-6px);
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 22px 44px rgba(26, 22, 23, 0.2);
+}
+.print-card:hover .print-card-under,
+.print-card:focus-visible .print-card-under { transform: translate(16%, 3%) rotate(9deg) scale(.95); }
+.print-card:focus-visible { outline: none; }
+.print-card:focus-visible h3 { text-decoration: underline; }
+.print-card h3 { margin: 12px 0 6px; transition: color var(--duration-fast) var(--ease-out); }
+.print-card:hover h3 { color: var(--copper-dark); }
+.print-card p { font-size: var(--small); color: var(--ink-muted); margin: 0; }
+@media (prefers-reduced-motion: reduce) {
+  .print-card-photo, .print-card-under { transition: none; }
+}
+
+/* Полиця випускників на головній: фото пляшок однією стрічкою (та сама
+   анімація marquee). Фото — фотокартки в кремовій рамці з нахилом; на
+   наведенні вирівнюються й показують назву бренду. На сторінці курсу ті самі
+   фото стоять нерухомою сіткою (.grad-grid). */
+.grad-shelf .section-header { margin-bottom: 8px; }
+.grad-reel {
+  overflow: hidden;
+  padding: 18px 0 10px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.grad-reel-track { display: flex; width: max-content; animation: marquee 80s linear infinite; }
+.grad-reel:hover .grad-reel-track,
+.grad-reel:focus-within .grad-reel-track { animation-play-state: paused; }
+.grad-photo {
+  position: relative;
+  flex: none;
+  width: 190px;
+  aspect-ratio: 4 / 5;
+  margin-right: 26px;
+  padding: 6px;
+  background: var(--cream);
+  border-radius: 16px;
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 12px 28px rgba(26, 22, 23, 0.16);
+  transform: rotate(var(--tilt));
+  transition: transform 500ms cubic-bezier(.2, .8, .2, 1), box-shadow 300ms ease;
+}
+.grad-photo img { display: block; width: 100%; height: 100%; object-fit: cover; border-radius: 11px; }
+.grad-photo-name {
+  position: absolute; left: 14px; right: 14px; bottom: 14px;
+  padding: 6px 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(26, 22, 23, 0.72); color: var(--cream);
+  font: 600 13px/1.2 var(--font-body); text-align: center;
+  opacity: 0; transform: translateY(6px);
+  transition: opacity 250ms ease, transform 250ms ease;
+}
+.grad-photo:hover,
+.grad-photo:focus-visible {
+  transform: rotate(0deg) translateY(-6px) scale(1.04);
+  box-shadow: 0 1px 2px rgba(26, 22, 23, 0.08), 0 22px 44px rgba(26, 22, 23, 0.24);
+  outline: none;
+}
+.grad-photo:hover .grad-photo-name,
+.grad-photo:focus-visible .grad-photo-name { opacity: 1; transform: none; }
+.grad-grid {
+  display: grid; gap: 28px;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  margin-top: 28px; padding-top: 8px;
+}
+.grad-grid .grad-photo { width: auto; margin: 0; }
+@media (max-width: 640px) {
+  .grad-photo { width: 150px; margin-right: 18px; }
+  .grad-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .grad-reel { overflow-x: auto; -webkit-mask-image: none; mask-image: none; padding-inline: 16px; }
+  .grad-reel-track { animation: none; }
+  .grad-reel-track > [aria-hidden="true"] { display: none; }
+  .grad-photo { transition: none; }
+}
+
+/* Стрічка лекторів на головній: картки повільно пливуть уліво (та сама
+   анімація, що й у партнерів). Відступ — полем картки, а не gap: тоді два
+   набори рівно по 50% ширини й повтор безшовний. Краї тануть у фон. */
+.lecturer-reel {
+  overflow: hidden;
+  margin-top: 28px;
+  padding: 14px 0 6px;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 6%, #000 94%, transparent);
+}
+.lecturer-reel-track { display: flex; width: max-content; animation: marquee 110s linear infinite; }
+.lecturer-reel:hover .lecturer-reel-track,
+.lecturer-reel:focus-within .lecturer-reel-track { animation-play-state: paused; }
+.lecturer-reel .print-card { flex: none; width: 220px; margin-right: 32px; }
+.lecturer-reel .print-card p {
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 3; overflow: hidden;
+}
+@media (max-width: 640px) {
+  .lecturer-reel .print-card { width: 180px; margin-right: 22px; }
+}
+/* Без руху — звичайний рядок, який гортають самі; повторний набір не потрібен. */
+@media (prefers-reduced-motion: reduce) {
+  .lecturer-reel { overflow-x: auto; -webkit-mask-image: none; mask-image: none; padding-inline: 16px; }
+  .lecturer-reel-track { animation: none; }
+  .lecturer-reel-track > [aria-hidden="true"] { display: none; }
+}
 
 /* — video cards: ambient autoplay on hover, premium play button — */
 .video-card {
@@ -2028,6 +2150,9 @@ body.modal-open { overflow: hidden; }
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 24px;
 }
+/* Короткий список курсів (сторінки курсу й лектора): один курс — одна
+   колонка, а не картка на всю ширину. */
+.course-others { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 @media (max-width: 900px) {
   .course-card--featured { grid-column: auto; flex-direction: column; }
   .course-card--featured .course-media { width: 100%; min-width: 0; border-radius: var(--radius-lg) var(--radius-lg) 0 0; }
@@ -2071,6 +2196,73 @@ body.modal-open { overflow: hidden; }
 .service-body h3 { margin: 0; font-size: var(--h3); }
 .service-body .card-body { margin: 0; font-size: var(--body); color: var(--ink-soft); line-height: 1.65; }
 .service-body .btn { margin-top: auto; }
+
+/* ---- сторінка курсу: герой — та сама темна панель, що й у «Майстра» ---- */
+.crumbs { font-size: var(--small); color: var(--ink-muted); margin-bottom: 20px; }
+.crumbs a { color: inherit; }
+.course-intro .intro-note { margin-top: 20px; }
+.course-hero h1 {
+  margin: 16px 0 12px; max-width: none;
+  color: var(--neutral-100); font-size: var(--h2); font-weight: 500;
+}
+.course-hero .flagship-media { height: 100%; width: 100%; object-fit: cover; }
+.course-hero .flagship-facts { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+.course-about {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+.course-text p { font-size: 17px; line-height: 1.7; color: var(--ink-soft); max-width: 40em; }
+.course-highlight { height: auto; }
+.course-highlight .card-body { font-family: var(--font-head); font-size: 20px; line-height: 1.5; color: var(--ink); }
+
+/* Список із мідними позначками: «Що ви дізнаєтеся», організаційні дрібниці. */
+.check-list {
+  list-style: none; padding: 0; margin: 28px 0 0;
+  display: grid; gap: 14px 40px;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+}
+.check-list li {
+  position: relative; padding-left: 30px;
+  font-size: 16px; line-height: 1.55; color: var(--ink-soft);
+}
+.check-list li::before {
+  content: ''; position: absolute; left: 0; top: 0.3em;
+  width: 16px; height: 9px;
+  border-left: 2px solid var(--copper); border-bottom: 2px solid var(--copper);
+  transform: rotate(-45deg) translate(2px, -1px);
+}
+.course-notes { margin-top: 32px; }
+
+.course-plan {
+  list-style: none; padding: 0; margin: 32px 0 0;
+  display: grid; gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  counter-reset: plan;
+}
+.course-plan-block {
+  background: var(--cream);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+}
+.course-plan-block h3 { margin: 0 0 14px; font-size: 20px; line-height: 1.35; }
+.course-plan-block ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
+.course-plan-block li { font-size: 15px; line-height: 1.55; color: var(--ink-soft); }
+.course-plan-block li::marker { color: var(--copper); }
+
+@media (max-width: 860px) {
+  .course-about { grid-template-columns: 1fr; gap: 28px; }
+  .course-hero .flagship-facts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .course-hero .flagship-media { max-height: 360px; }
+}
+@media (max-width: 640px) {
+  .course-hero .flagship-facts { grid-template-columns: 1fr; }
+  .course-plan { grid-template-columns: 1fr; }
+  .course-plan-block { padding: 22px; }
+}
 
 /* ---- photo strip: masonry ---- */
 .photo-strip {

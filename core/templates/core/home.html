@@ -85,8 +85,8 @@
                     <div><svg class="ic" aria-hidden="true"><use href="#ic-euro"></use></svg><div><div class="label">Вартість</div><div class="value">{{ flagship.price_eur }} €</div><div class="value-note">Early Bird — {{ flagship.early_bird_eur }} €</div></div></div>
                 </div>
                 <div class="flagship-actions">
-                    <a class="btn btn-primary" href="{% url 'core:lecturers' %}#zayavka">Записатися на курс</a>
-                    <a class="btn btn-outline" href="{% url 'core:courses' %}">Усі програми</a>
+                    <a class="btn btn-primary" href="{{ flagship.url }}#zayavka">Записатися на курс</a>
+                    <a class="btn btn-outline" href="{{ flagship.url }}">Програма курсу</a>
                 </div>
             </div>
             <div class="flagship-media">
@@ -110,7 +110,7 @@
         </div>
         <div class="courses-grid">
             {% for course in courses %}
-            <a class="course-card{% if forloop.first %} course-card--featured{% endif %}" data-reveal href="{% url 'core:courses' %}">
+            <a class="course-card{% if forloop.first %} course-card--featured{% endif %}" data-reveal href="{{ course.url }}">
                 <div class="course-media">
                     <img src="{% static 'img/'|add:course.image %}" alt="{{ course.title }}" loading="lazy" width="560" height="560">
                     <span class="icon-badge icon-badge-float"><svg class="ic" aria-hidden="true"><use href="#{{ course.icon }}"></use></svg></span>
@@ -136,18 +136,16 @@
             <h2 data-reveal>Лектори</h2>
         </div>
         <p class="section-lead" data-reveal>Практики галузі: технологи, науковці та сомельє, які щодня працюють із напоями.</p>
-        <div class="grid-cards cols-250">
-            {% for person in lecturers %}
-            <div class="lecturer" data-reveal>
-                <div class="lecturer-photo"><img src="{% static 'img/'|add:person.photo %}" alt="{{ person.name }}" loading="lazy" width="480" height="480"></div>
-                <div class="lecturer-overlay">
-                    <span class="tag tag-outline">{{ person.role }}</span>
-                    <h3>{{ person.name }}</h3>
-                    <p>{{ person.bio }}</p>
-                </div>
-            </div>
-            {% endfor %}
+    </div>
+    {# Стрічка: два однакові набори карток пливуть уліво, і коли перший виходить, #}
+    {# на його місці вже другий — шву не видно. На наведенні чи фокусі — стоїть. #}
+    <div class="lecturer-reel" data-reveal>
+        <div class="lecturer-reel-track print-grid">
+            {% for person in lecturers %}{% include "core/includes/lecturer_card.html" with reel=True %}{% endfor %}
+            {% for person in lecturers %}{% include "core/includes/lecturer_card.html" with reel=True copy=True %}{% endfor %}
         </div>
+    </div>
+    <div class="container">
         <div style="text-align: center; margin-top: 32px;" data-reveal>
             <a class="btn btn-ghost" href="{% url 'core:lecturers' %}">Усі лектори →</a>
         </div>
@@ -177,6 +175,10 @@
         </div>
     </div>
 </section>
+
+{# Полиця випускників — одразу за їхніми відгуками: разом це блок результатів.
+   Нерухомі відео відділяють її від стрічки лекторів вище. #}
+{% include "core/includes/graduates_shelf.html" %}
 
 <section class="page-section">
     <div class="container">

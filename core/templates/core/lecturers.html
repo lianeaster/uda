@@ -13,14 +13,9 @@
 
 <section class="page-section">
     <div class="container">
-        <div class="grid-cards cols-250" style="margin-top:0;">
+        <div class="grid-cards cols-230 print-grid" style="margin-top:0;">
             {% for person in lecturers %}
-            <div class="lecturer" data-reveal>
-                <div class="lecturer-photo"><img src="{% static 'img/'|add:person.photo %}" alt="{{ person.name }}" loading="lazy" width="480" height="480"></div>
-                <span class="tag tag-outline">{{ person.role }}</span>
-                <h3>{{ person.name }}</h3>
-                <p>{{ person.bio }}</p>
-            </div>
+            {% include "core/includes/lecturer_card.html" %}
             {% endfor %}
         </div>
     </div>

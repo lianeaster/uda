@@ -1,0 +1,16 @@
+{% load static %}{% comment %}
+Картка лектора у вигляді фотокартки — у парі зі стосом на його сторінці.
+`person` — з `views.lecturer_cards`: `portrait` — портрет 4:5,
+`behind` — ще одне фото, що визирає з-під нього (якщо є), `tilt` — нахил.
+У стрічці на головній (`reel`) картки без появи при прокрутці, а другий,
+повторний набір (`copy`) прихований від читачів екрана й клавіатури.
+{% endcomment %}
+<a class="print-card"{% if not reel %} data-reveal{% endif %}{% if copy %} aria-hidden="true" tabindex="-1"{% endif %} href="{% url 'core:lecturer' person.slug %}" style="--tilt: {{ person.tilt }}">
+    <span class="print-card-photos">
+        {% if person.behind %}<span class="print-card-under" aria-hidden="true"><img src="{% static 'img/'|add:person.behind %}" alt="" loading="lazy" width="640" height="640"></span>{% endif %}
+        <span class="print-card-photo"><img src="{% static 'img/'|add:person.portrait %}" alt="{{ person.name }}" loading="lazy" width="640" height="800"></span>
+    </span>
+    <span class="tag tag-outline">{{ person.role }}</span>
+    <h3>{{ person.name }}</h3>
+    <p>{{ person.bio }}</p>
+</a>

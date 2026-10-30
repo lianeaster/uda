@@ -14,6 +14,7 @@ urlpatterns = [
     # (соцмережі, листи), тож ведемо туди, де вони тепер. Якір #zayavka
     # браузер переносить сам.
     path('courses/', RedirectView.as_view(pattern_name='core:courses', permanent=True)),
+    path('courses/<slug:slug>/', RedirectView.as_view(pattern_name='core:course', permanent=True)),
     path('lecturers/', RedirectView.as_view(pattern_name='core:lecturers', permanent=True)),
     path('', include('accounts.urls')),
     path('dashboard/', include('dashboard.urls')),

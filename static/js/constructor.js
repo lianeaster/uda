@@ -544,7 +544,8 @@
             ${r.miss.length ? `<div><h4>Немає в курсі</h4><ul>${r.miss.map(id => line(id, '–', 'miss')).join('')}</ul></div>` : ''}
             ${r.extra.length ? `<div><h4>Понад вашу програму</h4><ul>${r.extra.map(id => line(id, '+', 'extra')).join('')}</ul></div>` : ''}
           </div>
-          <a class="cc-link" href="${app.dataset.coursesUrl}">Усі курси Академії →</a>
+          ${c.url ? `<a class="cc-link" href="${c.url}">Програма й лектори курсу →</a>`
+            : `<a class="cc-link" href="${app.dataset.coursesUrl}">Усі курси Академії →</a>`}
         </details>
       </article>`;
   }

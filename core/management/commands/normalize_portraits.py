@@ -10,17 +10,21 @@
 
 Джерело — `static/img/lecturers/source/`, результат — `static/img/lecturers/`.
 Оригінали не змінюються, тож обробку завжди можна перерахувати заново.
+
+Портрет — вертикальна фотокартка 4:5 (так їх показує сайт), а не коло:
+оригінали — круглі вирізки, тож беремо найбільший прямокутник, що вміщується
+в коло джерела.
 """
 
 import math
 
 from django.conf import settings
 from django.core.management.base import BaseCommand
-from PIL import Image, ImageChops, ImageDraw
+from PIL import Image, ImageChops
 
-SIZE = 520          # ≈2× від показу в сітці; більше — лише розтягнутий оригінал
+SIZE = 520          # кадр по колу джерела, з якого вирізаємо портрет
+PORTRAIT = (640, 800)   # фотокартка 4:5, як у стосі й у сітках лекторів
 QUALITY = 88
-PAPER = (242, 231, 211)   # тло під круглою маскою — пергамент сторінки
 
 # Цільова світлота обличчя (0-255) і смуга гами, за яку не виходимо.
 FACE_TARGET = 152
@@ -36,13 +40,11 @@ OUTPUT_RANGE = (6, 250)
 # видно, кого саме підтягнуто.
 BASE_ZOOM = 1.0     # рівно коло джерела
 FRAMING = {
-    # слаг:              (зум, зсув по X, зсув по Y) — зсув у частках кадру
-    'evgen-zavertany':    (1.30, 0.0, -0.03),   # знято здалеку, голова дрібна
-    'tymur-razjabov':     (1.26, -0.03, -0.04),  # загальний план із келихом
-    'boris-egiazaryan':   (1.18, 0.0, -0.02),    # сцена з мікрофоном
-    'kateryna-kamysheva': (1.12, 0.0, -0.02),
-    'maryna-bilko':       (1.12, 0.02, -0.02),   # піднята рука в кадрі
-    'olga-burkanova':     (1.08, 0.0, -0.02),
+    # слаг:              (зум, зсув по X, зсув по Y) — зсув у частках кадру.
+    # Прямокутник усередині кола й так кадрує щільніше, ніж коло, тож
+    # підтягуємо лише тих, хто знятий здалеку.
+    'evgen-zavertany':    (1.06, 0.0, -0.03),   # знято здалеку, голова дрібна
+    'tymur-razjabov':     (1.04, -0.03, -0.04),  # загальний план із келихом
 }
 
 
@@ -124,18 +126,19 @@ def normalize_light(image):
     return image.point(table * 3)
 
 
-def mask_circle(image):
-    """Кругла маска з пергаментним тлом.
+def inscribed_portrait(image):
+    """Найбільший прямокутник 4:5 усередині кола кадру — без білих кутів.
 
-    Оригінали — круглі вирізки на білому, тож коло тут не рішення дизайну, а
-    геометрія джерела: у прямокутнику лишилися б білі кути.
+    Діагональ прямокутника дорівнює діаметру кола; 2% запасу — на згладжений
+    край кола джерела.
     """
-    mask = Image.new('L', (SIZE * 4, SIZE * 4), 0)
-    ImageDraw.Draw(mask).ellipse((0, 0, SIZE * 4 - 1, SIZE * 4 - 1), fill=255)
-    mask = mask.resize((SIZE, SIZE), Image.LANCZOS)   # згладжений край
-    out = Image.new('RGB', (SIZE, SIZE), PAPER)
-    out.paste(image, (0, 0), mask)
-    return out
+    width, height = PORTRAIT
+    diameter = image.width * 0.98
+    scale = diameter / math.hypot(width, height)
+    w, h = width * scale, height * scale
+    cx = cy = image.width / 2
+    box = (round(cx - w / 2), round(cy - h / 2), round(cx + w / 2), round(cy + h / 2))
+    return image.resize(PORTRAIT, Image.LANCZOS, box=box)
 
 
 class Command(BaseCommand):
@@ -160,12 +163,12 @@ class Command(BaseCommand):
             with Image.open(path) as original:
                 image = frame(original.convert('RGB'), zoom, dx, dy)
                 image = normalize_light(stretch_range(image))
-                image = mask_circle(image)
+                image = inscribed_portrait(image)
             target = folder / f'{path.stem}.jpg'
             if not dry_run:
                 image.save(target, 'JPEG', quality=QUALITY, optimize=True, progressive=True)
             note = '' if path.stem not in FRAMING else f' (кадр підтягнуто: зум {zoom})'
-            done.append(f'{target.name} — {SIZE}×{SIZE}{note}')
+            done.append(f'{target.name} — {PORTRAIT[0]}×{PORTRAIT[1]}{note}')
 
         if not quiet:
             prefix = '[--dry-run] ' if dry_run else ''
