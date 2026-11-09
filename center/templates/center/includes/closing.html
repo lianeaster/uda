@@ -1,0 +1,11 @@
+{# Спільний блок унизу сторінок Центру. Тексти — `center.pages.CLOSING`. #}
+<section class="u-closing">
+    <div class="u-wrap u-closing-row" data-reveal>
+        <div>
+            <h2>{{ center_closing.title }}</h2>
+            <p class="u-closing-lead">{{ center_closing.lead }}</p>
+            <p>{{ center_closing.text }}</p>
+        </div>
+        <a class="u-btn u-btn-light" href="{% url 'center:contacts' %}">{{ center_closing.label }}</a>
+    </div>
+</section>

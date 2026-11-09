@@ -1,0 +1,53 @@
+{% extends "center/base.html" %}
+
+{% comment %}
+«Новини та події». Матеріали пишуть в адмінці (`center.models.News`);
+сторінка показує лише опубліковані. Рубрики — підпис на картці, а не
+фільтр: порожніх розділів на сайті не буває. Тексти — `center.pages.NEWS`.
+{% endcomment %}
+
+{% block content %}
+<section class="u-intro">
+    <div class="u-wrap">
+        <span class="u-kicker" data-reveal>{{ page.kicker }}</span>
+        <h1 data-reveal>{{ page.title }}</h1>
+        <p class="u-lead" data-reveal>{{ page.lead }}</p>
+        {% for p in page.paragraphs %}<p class="u-intro-text" data-reveal>{{ p }}</p>{% endfor %}
+    </div>
+</section>
+
+<section class="u-section u-section-tint" id="materialy">
+    <div class="u-wrap">
+        {% if posts %}
+        {% include "center/includes/news-list.html" %}
+        {% else %}
+        <p class="u-empty" data-reveal>{{ page.empty }}</p>
+        {% endif %}
+    </div>
+</section>
+
+<section class="u-section">
+    <div class="u-wrap">
+        <div class="u-head">
+            <h2 data-reveal>Що ви знайдете в цьому розділі</h2>
+        </div>
+        <ul class="u-cards" data-stagger>
+            {% for rubric in rubrics %}
+            <li class="u-card" data-reveal><h3>{{ rubric.title }}</h3><p>{{ rubric.text }}</p></li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-section u-section-tint">
+    <div class="u-wrap u-split">
+        <div data-reveal><h2>{{ page.dialog.title }}</h2></div>
+        <div class="u-prose" data-reveal>
+            {% for p in page.dialog.paragraphs %}<p>{{ p }}</p>{% endfor %}
+            <div class="u-actions">
+                <a class="u-btn" href="{% url 'center:contacts' %}?tema={{ page.dialog.topic }}">{{ page.dialog.label }}</a>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

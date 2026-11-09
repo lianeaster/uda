@@ -1,19 +1,44 @@
+from django import forms
+
 from core.forms import ContactRequestForm
 from core.models import ContactRequest
 
+from .pages import TOPICS
+
 
 class CenterContactForm(ContactRequestForm):
-    """Та сама заявка, що й в Академії, лише з позначкою «з Центру».
+    """Звернення до Центру зі сторінки «Контакти».
 
-    Питання тут інше — не «який курс», а «що у вас є»: сировина, обсяг, ідея.
+    Окрім спільних полів, питає компанію, тему зі списку (`pages.TOPICS`,
+    лягає в `interest`) і опис завдання своїми словами (у `details`).
     """
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['interest'].label = 'Що у вас є або що цікавить'
-        self.fields['interest'].widget.attrs['placeholder'] = (
-            'Сировина й обсяг, ідея продукту, пілотна партія, навчання…'
-        )
+    interest = forms.ChoiceField(
+        label='Що вас цікавить?', required=False,
+        choices=[('', 'Оберіть тему')] + [(label, label) for _, label in TOPICS],
+    )
+
+    class Meta(ContactRequestForm.Meta):
+        fields = ['name', 'company', 'email', 'phone', 'interest', 'details']
+        labels = {
+            **ContactRequestForm.Meta.labels,
+            'name': "Ваше ім'я",
+            'company': 'Компанія або організація',
+            'email': 'Електронна пошта',
+            'details': 'Коротко опишіть ваше завдання',
+        }
+        widgets = {
+            **ContactRequestForm.Meta.widgets,
+            'company': forms.TextInput(attrs={'placeholder': 'Необов\'язково'}),
+            'details': forms.Textarea(attrs={
+                'rows': 5,
+                'placeholder': 'Яка сировина, який продукт хочете отримати, '
+                               'що вже зроблено…',
+            }),
+        }
+
+    def clean_details(self):
+        return self.cleaned_data['details'][:4000]
 
     def save(self, commit=True):
         self.instance.source = ContactRequest.Source.CENTER

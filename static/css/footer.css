@@ -62,6 +62,7 @@
 }
 .uf-brand { display: inline-flex; align-items: center; gap: 12px; }
 .uf-brand img { width: 36px; height: 36px; object-fit: contain; }
+.uf-about { flex: 1 1 18em; }
 
 @media (max-width: 900px) {
   .uf-mails { grid-template-columns: 1fr; }

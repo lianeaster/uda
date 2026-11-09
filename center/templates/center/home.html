@@ -3,10 +3,10 @@
 {% block content %}
 
 {% comment %}
-Перший екран — обличчя Центру: заголовок і рядок перетворень «сировина →
-продукт» по напрямах, колаж шляху продукту з логотипом, що збирається,
-і кільце напису логотипа на тлі. Про навчання тут ні слова: Центр — це
-дослідження, розробка й пілотні партії, академії — нижче, на карті.
+Перший екран — обличчя Центру: назва, «Технології, що створюють цінність»,
+рядок перетворень «сировина → продукт» по напрямах, колаж шляху продукту з
+логотипом, що збирається, і кільце напису логотипа на тлі. Про навчання тут
+ні слова: воно — один із напрямів нижче. Тексти — `center.pages.HOME`.
 {% endcomment %}
 <section class="u-hero">
     <div class="u-hero-deco" aria-hidden="true">
@@ -16,21 +16,18 @@
 
     <div class="u-wrap u-hero-grid">
         <div class="u-hero-text" data-reveal>
-            <span class="u-kicker">Ukrainian Food Innovation Center</span>
-            <h1><span>Від сировини</span> <span><span class="u-h1-accent">до продукту</span></span> <span>на полиці</span></h1>
+            <span class="u-kicker">Ukrainian Food Innovation Center · UFIC</span>
+            <h1><span>Технології,</span> <span>що створюють</span> <span><span class="u-h1-accent">цінність</span></span></h1>
+
+            <p class="u-lead">{{ home.lead }}</p>
+            <p class="u-motto">{% for word in home.motto %}<span>{{ word }}.</span> {% endfor %}</p>
 
             {% include "center/includes/morph.html" %}
 
-            <p class="u-lead">Досліджуємо сировину, консультуємо й розробляємо продукт, робимо прототипи та пілотну партію — і виводимо його на ринок.</p>
             <div class="u-actions">
-                <a class="u-btn" href="#zayavka">Обговорити проєкт</a>
-                <a class="u-btn u-btn-outline" href="#poslugy">Що ми робимо</a>
+                <a class="u-btn" href="{% url 'center:contacts' %}">Обговорити мій проєкт</a>
+                <a class="u-btn u-btn-outline" href="#mozhlyvosti">Наші можливості</a>
             </div>
-            <dl class="u-stats">
-                <div><dt><span data-count>{{ path|length }}</span></dt><dd>кроків від сировини до продукту</dd></div>
-                <div><dt><span data-count>{{ directions|length }}</span></dt><dd>напрямів продуктів</dd></div>
-                <div><dt><span data-count>{{ plan_area }}</span>&nbsp;м²</dt><dd>лабораторії, цехів і залів</dd></div>
-            </dl>
         </div>
 
         <figure class="u-collage" data-reveal>
@@ -52,92 +49,116 @@
 </section>
 
 <section class="u-section" id="pro-centr">
+    <div class="u-wrap u-split">
+        <div data-reveal>
+            <span class="u-kicker">Хто ми</span>
+            <h2>{{ home.intro.title }}</h2>
+        </div>
+        <div class="u-prose" data-reveal>
+            <p class="u-lead">{{ home.intro.lead }}</p>
+            {% for p in home.intro.paragraphs %}<p>{{ p }}</p>{% endfor %}
+            <p><a class="u-more" href="{% url 'center:about' %}">Про Центр <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a></p>
+        </div>
+    </div>
+</section>
+
+<section class="u-section u-section-tint">
     <div class="u-wrap">
         <div class="u-head">
-            <span class="u-kicker" data-reveal>Що таке Центр</span>
-            <h2 data-reveal>Дослідження, консалтинг і прототипування — під одним дахом</h2>
-            <p class="u-lead" data-reveal>Тут сировину досліджують, під неї винаходять продукт, розробляють технологію, перевіряють прототипом і пілотною партією — і виготовляють. Після кожного кроку у вас результат, а не лише порада.</p>
+            <h2 data-reveal>{{ home.potential.title }}</h2>
+            {% for p in home.potential.paragraphs %}<p class="u-lead" data-reveal>{{ p }}</p>{% endfor %}
+        </div>
+        <ul class="u-asks u-asks-questions" data-play="li">
+            {% for q in home.potential.questions %}<li>{{ q }}</li>{% endfor %}
+        </ul>
+        <div class="u-after" data-reveal>
+            {% for p in home.potential.after %}<p>{{ p }}</p>{% endfor %}
+        </div>
+    </div>
+</section>
+
+<section class="u-section" id="mozhlyvosti">
+    <div class="u-wrap">
+        <div class="u-head">
+            <span class="u-kicker" data-reveal>Наші можливості</span>
+            <h2 data-reveal>Що робить UFIC</h2>
+        </div>
+        <ul class="u-cards u-cards-links" data-stagger>
+            {% for item in home.capabilities %}
+            <li data-reveal>
+                <a class="u-card" href="{{ item.url }}">
+                    <span class="u-card-icon"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>
+                    <h3>{{ item.title }}</h3>
+                    <p>{{ item.text }}</p>
+                    <span class="u-more">Докладніше <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></span>
+                </a>
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-section u-section-tint" id="dlya-kogo">
+    <div class="u-wrap">
+        <div class="u-head">
+            <h2 data-reveal>Для кого працює UFIC</h2>
+            <p class="u-lead" data-reveal>{{ home.audience_lead }}</p>
+        </div>
+        <ul class="u-who u-who-5" data-play="li">
+            {% for who in home.audience %}
+            <li><strong>{{ who.title }}</strong><span>{{ who.text }}</span></li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+
+<section class="u-section" id="etapy">
+    <div class="u-wrap">
+        <div class="u-head">
+            <h2 data-reveal>Від задуму до виробництва</h2>
+            <p class="u-lead" data-reveal>{{ home.stages_lead }}</p>
         </div>
         <ol class="u-path" data-play="li">
-            {% for step in path %}
+            {% for step in home.stages %}
             <li>
                 <span class="u-path-ring"><svg class="ic" aria-hidden="true"><use href="#{{ step.icon }}"></use></svg></span>
-                <strong>{{ step.title }}</strong>
+                <strong><span class="u-path-no">{{ forloop.counter|stringformat:"02d" }}</span> {{ step.title }}</strong>
                 <span>{{ step.text }}</span>
             </li>
             {% endfor %}
         </ol>
+        <div class="u-after u-after-center" data-reveal>
+            <p>{{ home.stages_after }}</p>
+            <blockquote class="u-quote">{{ home.stages_quote }}</blockquote>
+        </div>
     </div>
 </section>
 
-<section class="u-section u-section-tint" id="poslugy">
+{% if news %}
+<section class="u-section u-section-tint">
     <div class="u-wrap">
         <div class="u-head">
-            <span class="u-kicker" data-reveal>Що ми робимо</span>
-            <h2 data-reveal>Від аналізу сировини до продукту на полиці</h2>
-            <p class="u-lead" data-reveal>Можна прийти по одну послугу — дослідити сировину чи зробити пілотну партію — або пройти з Центром увесь шлях. Навчання стоїть окремо: його ведуть дві академії Центру.</p>
+            <span class="u-kicker" data-reveal>Новини та події</span>
+            <h2 data-reveal>Що нового в UFIC</h2>
         </div>
-        {% include "center/includes/map.html" %}
-        <p class="u-map-foot" data-reveal>
-            Обидві академії навчають на одній платформі.
-            <a href="{% if user.is_authenticated %}{% url 'dashboard:home' %}{% else %}{% url 'accounts:login' %}{% endif %}">Увійти на навчальну платформу</a>
-        </p>
-    </div>
-</section>
-
-<section class="u-section">
-    <div class="u-wrap">
-        <div class="u-case" data-reveal>
-            <div>
-                <span class="u-kicker u-kicker-light">Приклад</span>
-                <h2>{{ farmer_case.title }}</h2>
-                <p>Центр може пройти з ним увесь шлях — і на кожному кроці фермер знає, скільки це коштує і чи варто йти далі.</p>
-                <blockquote>«Не будуйте завод, поки не перевірили продукт»</blockquote>
-            </div>
-            <ol class="u-chain" aria-label="Шлях продукту" data-play="li">
-                {% for step in farmer_case.steps %}<li>{{ step }}</li>{% endfor %}
-            </ol>
+        {% include "center/includes/news-list.html" with posts=news %}
+        <div class="u-actions">
+            <a class="u-btn u-btn-outline" href="{% url 'center:news' %}">Переглянути всі новини</a>
         </div>
     </div>
 </section>
-
-<section class="u-section u-section-tint" id="prostir">
-    <div class="u-wrap">
-        <div class="u-head">
-            <span class="u-kicker" data-reveal>Простір</span>
-            <h2 data-reveal>Лабораторія, цехи й зали — в одному просторі</h2>
-            <p class="u-lead" data-reveal>Приміщення не закріплені за одним продуктом. Цех переробки сьогодні сушить снеки, а завтра варить соуси; у лабораторії аналізують сировину для всіх напрямів. Оберіть напрям — і побачите, де з ним працюють.</p>
-        </div>
-        {% include "center/includes/floor-plan.html" %}
-    </div>
-</section>
+{% endif %}
 
 <section class="u-contact" id="zayavka">
-    <div class="u-wrap u-contact-grid">
-        <div data-reveal>
-            <h2>Маєте сировину чи ідею продукту?</h2>
-            <p>Розкажіть, що у вас є — культура, обсяг, задум. Ми підкажемо, з чого почати: дослідження, прототип, пілотна партія чи навчання.</p>
-            <dl class="u-contact-list">
-                <div><dt>Телефон</dt><dd><a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a></dd></div>
-                <div><dt>Пошта Центру</dt><dd><a href="mailto:{{ contacts.emails.center.address }}">{{ contacts.emails.center.address }}</a></dd></div>
-                <div><dt>Адреса</dt><dd>{{ contacts.address }}</dd></div>
-            </dl>
+    <div class="u-wrap u-closing-row" data-reveal>
+        <div>
+            <h2>{{ home.ask.title }}</h2>
+            <p>{{ home.ask.text }}</p>
         </div>
-
-        <div class="u-form" data-reveal>
-            {% if submitted %}
-                <div class="u-thanks" role="status">
-                    <h3>Дякуємо!</h3>
-                    <p>Ми зв'яжемось із вами протягом робочого дня.</p>
-                </div>
-            {% else %}
-                <h3>Заявка до Центру</h3>
-                <form method="post" action="{% url 'center:home' %}#zayavka">
-                    {% include "center/includes/form-fields.html" %}
-                    <button type="submit" class="u-btn u-btn-block">Надіслати заявку</button>
-                </form>
-            {% endif %}
-        </div>
+        <a class="u-btn u-btn-light" href="{% url 'center:contacts' %}">{{ home.ask.label }}</a>
     </div>
 </section>
 {% endblock %}
+
+{# Заклик «Маєте ідею для переробки?» уже стоїть останнім — спільний блок тут повторив би його. #}
+{% block closing %}{% endblock %}

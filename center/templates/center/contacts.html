@@ -1,0 +1,51 @@
+{% extends "center/base.html" %}
+
+{% comment %}
+«Контакти»: сюди ведуть усі кнопки Центру. Тема з адреси (`?tema=lab`)
+приходить у форму вже обраною. Заявка лягає в `ContactRequest` з
+`source = center`. Тексти — `center.pages.CONTACTS`.
+{% endcomment %}
+
+{% block content %}
+<section class="u-intro">
+    <div class="u-wrap">
+        <span class="u-kicker" data-reveal>{{ page.kicker }}</span>
+        <h1 data-reveal>{{ page.title }}</h1>
+        <p class="u-lead" data-reveal>{{ page.lead }}</p>
+        {% for p in page.paragraphs %}<p class="u-intro-text" data-reveal>{{ p }}</p>{% endfor %}
+    </div>
+</section>
+
+<section class="u-contact" id="zvernennya">
+    <div class="u-wrap u-contact-grid">
+        <div data-reveal>
+            <h2>Наші контакти</h2>
+            <p><strong>Ukrainian Food Innovation Center — UFIC</strong><br>{{ center_tagline }}</p>
+            <dl class="u-contact-list">
+                <div><dt>Електронна пошта</dt><dd><a href="mailto:{{ contacts.emails.center.address }}">{{ contacts.emails.center.address }}</a></dd></div>
+                <div><dt>Телефон</dt><dd><a href="{{ contacts.phone_href }}">{{ contacts.phone }}</a></dd></div>
+                <div><dt>Адреса</dt><dd>{{ contacts.address }}</dd></div>
+            </dl>
+        </div>
+
+        <div class="u-form" data-reveal>
+            {% if submitted %}
+                <div class="u-thanks" role="status">
+                    <h3>Дякуємо!</h3>
+                    <p>Ми ознайомимося з вашим зверненням і зв'яжемося з вами.</p>
+                </div>
+            {% else %}
+                <h3>Звернення до UFIC</h3>
+                <p class="u-form-hint">Заповніть форму, щоб підготувати звернення до Центру.</p>
+                <form method="post" action="{% url 'center:contacts' %}#zvernennya">
+                    {% include "center/includes/form-fields.html" %}
+                    <button type="submit" class="u-btn u-btn-block">Написати UFIC</button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{# Звернення — тут же, тож спільний заклик унизу не потрібен. #}
+{% block closing %}{% endblock %}

@@ -1,0 +1,13 @@
+{% extends "center/base.html" %}
+
+{% block content %}
+<article class="u-intro u-article">
+    <div class="u-wrap">
+        <a class="u-back" href="{% url 'center:news' %}"><span aria-hidden="true">←</span> Новини та події</a>
+        <span class="u-news-meta"><span>{{ post.get_rubric_display }}</span> <time datetime="{{ post.date|date:'Y-m-d' }}">{{ post.date|date:'j E Y' }}</time></span>
+        <h1>{{ post.title }}</h1>
+        <p class="u-lead">{{ post.summary }}</p>
+        <div class="u-prose u-article-body">{{ post.body|linebreaks }}</div>
+    </div>
+</article>
+{% endblock %}

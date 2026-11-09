@@ -5,8 +5,10 @@
 
 Параметри: mark (шлях до знака в static), brand (власник копірайту),
 since (необов'язковий рік початку), theme (необов'язкова тема, напр.
-«academy» → .uf-footer--academy у style.css), note
-(необов'язкова примітка праворуч, напр. «18+» для дистиляції).
+«academy» → .uf-footer--academy у style.css), about (необов'язковий рядок
+про власника сайту поруч із копірайтом — Центр ставить своє позиціонування),
+note (необов'язкова примітка праворуч, напр. «18+» для дистиляції).
+Колонка Центру — усі його розділи з `center.pages.FOOTER_NAV`.
 Розкладка — static/css/footer.css, спільна для всіх сайтів.
 {% endcomment %}
 <footer class="uf-footer{% if theme %} uf-footer--{{ theme }}{% endif %}">
@@ -36,11 +38,8 @@ since (необов'язковий рік початку), theme (необов'�
         <div class="uf-nav">
             <nav aria-label="Центр">
                 <h2><a href="{% url 'center:home' %}">{{ center_short_name }}</a></h2>
-                <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
-                <a href="{% url 'center:services' %}">Послуги</a>
-                <a href="{% url 'center:services' %}#incubator">Інкубатор</a>
-                <a href="{% url 'center:home' %}#prostir">Простір</a>
-                <a href="{% url 'center:home' %}#zayavka">Заявка</a>
+                {% for item in center_footer_nav %}<a href="{{ item.url }}">{{ item.title }}</a>
+                {% endfor %}
             </nav>
             <nav aria-label="Академія дистиляції">
                 <h2><a href="{% url 'core:home' %}">Академія дистиляції</a></h2>
@@ -70,6 +69,8 @@ since (необов'язковий рік початку), theme (необов'�
                 <img src="{% static mark %}" alt="" width="36" height="36">
                 &copy; {% if since %}{{ since }}—{% endif %}{% now "Y" %} {{ brand }}
             </span>
+            {% if about %}<span class="uf-about">{{ about }}</span>{% endif %}
+            <a href="https://distillingacademy.com.ua/privacy" target="_blank" rel="noopener">Політика конфіденційності</a>
             {% if note %}<span>{{ note }}</span>{% endif %}
         </div>
     </div>

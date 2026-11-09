@@ -71,15 +71,30 @@
             </button>
             <nav class="u-nav" id="u-nav" aria-label="Головне меню">
             {% comment %}
-            Меню Центру — про те, що він робить. Вхід на навчальну платформу
-            тут свідомо не в меню: він у шапках академій і в підвалі.
+            Меню Центру — розділи з `center.pages.NAV`. Чотири послуги зібрано
+            під «Що ми робимо»: на широкому екрані вони випадають під ним (при
+            наведенні чи фокусі), у сендвічі стоять відступом одразу під ним.
+            Вхід на навчальну платформу тут свідомо не в меню: він у шапках
+            академій і в підвалі.
             {% endcomment %}
             {% block nav %}
-                <a href="{% url 'center:home' %}#pro-centr">Про Центр</a>
-                <a href="{% url 'center:services' %}"{% if request.resolver_match.url_name == 'services' %} aria-current="page"{% endif %}>Послуги</a>
-                <a href="{% url 'center:home' %}#prostir">Простір</a>
-                <a href="{% url 'center:home' %}#akademii">Академії</a>
-                <a class="u-btn u-btn-sm" href="{% url 'center:home' %}#zayavka">Обговорити проєкт</a>
+                {% with here=request.resolver_match.url_name %}
+                {% for item in center_nav %}
+                {% if item.children %}
+                <div class="u-nav-group">
+                    <a href="{{ item.url }}"{% if here == item.name %} aria-current="page"{% elif here in item.match %} class="is-active"{% endif %}>{{ item.title }}</a>
+                    <ul class="u-subnav">
+                        {% for child in item.children %}
+                        <li><a href="{{ child.url }}"{% if here == child.name %} aria-current="page"{% endif %}>{{ child.title }}</a></li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% else %}
+                <a href="{{ item.url }}"{% if here == item.name %} aria-current="page"{% elif here in item.match %} class="is-active"{% endif %}>{{ item.title }}</a>
+                {% endif %}
+                {% endfor %}
+                {% endwith %}
+                <a class="u-btn u-btn-sm" href="{% url 'center:contacts' %}">Обговорити проєкт</a>
             {% endblock %}
             </nav>
         </div>
@@ -87,9 +102,15 @@
 
     <main id="main">
         {% block content %}{% endblock %}
+        {% comment %}
+        Спільний блок унизу кожної сторінки Центру — повертає до звернення.
+        Там, де він повторив би сам себе (головна, «Контакти»), сторінка
+        перекриває його порожнім.
+        {% endcomment %}
+        {% block closing %}{% include "center/includes/closing.html" %}{% endblock %}
     </main>
 
-    {% include "includes/site_footer.html" with mark="img/center/logo-inverse.png" brand="UFIC · Ukrainian Food Innovation Center" %}
+    {% include "includes/site_footer.html" with mark="img/center/logo-inverse.png" brand="UFIC · Ukrainian Food Innovation Center" about=center_tagline %}
     <script src="{% static 'js/menu.js' %}"></script>
     <script src="{% static 'js/center.js' %}"></script>
     <script src="{% static 'js/reveal.js' %}"></script>

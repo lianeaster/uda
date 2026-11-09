@@ -7,7 +7,8 @@ class ContactRequest(models.Model):
     Одна таблиця на всі сайти: відповідають ті самі люди, а `source` каже,
     з якої форми прийшла заявка. Конструктор курсів — теж форма Академії, але
     окрема: до заявки він додає `details` — що людина обрала і яку програму
-    їй склали.
+    їй склали. Форма Центру питає ще компанію, а в `details` кладе опис
+    завдання.
     """
 
     class Source(models.TextChoices):
@@ -20,9 +21,12 @@ class ContactRequest(models.Model):
                               default=Source.ACADEMY)
     name = models.CharField("Ім'я", max_length=200)
     phone = models.CharField('Телефон', max_length=50)
+    company = models.CharField('Компанія', max_length=200, blank=True)
     email = models.EmailField('Email', blank=True)
     interest = models.CharField('Що вас цікавить', max_length=300, blank=True)
-    details = models.TextField('Підбір із конструктора', blank=True)
+    # Конструктор пише сюди, що людина обрала й яку програму їй склали;
+    # сторінка «Контакти» Центру — опис завдання своїми словами.
+    details = models.TextField('Подробиці', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

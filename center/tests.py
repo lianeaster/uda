@@ -2,9 +2,11 @@ import re
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils.html import escape
 
 from core.models import ContactRequest
-from . import content
+from . import content, pages
+from .models import News
 
 
 class HierarchyTests(TestCase):
@@ -71,36 +73,86 @@ class TwoAcademiesTests(TestCase):
                     self.assertNotIn(gone, html)
 
 
-class MapTests(TestCase):
-    """Карта: Центр → послуги (головне) → дві академії."""
+class StructureTests(TestCase):
+    """Десять розділів за структурою керівництва: головна, вісім сторінок у
+    меню (послуги — під «Що ми робимо») і контакти."""
 
-    def test_map_leads_with_services(self):
+    sections = ['center:home', 'center:about', 'center:services', 'center:product',
+             'center:consulting', 'center:projects', 'center:lab', 'center:learning',
+             'center:news', 'center:contacts']
+
+    def test_every_section_opens(self):
+        for url_name in self.sections:
+            with self.subTest(url_name=url_name):
+                self.assertEqual(self.client.get(reverse(url_name)).status_code, 200)
+
+    def test_menu_leads_to_every_section(self):
         html = self.client.get('/').content.decode()
-        for unit in content.SERVICES + [content.INCUBATOR]:
-            with self.subTest(unit=unit['slug']):
-                self.assertIn(f'href="/services/#{unit["slug"]}"', html)
-        self.assertLess(html.index('Послуги Центру'), html.index('id="akademii"'))
+        header = html[html.index('<header'):html.index('</header>')]
+        for url_name in self.sections[1:]:
+            with self.subTest(url_name=url_name):
+                self.assertIn(f'href="{reverse(url_name)}"', header)
 
-    def test_map_links_both_academies(self):
+    def test_services_sit_under_what_we_do(self):
         html = self.client.get('/').content.decode()
-        for academy in content.ACADEMIES:
-            with self.subTest(academy=academy['slug']):
-                self.assertIn(f'class="u-map-node" href="{reverse(academy["url_name"])}"', html)
-                self.assertIn(academy['name'], html)
+        group = html[html.index('class="u-nav-group"'):]
+        group = group[:group.index('</div>')]
+        self.assertIn(f'href="{reverse("center:services")}"', group)
+        for url_name in ('center:product', 'center:consulting', 'center:projects', 'center:lab'):
+            with self.subTest(url_name=url_name):
+                self.assertIn(f'href="{reverse(url_name)}"', group)
+        self.assertIn('Проєкти та пілотне виробництво', group)
 
-    def test_home_is_about_services_not_study(self):
-        # Перший екран — про дослідження й продукт; вхід на платформу — нижче.
+    def test_current_section_is_marked_in_the_menu(self):
+        html = self.client.get(reverse('center:lab')).content.decode()
+        header = html[html.index('<header'):html.index('</header>')]
+        self.assertIn(f'<a href="{reverse("center:lab")}" aria-current="page">', header)
+        self.assertIn(f'<a href="{reverse("center:services")}" class="is-active">', header)
+
+    def test_home_hero_follows_the_brief(self):
         html = self.client.get('/').content.decode()
         hero = html[html.index('class="u-hero"'):html.index('id="pro-centr"')]
-        self.assertIn('Досліджуємо сировину', hero)
+        self.assertIn('що створюють', hero)
+        self.assertIn('Досліджуємо.', hero)
+        self.assertIn('Обговорити мій проєкт', hero)
+        self.assertIn('Наші можливості', hero)
         self.assertNotIn('академі', hero.lower())
         self.assertNotIn('навчальна платформа', hero.lower())
-        self.assertIn(f'href="{reverse("accounts:login")}"', html)
 
-    def test_platform_header_names_the_center(self):
-        # Платформа одна на обидві академії — під її назвою Центр, а не Академія.
-        response = self.client.get(reverse('accounts:login'))
-        self.assertContains(response, f'<span class="brand-sub">{content.NAME}</span>', html=True)
+    def test_home_capabilities_link_to_their_pages(self):
+        html = self.client.get('/').content.decode()
+        for url_name in ('center:product', 'center:lab', 'center:projects',
+                         'center:consulting', 'center:learning'):
+            with self.subTest(url_name=url_name):
+                self.assertIn(f'class="u-card" href="{reverse(url_name)}"', html)
+
+    def test_every_page_ends_with_the_shared_call(self):
+        for url_name in self.sections[1:-1]:
+            with self.subTest(url_name=url_name):
+                self.assertContains(self.client.get(reverse(url_name)), 'class="u-closing"')
+        # На головній свій заклик, на «Контактах» — сама форма.
+        self.assertNotContains(self.client.get('/'), 'class="u-closing"')
+        self.assertNotContains(self.client.get(reverse('center:contacts')), 'class="u-closing"')
+
+    def test_page_buttons_bring_their_topic_to_contacts(self):
+        for name, page in pages.PAGES.items():
+            topic = page['cta']['topic']
+            href = reverse('center:contacts') + (f'?tema={topic}' if topic else '')
+            with self.subTest(page=name):
+                self.assertContains(self.client.get(reverse(f'center:{name}')),
+                                    f'href="{href}">{page["cta"]["label"]}<')
+            if topic:
+                self.assertIn(topic, dict(pages.TOPICS))
+
+    def test_learning_page_lists_both_academies(self):
+        html = self.client.get(reverse('center:learning')).content.decode()
+        for academy in content.ACADEMIES:
+            with self.subTest(academy=academy['slug']):
+                self.assertIn(academy['name'], html)
+                self.assertIn(f'href="{reverse(academy["url_name"])}"', html)
+
+    def test_lab_does_not_claim_accreditation(self):
+        self.assertContains(self.client.get(reverse('center:lab')), 'не є акредитованими')
 
 
 class PlatformBrandTests(TestCase):
@@ -185,15 +237,13 @@ class MobileMenuTests(TestCase):
 
 
 class ServicesTests(TestCase):
-    def test_every_section_has_an_anchor(self):
-        response = self.client.get(reverse('center:services'))
-        slugs = [unit['slug'] for unit in content.SERVICES + [content.INCUBATOR]]
-        for slug in slugs + ['academies']:
-            with self.subTest(slug=slug):
-                self.assertContains(response, f'id="{slug}"')
-
-    def test_services_start_with_research_and_consulting(self):
-        self.assertEqual([unit['slug'] for unit in content.SERVICES[:3]], ['lab', 'product', 'pilot'])
+    def test_services_page_leads_to_each_service(self):
+        html = self.client.get(reverse('center:services')).content.decode()
+        jump = html[html.index('class="u-jump"'):]
+        jump = jump[:jump.index('</nav>')]
+        for url_name in ('center:product', 'center:consulting', 'center:projects', 'center:lab'):
+            with self.subTest(url_name=url_name):
+                self.assertIn(f'href="{reverse(url_name)}"', jump)
 
     def test_old_directions_address_redirects(self):
         self.assertRedirects(self.client.get('/directions/'), '/services/',
@@ -242,7 +292,7 @@ class FoodAcademyTests(TestCase):
 class FloorPlanTests(TestCase):
     def test_svg_coordinates_are_not_localized(self):
         # Українська локаль пише дроби з комою — у SVG це зламало б план.
-        html = self.client.get('/').content.decode()
+        html = self.client.get(reverse('center:about')).content.decode()
         svg = html[html.index('<svg viewBox'):html.index('</svg>', html.index('<svg viewBox'))]
         self.assertFalse(re.search(r'(?:x|y|width|height)="\d+,\d', svg))
         self.assertIn('x="101.0"', svg)
@@ -264,7 +314,7 @@ class SharedSpaceTests(TestCase):
                 self.assertTrue(any(direction['slug'] in room['uses'] for room in content.PLAN_ROOMS))
 
     def test_plan_marks_rooms_for_the_direction_filter(self):
-        html = self.client.get('/').content.decode()
+        html = self.client.get(reverse('center:about')).content.decode()
         self.assertIn('data-plan-filter', html)
         self.assertIn('data-uses="distilling fermentation"', html)
         for direction in content.DIRECTIONS:
@@ -272,21 +322,74 @@ class SharedSpaceTests(TestCase):
 
 
 class CenterContactTests(TestCase):
-    data = {'name': 'Олена', 'phone': '+380501112233', 'interest': '20 т гарбуза',
+    url = '/contacts/'
+    data = {'name': 'Олена', 'company': 'ФГ «Гарбуз»', 'phone': '+380501112233',
+            'interest': 'Розробка харчового продукту', 'details': '20 т гарбуза',
             'consent': 'on'}
 
     def test_center_request_is_marked_as_center(self):
-        response = self.client.post('/', self.data)
+        response = self.client.post(self.url, self.data)
         self.assertContains(response, 'Дякуємо!')
         request = ContactRequest.objects.get()
         self.assertEqual(request.source, ContactRequest.Source.CENTER)
-        self.assertEqual(request.interest, '20 т гарбуза')
+        self.assertEqual(request.company, 'ФГ «Гарбуз»')
+        self.assertEqual(request.interest, 'Розробка харчового продукту')
+        self.assertEqual(request.details, '20 т гарбуза')
+
+    def test_form_offers_every_topic(self):
+        html = self.client.get(self.url).content.decode()
+        for _, label in pages.TOPICS:
+            with self.subTest(topic=label):
+                self.assertIn(f'<option value="{label}">{label}</option>', html)
+
+    def test_topic_from_the_address_is_preselected(self):
+        response = self.client.get(self.url, {'tema': 'lab'})
+        self.assertEqual(response.context['form'].initial, {'interest': 'Лабораторні дослідження'})
+        self.assertEqual(self.client.get(self.url, {'tema': 'wine'}).context['form'].initial, {})
+
+    def test_unknown_topic_is_rejected(self):
+        response = self.client.post(self.url, {**self.data, 'interest': 'Вино'})
+        self.assertContains(response, 'u-error')
+        self.assertFalse(ContactRequest.objects.exists())
 
     def test_academy_request_stays_academy(self):
         self.client.post(reverse('core:lecturers'), self.data)
         self.assertEqual(ContactRequest.objects.get().source, ContactRequest.Source.ACADEMY)
 
     def test_invalid_request_shows_errors_and_saves_nothing(self):
-        response = self.client.post('/', {'name': 'Олена'})
+        response = self.client.post(self.url, {'name': 'Олена'})
         self.assertContains(response, 'u-error')
         self.assertFalse(ContactRequest.objects.exists())
+
+
+class NewsTests(TestCase):
+    """Новини пишуть в адмінці; на сайті — лише опубліковані."""
+
+    def setUp(self):
+        self.post = News.objects.create(
+            title='Центр відкрив набір', slug='nabir', summary='Коротко про набір.',
+            body='Перший абзац.\n\nДругий абзац.', is_published=True)
+        News.objects.create(title='Чернетка', slug='chernetka', summary='—', body='—')
+
+    def test_list_shows_only_published(self):
+        response = self.client.get(reverse('center:news'))
+        self.assertContains(response, 'Центр відкрив набір')
+        self.assertNotContains(response, 'Чернетка')
+        self.assertContains(response, f'href="{self.post.get_absolute_url()}"')
+
+    def test_post_page_and_hidden_draft(self):
+        response = self.client.get(self.post.get_absolute_url())
+        self.assertContains(response, '<p>Другий абзац.</p>', html=True)
+        self.assertEqual(self.client.get('/news/chernetka/').status_code, 404)
+
+    def test_home_shows_latest_news_only_when_there_are_any(self):
+        self.assertContains(self.client.get('/'), 'Переглянути всі новини')
+        News.objects.all().delete()
+        self.assertNotContains(self.client.get('/'), 'Переглянути всі новини')
+
+    def test_empty_section_says_so(self):
+        News.objects.all().delete()
+        self.assertContains(self.client.get(reverse('center:news')), escape(pages.NEWS['empty']))
+
+    def test_every_rubric_is_described(self):
+        self.assertEqual(set(pages.NEWS['rubrics']), set(News.Rubric.values))

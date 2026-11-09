@@ -1,10 +1,21 @@
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, render
 from django.views import View
 
-from . import content
+from . import content, pages
 from .forms import CenterContactForm, FoodAcademyContactForm
+from .models import News
 
 TITLE = content.NAME
+
+
+def plan_context():
+    """Усе, що потрібно плану приміщення (`center/includes/floor-plan.html`)."""
+    return {
+        'directions': content.DIRECTIONS,
+        'plan': content.PLAN,
+        'plan_rooms': content.PLAN_ROOMS,
+        'plan_kinds': content.PLAN_KINDS,
+    }
 
 
 class ContactPageView(View):
@@ -33,44 +44,84 @@ class ContactPageView(View):
         return render(request, self.template_name, self._context(form=form))
 
 
-class HomeView(ContactPageView):
-    """Головна Центру: що він робить (послуги), для кого і де — і дві академії."""
+class HomeView(View):
+    """Головна Центру: що він робить, для кого і як іде проєкт.
 
-    template_name = 'center/home.html'
+    Форми тут немає — кожна кнопка веде на «Контакти».
+    """
+
+    def get(self, request):
+        return render(request, 'center/home.html', {
+            'page_title': f'{TITLE} — UFIC',
+            'page_description': pages.HOME['description'],
+            'home': pages.HOME,
+            'directions': content.DIRECTIONS,
+            'news': News.objects.filter(is_published=True)[:3],
+        })
+
+
+class PageView(View):
+    """Типова сторінка Центру: інтро й секції з `pages.PAGES[page]`."""
+
+    page = None
+
+    def get(self, request):
+        page = pages.PAGES[self.page]
+        ctx = {
+            'page_title': f'{page["kicker"]} — {TITLE}',
+            'page_description': page['description'],
+            'page': page,
+            'links': [pages.PAGES[name] for name in page.get('links', [])],
+        }
+        kinds = {section['kind'] for section in page['sections']}
+        if 'plan' in kinds:
+            ctx.update(plan_context())
+        if 'academies' in kinds:
+            ctx['academies'] = content.ACADEMIES
+        return render(request, 'center/page.html', ctx)
+
+
+class NewsView(View):
+    def get(self, request):
+        news = pages.NEWS
+        rubrics = [{'title': label, 'text': news['rubrics'][value]}
+                   for value, label in News.Rubric.choices]
+        return render(request, 'center/news.html', {
+            'page_title': f'{news["kicker"]} — {TITLE}',
+            'page_description': news['description'],
+            'page': news,
+            'rubrics': rubrics,
+            'posts': News.objects.filter(is_published=True),
+        })
+
+
+class NewsDetailView(View):
+    def get(self, request, slug):
+        post = get_object_or_404(News, slug=slug, is_published=True)
+        return render(request, 'center/news_detail.html', {
+            'page_title': f'{post.title} — {TITLE}',
+            'page_description': post.summary,
+            'post': post,
+        })
+
+
+class ContactsView(ContactPageView):
+    """«Контакти»: звернення до Центру. Кнопки сторінок передають тему (`?tema=`)."""
+
+    template_name = 'center/contacts.html'
     form_class = CenterContactForm
 
     def page_context(self):
-        return {
-            'page_title': f'{TITLE} — UFIC',
-            'page_description': content.DESCRIPTION,
-            'path': content.PATH,
-            'farmer_case': content.FARMER_CASE,
-            'directions': content.DIRECTIONS,
-            'services': content.SERVICES,
-            'incubator': content.INCUBATOR,
-            'academies': content.ACADEMIES,
-            'plan': content.PLAN,
-            'plan_rooms': content.PLAN_ROOMS,
-            'plan_kinds': content.PLAN_KINDS,
-            'plan_area': content.PLAN_AREA,
+        page = pages.CONTACTS
+        ctx = {
+            'page_title': f'{page["kicker"]} — {TITLE}',
+            'page_description': page['description'],
+            'page': page,
         }
-
-
-class ServicesView(View):
-    template_name = 'center/services.html'
-
-    def get(self, request):
-        return render(request, self.template_name, {
-            'page_title': f'Послуги — {TITLE}',
-            'page_description': (
-                'Дослідження сировини, консалтинг і розробка продукту, прототипи '
-                'та пілотні партії, комерціалізація, переробка побічної сировини — '
-                'і дві академії: дистиляції та харчових інновацій.'
-            ),
-            'services': content.SERVICES,
-            'incubator': content.INCUBATOR,
-            'academies': content.ACADEMIES,
-        })
+        topic = dict(pages.TOPICS).get(self.request.GET.get('tema'))
+        if topic:
+            ctx['form'] = self.form_class(initial={'interest': topic})
+        return ctx
 
 
 class FoodAcademyView(ContactPageView):

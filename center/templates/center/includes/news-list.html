@@ -1,0 +1,13 @@
+{# Картки матеріалів «Новин та подій» — на сторінці новин і на головній. #}
+<ul class="u-news" data-stagger>
+    {% for post in posts %}
+    <li data-reveal>
+        <a class="u-news-card" href="{{ post.get_absolute_url }}">
+            <span class="u-news-meta"><span>{{ post.get_rubric_display }}</span> <time datetime="{{ post.date|date:'Y-m-d' }}">{{ post.date|date:'j E Y' }}</time></span>
+            <h3>{{ post.title }}</h3>
+            <p>{{ post.summary }}</p>
+            <span class="u-more">Читати <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></span>
+        </a>
+    </li>
+    {% endfor %}
+</ul>
