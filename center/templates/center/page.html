@@ -32,7 +32,7 @@
 </section>
 
 {% for section in page.sections %}
-<section class="u-section{% cycle ' u-section-tint' '' %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
+<section class="u-section{% if section.tone == 'dark' %} u-dark{% else %}{% cycle ' u-section-tint' '' %}{% endif %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
     {% include "center/includes/section.html" with last=forloop.last cta=page.cta %}
 </section>
 {% endfor %}
@@ -56,7 +56,7 @@
     </div>
 </section>
 {% for section in part.sections %}
-<section class="u-section{% cycle ' u-section-tint' '' %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
+<section class="u-section{% if section.tone == 'dark' %} u-dark{% else %}{% cycle ' u-section-tint' '' %}{% endif %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
     {% include "center/includes/section.html" with last=forloop.last cta=part.cta %}
 </section>
 {% endfor %}

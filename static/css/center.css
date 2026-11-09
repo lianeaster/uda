@@ -472,7 +472,7 @@ body.ufic {
 
 /* Блок послуги на «Що ми робимо»: темна смуга з назвою й фото відділяє
    послуги одну від одної. */
-.u-part { background: var(--green-900); color: #fff; }
+.u-part { color: #fff; }
 .u-part h2 { font-size: clamp(32px, 3.8vw, 50px); line-height: 1.08; color: #fff; }
 .u-part .u-kicker { color: var(--orange); }
 .u-part .u-lead { margin-top: 20px; color: var(--green-100); }
@@ -576,6 +576,65 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
 .u-closing-lead { margin-top: 16px; font-size: 21px; color: #fff; }
 .u-closing-row p { max-width: 38em; margin-top: 10px; font-size: 18px; color: var(--green-100); }
 .u-closing-row .u-btn { flex: none; }
+
+/* --- темні секції --------------------------------------------------------
+   Тло — темно-зелене з двома відсвітами фірмових кольорів, як у героя.
+   Чергуються зі світлими, щоб сторінка мала ритм: `u-dark` на головній і
+   `tone: 'dark'` у секцій типових сторінок. Шапки послуг (.u-part) — те саме тло. */
+
+.u-dark, .u-part {
+  background:
+    radial-gradient(700px 420px at 92% 0%, rgba(252, 176, 64, .12), transparent 62%),
+    radial-gradient(640px 520px at 0% 100%, rgba(15, 117, 189, .12), transparent 60%),
+    var(--green-900);
+}
+.u-dark { color: var(--green-100); }
+.u-dark :is(h2, h3) { color: #fff; }
+.u-dark .u-lead { color: var(--green-200); }
+.u-dark .u-kicker { color: var(--orange); }
+.u-dark .u-prose, .u-dark .u-after p { color: var(--green-100); }
+.u-dark .u-quote { color: #fff; }
+.u-dark .u-note { border-left-color: var(--orange); background: rgba(255, 255, 255, .06); color: var(--green-100); }
+.u-dark :is(.u-card, .u-steps li, .u-asks li, .u-rows) { background: rgba(255, 255, 255, .05); border-color: rgba(255, 255, 255, .12); }
+.u-dark .u-who li { background: rgba(255, 255, 255, .05); }
+.u-dark :is(.u-card p, .u-steps span, .u-who span, .u-row-body p) { color: var(--green-200); }
+.u-dark :is(.u-asks li, .u-bullets li, .u-steps strong, .u-who strong) { color: #fff; }
+.u-dark .u-steps li::before { background: var(--orange); color: var(--green-900); }
+.u-dark :is(.u-card-icon, .u-row-icon) { background: rgba(255, 255, 255, .08); color: var(--orange); }
+.u-dark .u-row + .u-row { border-top-color: rgba(255, 255, 255, .12); }
+.u-dark .u-more { color: var(--orange); }
+.u-dark .u-btn { background: #fff; border-color: #fff; color: var(--green) !important; }
+.u-dark .u-btn:hover { background: var(--green-100); border-color: var(--green-100); }
+
+/* Запитання на головній підсвічуються по черзі (data-cycle). Підйом — через
+   `translate`, бо `transform` тримає анімація появи. */
+.u-asks li { transition: border-color .4s, box-shadow .4s, translate .4s var(--ease), background .4s; }
+.u-asks li.is-on { translate: 0 -3px; border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 14px 34px rgba(0, 0, 0, .22); }
+.u-dark .u-asks li.is-on { background: rgba(252, 176, 64, .1); }
+
+/* --- бігучий рядок під героєм ------------------------------------------- */
+
+.u-ticker { overflow: hidden; background: var(--green-900); color: var(--green-100); }
+.u-ticker-track { display: flex; width: max-content; }
+.u-ticker ul { flex: none; display: flex; margin: 0; padding: 20px 0; list-style: none; }
+.u-ticker li { display: inline-flex; align-items: center; gap: 10px; padding-left: 28px; font-size: 19px; white-space: nowrap; }
+.u-ticker li::after {
+  content: ""; width: 9px; height: 9px; margin-left: 18px;
+  border-radius: 100% 0; background: var(--orange); box-shadow: 12px -3px 0 -2px var(--blue);
+}
+.u-ticker strong { font-weight: 600; color: #fff; }
+.u-ticker .ic { width: 18px; height: 18px; color: var(--orange); stroke-width: 2.4; }
+/* Без руху стрічка стоїть: одна копія, і її можна погортати. */
+html:not(.motion) .u-ticker { overflow-x: auto; }
+html:not(.motion) .u-ticker ul + ul { display: none; }
+
+/* --- смужка прокрутки в шапці -------------------------------------------- */
+
+.u-progress { position: absolute; left: 0; right: 0; bottom: -1px; height: 3px; pointer-events: none; }
+.u-progress i {
+  display: block; height: 100%; transform: scaleX(0); transform-origin: left center;
+  background: linear-gradient(90deg, var(--orange), var(--blue));
+}
 
 /* --- новини -------------------------------------------------------------- */
 
@@ -747,6 +806,35 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
 }
 .motion .u-page-media.is-revealed img { clip-path: inset(-60px); transform: none; }
 
+/* Перший екран: рядки заголовка виїжджають по черзі, за ними — слова
+   гасла; колаж іде за курсором, кожен шар на своїй глибині. */
+.motion .u-hero h1 > span { animation: u-rise .8s var(--ease) both; }
+.motion .u-hero h1 > span:nth-child(2) { animation-delay: .12s; }
+.motion .u-hero h1 > span:nth-child(3) { animation-delay: .24s; }
+.motion .u-motto span { display: inline-block; animation: u-pop-in .5s var(--spring) both; }
+.motion .u-motto span:nth-child(1) { animation-delay: .55s; }
+.motion .u-motto span:nth-child(2) { animation-delay: .7s; }
+.motion .u-motto span:nth-child(3) { animation-delay: .85s; }
+.motion [data-parallax] > * { transition: translate .6s var(--ease); }
+.motion [data-parallax] .u-collage-raw { translate: calc(var(--px, 0) * -14px) calc(var(--py, 0) * -14px); }
+.motion [data-parallax] .u-collage-lab { translate: calc(var(--px, 0) * 22px) calc(var(--py, 0) * 22px); }
+.motion [data-parallax] .u-collage-product { translate: calc(var(--px, 0) * 30px) calc(var(--py, 0) * 30px); }
+.motion [data-parallax] .u-hero-seal { translate: calc(var(--px, 0) * -26px) calc(var(--py, 0) * -26px); }
+
+/* Бігучий рядок: дві однакові копії, зсув на половину — і шва не видно.
+   Під курсором стає. */
+.motion .u-ticker-track { animation: u-marquee 48s linear infinite; }
+.u-ticker:hover .u-ticker-track { animation-play-state: paused; }
+@keyframes u-marquee { to { transform: translateX(-50%); } }
+
+/* Картки: світлова пляма йде за курсором (--mx, --my ставить center.js). */
+.motion :is(.u-card, .u-news-card) { position: relative; overflow: hidden; }
+.motion :is(.u-card, .u-news-card)::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .3s;
+  background: radial-gradient(280px circle at var(--mx, 50%) var(--my, 50%), rgba(252, 176, 64, .18), transparent 65%);
+}
+.motion :is(.u-card, .u-news-card):hover::after { opacity: 1; }
+
 /* Дрібниці: листки кікера проростають, «Працює» пульсує. */
 .motion .u-status-live { animation: u-pulse 2.4s ease-out 1.5s infinite; }
 .motion .is-revealed .u-kicker::before,
@@ -782,7 +870,7 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .u-btn, .u-card, .u-news-card, .u-more .ic { transition: none; }
+  .u-btn, .u-card, .u-news-card, .u-more .ic, .u-asks li { transition: none; }
 }
 
 /* --- адаптив ------------------------------------------------------------- */
@@ -862,6 +950,8 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
   .u-collage .u-hero-seal { width: 124px; height: 124px; left: 2%; bottom: 2%; }
   .u-lead { font-size: 19px; }
   .u-section, .u-contact, .u-closing { padding: 64px 0; }
+  .u-ticker li { font-size: 16.5px; padding-left: 20px; }
+  .u-ticker ul { padding: 14px 0; }
   .u-stats { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .u-stats dt { font-size: 28px; }
   .u-stats dd { font-size: 13px; }

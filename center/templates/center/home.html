@@ -30,7 +30,7 @@
             </div>
         </div>
 
-        <figure class="u-collage" data-reveal>
+        <figure class="u-collage" data-reveal data-parallax>
             <div class="u-collage-tile u-collage-raw">
                 <img src="{% static 'img/center/field.jpg' %}" alt="Пшеничне поле на світанку" width="749" height="1124" loading="eager">
                 <span class="u-collage-tag"><b>1</b>Сировина</span>
@@ -48,6 +48,23 @@
     </div>
 </section>
 
+{% comment %}
+Бігучий рядок «сировина → продукт» відділяє перший екран від решти.
+Список двічі поспіль — щоб стрічка йшла без шва; друга копія для читача
+екрана схована. Без руху стрічка стоїть і гортається пальцем.
+{% endcomment %}
+<div class="u-ticker" aria-label="Що буває із сировиною після переробки">
+    <div class="u-ticker-track">
+        {% for copy in "12" %}
+        <ul{% if not forloop.first %} aria-hidden="true"{% endif %}>
+            {% for raw, product in home.ticker %}
+            <li>{{ raw }} <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg> <strong>{{ product }}</strong></li>
+            {% endfor %}
+        </ul>
+        {% endfor %}
+    </div>
+</div>
+
 <section class="u-section" id="pro-centr">
     <div class="u-wrap u-split">
         <div data-reveal>
@@ -58,17 +75,23 @@
             <p class="u-lead">{{ home.intro.lead }}</p>
             {% for p in home.intro.paragraphs %}<p>{{ p }}</p>{% endfor %}
             <p><a class="u-more" href="{% url 'center:about' %}">Про Центр <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a></p>
+            <dl class="u-stats u-stats-compact">
+                {% for number, label in stats %}
+                <div><dt><span data-count>{{ number }}</span></dt><dd>{{ label }}</dd></div>
+                {% endfor %}
+            </dl>
         </div>
     </div>
 </section>
 
-<section class="u-section u-section-tint">
+<section class="u-section u-dark">
     <div class="u-wrap">
         <div class="u-head">
             <h2 data-reveal>{{ home.potential.title }}</h2>
             {% for p in home.potential.paragraphs %}<p class="u-lead" data-reveal>{{ p }}</p>{% endfor %}
         </div>
-        <ul class="u-asks u-asks-questions" data-play="li">
+        {# Запитання підсвічуються по черзі (data-cycle), як думки, що спадають одна за одною. #}
+        <ul class="u-asks u-asks-questions" data-play="li" data-cycle>
             {% for q in home.potential.questions %}<li>{{ q }}</li>{% endfor %}
         </ul>
         <div class="u-after" data-reveal>
@@ -98,7 +121,7 @@
     </div>
 </section>
 
-<section class="u-section u-section-tint" id="dlya-kogo">
+<section class="u-section u-dark" id="dlya-kogo">
     <div class="u-wrap">
         <div class="u-head">
             <h2 data-reveal>Для кого працює UFIC</h2>

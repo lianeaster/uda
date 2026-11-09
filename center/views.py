@@ -57,6 +57,11 @@ class HomeView(View):
             'home': pages.HOME,
             'directions': content.DIRECTIONS,
             'news': News.objects.filter(is_published=True)[:3],
+            'stats': [
+                (len(pages.HOME['capabilities']), 'напрямів роботи Центру'),
+                (len(pages.HOME['stages']), 'етапи від задуму до виробництва'),
+                (len(content.DIRECTIONS), 'напрямів продуктів'),
+            ],
         })
 
 

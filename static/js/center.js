@@ -12,6 +12,12 @@
  *  [data-count]              число рахує від нуля, коли його видно.
  *  [data-morph]              пункти списку змінюють один одного по колу.
  *  [data-emblem]             клік програє складання логотипа ще раз.
+ *  [data-parallax]           сцена ледь іде за курсором (--px, --py від -.5
+ *                            до .5); лише з мишею.
+ *  [data-cycle]              пункти по черзі отримують .is-on, поки сцена
+ *                            грає (.is-playing від data-play).
+ *  [data-progress]           смужка прокрутки сторінки — працює й без руху.
+ *  .u-card, .u-news-card     світлова пляма йде за курсором (--mx, --my).
  */
 (function () {
   var motion = document.documentElement.classList.contains('motion');
@@ -70,7 +76,60 @@
     });
   });
 
+  // --- смужка прокрутки ------------------------------------------------------
+  // Не анімація, а підказка, де ти на сторінці, тож працює і з «менше руху».
+  var bar = document.querySelector('[data-progress]');
+  if (bar) {
+    var queued = false;
+    var update = function () {
+      var root = document.documentElement;
+      var max = root.scrollHeight - root.clientHeight;
+      bar.style.transform = 'scaleX(' + (max > 0 ? Math.min(window.scrollY / max, 1) : 0) + ')';
+      queued = false;
+    };
+    window.addEventListener('scroll', function () {
+      if (!queued) { queued = true; requestAnimationFrame(update); }
+    }, { passive: true });
+    update();
+  }
+
   if (!motion) return;
+
+  // --- колаж героя йде за курсором, картки ловлять світло --------------------
+  if (matchMedia('(pointer: fine)').matches) {
+    each(document.querySelectorAll('[data-parallax]'), function (scene) {
+      var area = scene.closest('section') || scene;
+      area.addEventListener('pointermove', function (event) {
+        var box = area.getBoundingClientRect();
+        scene.style.setProperty('--px', ((event.clientX - box.left) / box.width - 0.5).toFixed(3));
+        scene.style.setProperty('--py', ((event.clientY - box.top) / box.height - 0.5).toFixed(3));
+      });
+      area.addEventListener('pointerleave', function () {
+        scene.style.setProperty('--px', 0);
+        scene.style.setProperty('--py', 0);
+      });
+    });
+
+    document.addEventListener('pointermove', function (event) {
+      var card = event.target.closest && event.target.closest('.u-card, .u-news-card');
+      if (!card) return;
+      var box = card.getBoundingClientRect();
+      card.style.setProperty('--mx', (event.clientX - box.left) + 'px');
+      card.style.setProperty('--my', (event.clientY - box.top) + 'px');
+    }, { passive: true });
+  }
+
+  // --- пункти підсвічуються по черзі ----------------------------------------
+  each(document.querySelectorAll('[data-cycle]'), function (list) {
+    var items = list.children, i = -1;
+    if (!items.length) return;
+    setInterval(function () {
+      if (document.hidden || !list.classList.contains('is-playing')) return;
+      if (items[i]) items[i].classList.remove('is-on');
+      i = (i + 1) % items.length;
+      items[i].classList.add('is-on');
+    }, 2200);
+  });
 
   // --- лічильники -----------------------------------------------------------
   function countUp(el) {
