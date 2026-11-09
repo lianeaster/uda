@@ -71,27 +71,15 @@
             </button>
             <nav class="u-nav" id="u-nav" aria-label="Головне меню">
             {% comment %}
-            Меню Центру — розділи з `center.pages.NAV`. Чотири послуги зібрано
-            під «Що ми робимо»: на широкому екрані вони випадають під ним (при
-            наведенні чи фокусі), у сендвічі стоять відступом одразу під ним.
-            Вхід на навчальну платформу тут свідомо не в меню: він у шапках
-            академій і в підвалі.
+            Меню Центру — розділи з `center.pages.NAV`. Чотири послуги — блоки
+            сторінки «Що ми робимо», окремих пунктів у них немає. Вхід на
+            навчальну платформу тут свідомо не в меню: він у шапках академій і
+            в підвалі.
             {% endcomment %}
             {% block nav %}
                 {% with here=request.resolver_match.url_name %}
                 {% for item in center_nav %}
-                {% if item.children %}
-                <div class="u-nav-group">
-                    <a href="{{ item.url }}"{% if here == item.name %} aria-current="page"{% elif here in item.match %} class="is-active"{% endif %}>{{ item.title }}</a>
-                    <ul class="u-subnav">
-                        {% for child in item.children %}
-                        <li><a href="{{ child.url }}"{% if here == child.name %} aria-current="page"{% endif %}>{{ child.title }}</a></li>
-                        {% endfor %}
-                    </ul>
-                </div>
-                {% else %}
                 <a href="{{ item.url }}"{% if here == item.name %} aria-current="page"{% elif here in item.match %} class="is-active"{% endif %}>{{ item.title }}</a>
-                {% endif %}
                 {% endfor %}
                 {% endwith %}
                 <a class="u-btn u-btn-sm" href="{% url 'center:contacts' %}">Обговорити проєкт</a>

@@ -2,10 +2,11 @@
 {% load static %}
 
 {% comment %}
-Типова сторінка Центру: інтро з фото, далі секції з `center.pages.PAGES`.
-Що вміє кожен `kind` — у шапці `center/pages.py`. Секції чергують тло;
-кнопка сторінки (`page.cta`) стоїть наприкінці останньої й веде на
-«Контакти» з обраною темою звернення.
+Типова сторінка Центру: інтро з фото, далі секції з `center.pages.PAGES`
+(вміст секції — `includes/section.html`). Секції чергують тло; кнопка
+сторінки (`page.cta`) стоїть наприкінці останньої й веде на «Контакти» з
+обраною темою звернення. «Що ми робимо» має ще й `parts` — чотири послуги
+блоками, кожна зі своїми секціями й кнопкою.
 {% endcomment %}
 
 {% block content %}
@@ -16,9 +17,9 @@
             <h1>{{ page.title }}</h1>
             <p class="u-lead">{{ page.lead }}</p>
             {% for p in page.paragraphs %}<p class="u-intro-text">{{ p }}</p>{% endfor %}
-            {% if links %}
-            <nav class="u-jump" aria-label="Докладно про напрями" data-play="a">
-                {% for link in links %}<a href="{{ link.url }}">{{ link.kicker }}</a>{% endfor %}
+            {% if page.parts %}
+            <nav class="u-jump" aria-label="Послуги на цій сторінці" data-play="a">
+                {% for part in page.parts %}<a href="#{{ part.id }}">{{ part.kicker }}</a>{% endfor %}
             </nav>
             {% endif %}
         </div>
@@ -32,96 +33,32 @@
 
 {% for section in page.sections %}
 <section class="u-section{% cycle ' u-section-tint' '' %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
-    <div class="u-wrap">
-        {% if section.kind == 'text' %}
-        <div class="u-split">
-            <div data-reveal>
-                <h2>{{ section.title }}</h2>
-                {% if section.lead %}<p class="u-lead">{{ section.lead }}</p>{% endif %}
-            </div>
-            <div class="u-prose" data-reveal>
-                {% for p in section.paragraphs %}<p>{{ p }}</p>{% endfor %}
-                {% if section.quote %}<blockquote class="u-quote">{{ section.quote }}</blockquote>{% endif %}
-                {% if section.note %}<p class="u-note">{{ section.note }}</p>{% endif %}
-                {% if forloop.last %}{% include "center/includes/page-cta.html" %}{% endif %}
-            </div>
+    {% include "center/includes/section.html" with last=forloop.last cta=page.cta %}
+</section>
+{% endfor %}
+
+{% comment %}
+Послуги на «Що ми робимо»: кожна — блок із заголовком і фото, своїми
+секціями й кнопкою наприкінці. Якір — на заголовку блоку.
+{% endcomment %}
+{% for part in page.parts %}
+<section class="u-section u-part" id="{{ part.id }}">
+    <div class="u-wrap u-page-intro-grid">
+        <div data-reveal>
+            <span class="u-kicker">{{ part.kicker }}</span>
+            <h2>{{ part.title }}</h2>
+            <p class="u-lead">{{ part.lead }}</p>
+            {% for p in part.paragraphs %}<p class="u-intro-text">{{ p }}</p>{% endfor %}
         </div>
-        {% else %}
-        <div class="u-head">
-            <h2 data-reveal>{{ section.title }}</h2>
-            {% if section.lead %}<p class="u-lead" data-reveal>{{ section.lead }}</p>{% endif %}
-        </div>
-
-        {% if section.kind == 'cards' %}
-        <ul class="u-cards{% if section.cols == 2 %} u-cards-2{% endif %}" data-stagger>
-            {% for item in section.items %}
-            <li class="u-card" data-reveal>
-                {% if item.icon %}<span class="u-card-icon"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>{% endif %}
-                <h3>{{ item.title }}</h3>
-                {% if item.text %}<p>{{ item.text }}</p>{% endif %}
-                {% for p in item.paragraphs %}<p>{{ p }}</p>{% endfor %}
-            </li>
-            {% endfor %}
-        </ul>
-
-        {% elif section.kind == 'rows' %}
-        <ul class="u-rows u-rows-text">
-            {% for item in section.items %}
-            <li class="u-row" data-reveal>
-                <div class="u-row-head">
-                    <span class="u-row-icon"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>
-                    <h3>{{ item.title }}</h3>
-                </div>
-                <div class="u-row-body">
-                    {% for p in item.paragraphs %}<p>{{ p }}</p>{% endfor %}
-                    {% if item.url %}<a class="u-more" href="{{ item.url }}">Докладніше <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a>{% endif %}
-                </div>
-            </li>
-            {% endfor %}
-        </ul>
-
-        {% elif section.kind == 'steps' %}
-        <ol class="u-steps" data-play="li">
-            {% for item in section.items %}
-            <li><strong>{{ item.title }}</strong><span>{{ item.text }}</span></li>
-            {% endfor %}
-        </ol>
-
-        {% elif section.kind == 'list' %}
-        <ul class="{% if section.style == 'quotes' %}u-asks{% else %}u-bullets{% endif %}" data-play="li">
-            {% for item in section.items %}<li>{{ item }}</li>{% endfor %}
-        </ul>
-
-        {% elif section.kind == 'academies' %}
-        <div class="u-topic-list" data-stagger>
-            {% for a in academies %}
-            <article class="u-topic-card{% if a.live %} u-topic-card-live{% endif %}" data-reveal>
-                <header>
-                    <img src="{% static a.logo %}" alt="" width="56" height="56">
-                    <span class="u-status{% if a.live %} u-status-live{% endif %}">{{ a.status }}</span>
-                </header>
-                <span class="u-topic-kicker">Академія Центру</span>
-                <h3>{{ a.name }}</h3>
-                <p>{{ a.lead }}</p>
-                <ul>{% for topic in a.topics %}<li>{{ topic }}</li>{% endfor %}</ul>
-                <a class="u-more" href="{% url a.url_name %}">{% if a.live %}Курси й розклад{% else %}Сайт Академії{% endif %} <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a>
-            </article>
-            {% endfor %}
-        </div>
-
-        {% elif section.kind == 'plan' %}
-        {% include "center/includes/floor-plan.html" %}
-        {% endif %}
-
-        {% if section.after or section.note or forloop.last %}
-        <div class="u-after" data-reveal>
-            {% for p in section.after %}<p>{{ p }}</p>{% endfor %}
-            {% if section.note %}<p class="u-note">{{ section.note }}</p>{% endif %}
-            {% if forloop.last %}{% include "center/includes/page-cta.html" %}{% endif %}
-        </div>
-        {% endif %}
-        {% endif %}
+        <figure class="u-page-media" data-reveal>
+            <img src="{% static 'img/center/'|add:part.image %}" alt="{{ part.image_alt }}" loading="lazy">
+        </figure>
     </div>
 </section>
+{% for section in part.sections %}
+<section class="u-section{% cycle ' u-section-tint' '' %}"{% if section.id %} id="{{ section.id }}"{% endif %}>
+    {% include "center/includes/section.html" with last=forloop.last cta=part.cta %}
+</section>
+{% endfor %}
 {% endfor %}
 {% endblock %}

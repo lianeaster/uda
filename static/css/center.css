@@ -446,29 +446,10 @@ body.ufic {
 .u-thanks h3 { margin-bottom: 8px; }
 .u-form-hint { margin: -12px 0 20px; font-size: 16px; color: var(--ink-soft); }
 
-/* --- меню: «Що ми робимо» з чотирма послугами -------------------------- */
+/* --- меню --------------------------------------------------------------- */
 
+/* Новина — не окремий пункт меню, але «Новини» підсвічуються й на ній. */
 .u-nav a.is-active { color: var(--green); border-bottom-color: var(--green-200); }
-.u-nav-group { position: relative; }
-.u-nav-group > a::after {
-  content: ""; display: inline-block; width: 6px; height: 6px; margin-left: 8px;
-  border-right: 2px solid currentColor; border-bottom: 2px solid currentColor;
-  transform: translateY(-3px) rotate(45deg);
-}
-/* Підменю випадає при наведенні й при фокусі з клавіатури. Верхній відступ
-   — «місток», щоб курсор не губив меню дорогою від пункту до списку. */
-.u-subnav {
-  list-style: none; position: absolute; top: 100%; left: -16px; z-index: 5;
-  min-width: 320px; margin: 0; padding: 10px;
-  background: #fff; border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow-lg);
-  opacity: 0; visibility: hidden; transform: translateY(6px);
-  transition: opacity .2s, transform .2s var(--ease), visibility .2s;
-}
-.u-nav-group:hover .u-subnav,
-.u-nav-group:focus-within .u-subnav { opacity: 1; visibility: visible; transform: none; }
-.u-nav .u-subnav a { display: block; padding: 10px 12px; border: 0; border-radius: 10px; font-size: 16.5px; }
-.u-nav .u-subnav a:hover { background: var(--green-50); }
-.u-nav .u-subnav a[aria-current="page"] { background: var(--green-50); font-weight: 600; }
 
 /* --- сторінки розділів (center/page.html) -------------------------------- */
 
@@ -488,6 +469,14 @@ body.ufic {
 .u-page-intro h1 { font-size: clamp(36px, 4.2vw, 56px); line-height: 1.06; }
 .u-page-media { margin: 0; }
 .u-page-media img { width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-lg); }
+
+/* Блок послуги на «Що ми робимо»: темна смуга з назвою й фото відділяє
+   послуги одну від одної. */
+.u-part { background: var(--green-900); color: #fff; }
+.u-part h2 { font-size: clamp(32px, 3.8vw, 50px); line-height: 1.08; color: #fff; }
+.u-part .u-kicker { color: var(--orange); }
+.u-part .u-lead { margin-top: 20px; color: var(--green-100); }
+.u-part .u-intro-text { color: var(--green-200); }
 
 /* Гасло героя: три дієслова. */
 .u-motto { margin-top: 18px; font-size: 20px; font-weight: 600; letter-spacing: .02em; color: var(--green); }
@@ -853,16 +842,6 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
   .js .u-nav a:not(.u-btn) { padding: 14px 2px; font-size: 19px; border-bottom: 1px solid var(--line); }
   .js .u-nav a:not(.u-btn):hover { border-bottom-color: var(--line); }
   .js .u-nav .u-btn { margin: 18px 0 0; padding: 13px 20px; text-align: center; }
-  /* Без скрипта меню — рядок, що гортається: підменю там не випасти,
-     а «Що ми робимо» й так веде на сторінку з усіма чотирма послугами. */
-  .u-subnav { display: none; }
-  .js .u-nav.is-open .u-subnav {
-    display: block; position: static; min-width: 0; padding: 0 0 0 18px;
-    opacity: 1; visibility: visible; transform: none;
-    background: none; border: 0; box-shadow: none;
-  }
-  .js .u-nav.is-open .u-subnav a { padding: 11px 2px; font-size: 17px; border-radius: 0; }
-  .js .u-nav.is-open .u-subnav a:hover { background: none; }
   .js [id] { scroll-margin-top: 84px; }
 }
 

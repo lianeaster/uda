@@ -71,7 +71,6 @@ class PageView(View):
             'page_title': f'{page["kicker"]} — {TITLE}',
             'page_description': page['description'],
             'page': page,
-            'links': [pages.PAGES[name] for name in page.get('links', [])],
         }
         kinds = {section['kind'] for section in page['sections']}
         if 'plan' in kinds:

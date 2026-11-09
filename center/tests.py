@@ -74,12 +74,11 @@ class TwoAcademiesTests(TestCase):
 
 
 class StructureTests(TestCase):
-    """Десять розділів за структурою керівництва: головна, вісім сторінок у
-    меню (послуги — під «Що ми робимо») і контакти."""
+    """Розділи за структурою керівництва. Чотири послуги — не окремі
+    сторінки, а блоки однієї «Що ми робимо»."""
 
-    sections = ['center:home', 'center:about', 'center:services', 'center:product',
-             'center:consulting', 'center:projects', 'center:lab', 'center:learning',
-             'center:news', 'center:contacts']
+    sections = ['center:home', 'center:about', 'center:services', 'center:learning',
+                'center:news', 'center:contacts']
 
     def test_every_section_opens(self):
         for url_name in self.sections:
@@ -93,21 +92,24 @@ class StructureTests(TestCase):
             with self.subTest(url_name=url_name):
                 self.assertIn(f'href="{reverse(url_name)}"', header)
 
-    def test_services_sit_under_what_we_do(self):
-        html = self.client.get('/').content.decode()
-        group = html[html.index('class="u-nav-group"'):]
-        group = group[:group.index('</div>')]
-        self.assertIn(f'href="{reverse("center:services")}"', group)
-        for url_name in ('center:product', 'center:consulting', 'center:projects', 'center:lab'):
-            with self.subTest(url_name=url_name):
-                self.assertIn(f'href="{reverse(url_name)}"', group)
-        self.assertIn('Проєкти та пілотне виробництво', group)
+    def test_services_are_blocks_of_one_page(self):
+        html = self.client.get(reverse('center:services')).content.decode()
+        jump = html[html.index('class="u-jump"'):]
+        jump = jump[:jump.index('</nav>')]
+        for name, anchor in pages.SERVICE_ORDER.items():
+            with self.subTest(service=name):
+                self.assertIn(f'id="{anchor}"', html)
+                self.assertIn(f'href="#{anchor}"', jump)
+                self.assertIn(pages.SERVICES[name]['title'], html)
+        self.assertIn('Проєкти та пілотне виробництво', html)
+        for old in ('/product-development/', '/consulting/', '/projects/', '/laboratory/'):
+            with self.subTest(old=old):
+                self.assertEqual(self.client.get(old).status_code, 404)
 
     def test_current_section_is_marked_in_the_menu(self):
-        html = self.client.get(reverse('center:lab')).content.decode()
+        html = self.client.get(reverse('center:services')).content.decode()
         header = html[html.index('<header'):html.index('</header>')]
-        self.assertIn(f'<a href="{reverse("center:lab")}" aria-current="page">', header)
-        self.assertIn(f'<a href="{reverse("center:services")}" class="is-active">', header)
+        self.assertIn(f'<a href="{reverse("center:services")}" aria-current="page">', header)
 
     def test_home_hero_follows_the_brief(self):
         html = self.client.get('/').content.decode()
@@ -119,12 +121,20 @@ class StructureTests(TestCase):
         self.assertNotIn('академі', hero.lower())
         self.assertNotIn('навчальна платформа', hero.lower())
 
-    def test_home_capabilities_link_to_their_pages(self):
+    def test_home_capabilities_lead_to_their_blocks(self):
         html = self.client.get('/').content.decode()
-        for url_name in ('center:product', 'center:lab', 'center:projects',
-                         'center:consulting', 'center:learning'):
-            with self.subTest(url_name=url_name):
-                self.assertIn(f'class="u-card" href="{reverse(url_name)}"', html)
+        services = reverse('center:services')
+        for anchor in pages.SERVICE_ORDER.values():
+            with self.subTest(anchor=anchor):
+                self.assertIn(f'class="u-card" href="{services}#{anchor}"', html)
+        self.assertIn(f'class="u-card" href="{reverse("center:learning")}"', html)
+
+    def test_footer_leads_to_each_service(self):
+        html = self.client.get('/').content.decode()
+        footer = html[html.index('<footer'):html.index('</footer>')]
+        for anchor in pages.SERVICE_ORDER.values():
+            with self.subTest(anchor=anchor):
+                self.assertIn(f'href="{reverse("center:services")}#{anchor}"', footer)
 
     def test_every_page_ends_with_the_shared_call(self):
         for url_name in self.sections[1:-1]:
@@ -134,13 +144,16 @@ class StructureTests(TestCase):
         self.assertNotContains(self.client.get('/'), 'class="u-closing"')
         self.assertNotContains(self.client.get(reverse('center:contacts')), 'class="u-closing"')
 
-    def test_page_buttons_bring_their_topic_to_contacts(self):
-        for name, page in pages.PAGES.items():
+    def test_buttons_bring_their_topic_to_contacts(self):
+        services = self.client.get(reverse('center:services'))
+        blocks = [(name, page, self.client.get(reverse(f'center:{name}')))
+                  for name, page in pages.PAGES.items()]
+        blocks += [(name, part, services) for name, part in pages.SERVICES.items()]
+        for name, page, response in blocks:
             topic = page['cta']['topic']
             href = reverse('center:contacts') + (f'?tema={topic}' if topic else '')
-            with self.subTest(page=name):
-                self.assertContains(self.client.get(reverse(f'center:{name}')),
-                                    f'href="{href}">{page["cta"]["label"]}<')
+            with self.subTest(block=name):
+                self.assertContains(response, f'href="{href}">{page["cta"]["label"]}<')
             if topic:
                 self.assertIn(topic, dict(pages.TOPICS))
 
@@ -152,7 +165,7 @@ class StructureTests(TestCase):
                 self.assertIn(f'href="{reverse(academy["url_name"])}"', html)
 
     def test_lab_does_not_claim_accreditation(self):
-        self.assertContains(self.client.get(reverse('center:lab')), 'не є акредитованими')
+        self.assertContains(self.client.get(reverse('center:services')), 'не є акредитованими')
 
 
 class PlatformBrandTests(TestCase):
@@ -237,14 +250,6 @@ class MobileMenuTests(TestCase):
 
 
 class ServicesTests(TestCase):
-    def test_services_page_leads_to_each_service(self):
-        html = self.client.get(reverse('center:services')).content.decode()
-        jump = html[html.index('class="u-jump"'):]
-        jump = jump[:jump.index('</nav>')]
-        for url_name in ('center:product', 'center:consulting', 'center:projects', 'center:lab'):
-            with self.subTest(url_name=url_name):
-                self.assertIn(f'href="{reverse(url_name)}"', jump)
-
     def test_old_directions_address_redirects(self):
         self.assertRedirects(self.client.get('/directions/'), '/services/',
                              status_code=301, fetch_redirect_response=False)

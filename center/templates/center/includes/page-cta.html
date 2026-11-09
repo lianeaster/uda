@@ -1,6 +1,6 @@
 {# Кнопка сторінки: на «Контакти» з уже обраною темою звернення (`?tema=`). #}
-{% if page.cta %}
+{% if cta %}
 <div class="u-actions">
-    <a class="u-btn" href="{% url 'center:contacts' %}{% if page.cta.topic %}?tema={{ page.cta.topic }}{% endif %}">{{ page.cta.label }}</a>
+    <a class="u-btn" href="{% url 'center:contacts' %}{% if cta.topic %}?tema={{ cta.topic }}{% endif %}">{{ cta.label }}</a>
 </div>
 {% endif %}
