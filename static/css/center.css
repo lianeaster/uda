@@ -612,21 +612,95 @@ a.u-card:hover { transform: translateY(-3px); border-color: var(--green-200); bo
 .u-asks li.is-on { translate: 0 -3px; border-color: var(--orange); box-shadow: 0 0 0 1px var(--orange), 0 14px 34px rgba(0, 0, 0, .22); }
 .u-dark .u-asks li.is-on { background: rgba(252, 176, 64, .1); }
 
-/* --- бігучий рядок під героєм ------------------------------------------- */
+/* --- «сировина → продукт»: фото з повзунком (home.html, data-compare) ---
+   Продукт знизу, сировина зверху, обрізана по --pos. Повзунок — прозорий
+   range на весь кадр: тягнути можна будь-де, а на телефоні — за ручку. */
 
-.u-ticker { overflow: hidden; background: var(--green-900); color: var(--green-100); }
-.u-ticker-track { display: flex; width: max-content; }
-.u-ticker ul { flex: none; display: flex; margin: 0; padding: 20px 0; list-style: none; }
-.u-ticker li { display: inline-flex; align-items: center; gap: 10px; padding-left: 28px; font-size: 19px; white-space: nowrap; }
-.u-ticker li::after {
-  content: ""; width: 9px; height: 9px; margin-left: 18px;
-  border-radius: 100% 0; background: var(--orange); box-shadow: 12px -3px 0 -2px var(--blue);
+.u-compare-grid { display: grid; grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); gap: 56px; align-items: center; }
+.u-compare-grid .u-head { margin-bottom: 0; }
+.u-compare-tabs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 28px; }
+.u-dark .u-plan-chip { background: rgba(255, 255, 255, .06); border-color: rgba(255, 255, 255, .2); color: #fff; }
+.u-dark .u-plan-chip:hover { border-color: var(--orange); }
+.u-dark .u-plan-chip[aria-pressed="true"] { background: var(--orange); border-color: var(--orange); color: var(--green-900); }
+.u-compare-note { margin-top: 18px; font-size: 14px; color: var(--green-200); }
+
+.u-compare {
+  position: relative; aspect-ratio: 4 / 3; overflow: hidden; user-select: none;
+  border-radius: var(--radius-lg); background: var(--green-800); box-shadow: 0 30px 70px rgba(0, 0, 0, .35);
 }
-.u-ticker strong { font-weight: 600; color: #fff; }
-.u-ticker .ic { width: 18px; height: 18px; color: var(--orange); stroke-width: 2.4; }
-/* Без руху стрічка стоїть: одна копія, і її можна погортати. */
-html:not(.motion) .u-ticker { overflow-x: auto; }
-html:not(.motion) .u-ticker ul + ul { display: none; }
+.u-compare-pair { position: absolute; inset: 0; margin: 0; opacity: 0; visibility: hidden; transition: opacity .5s, visibility .5s; }
+.u-compare-pair.is-on { opacity: 1; visibility: visible; }
+.u-compare-pair img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.u-compare-before { position: absolute; inset: 0; clip-path: inset(0 calc(100% - var(--pos)) 0 0); }
+.u-compare-tag {
+  position: absolute; z-index: 1; top: 18px; left: 18px; padding: 7px 14px; border-radius: 999px;
+  background: rgba(31, 47, 24, .8); color: #fff; font-size: 14px;
+  -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+}
+/* Підписи по діагоналі: сировина вгорі ліворуч, продукт унизу праворуч —
+   так не налазять один на одного й на вузькому екрані. */
+.u-compare-tag-after { top: auto; left: auto; right: 18px; bottom: 18px; background: rgba(252, 176, 64, .94); color: var(--green-900); }
+.u-compare-handle {
+  position: absolute; z-index: 2; top: 0; bottom: 0; left: var(--pos); width: 3px; margin-left: -1.5px;
+  background: #fff; box-shadow: 0 0 14px rgba(0, 0, 0, .35); pointer-events: none;
+}
+.u-compare-handle i {
+  position: absolute; top: 50%; left: 50%; width: 58px; height: 58px; margin: -29px 0 0 -29px;
+  border-radius: 50%; background: #fff; box-shadow: var(--shadow-lg);
+}
+/* Дві стрілки ‹ › на ручці. */
+.u-compare-handle i::before, .u-compare-handle i::after {
+  content: ""; position: absolute; top: 50%; width: 9px; height: 9px; margin-top: -5px;
+  border-left: 2.5px solid var(--green); border-bottom: 2.5px solid var(--green);
+}
+.u-compare-handle i::before { left: 15px; transform: rotate(45deg); }
+.u-compare-handle i::after { right: 15px; transform: rotate(-135deg); }
+.u-compare:has(.u-compare-range:focus-visible) .u-compare-handle i { outline: 3px solid var(--orange); outline-offset: 3px; }
+.u-compare-range {
+  position: absolute; z-index: 3; inset: 0; width: 100%; height: 100%; margin: 0;
+  opacity: 0; cursor: ew-resize; -webkit-appearance: none; appearance: none; background: none;
+}
+.u-compare-range::-webkit-slider-thumb { -webkit-appearance: none; width: 64px; height: 100vh; }
+.u-compare-range::-moz-range-thumb { width: 64px; height: 100vh; border: 0; }
+
+/* --- етапи з фото (home.html, data-story) --------------------------------
+   Фото закріплене ліворуч і змінюється з етапом: нове «наливається» знизу,
+   як рідина в колбі логотипа. Етапи праворуч — по одному на екран. */
+
+.u-story-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 72px; align-items: start; }
+.u-story-media { position: sticky; top: 116px; z-index: 2; }
+.u-story-frame {
+  position: relative; overflow: hidden; height: min(620px, calc(100vh - 170px));
+  border-radius: var(--radius-lg); background: var(--green-800); box-shadow: 0 30px 70px rgba(0, 0, 0, .35);
+}
+.u-story-img {
+  position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: 0; transform: scale(1.08); clip-path: inset(100% 0 0 0);
+  transition: opacity .6s, transform 1.4s var(--ease), clip-path .9s cubic-bezier(.6, 0, .2, 1);
+}
+.u-story-img.is-on { opacity: 1; transform: none; clip-path: inset(0); }
+.u-story-count {
+  position: absolute; left: 20px; bottom: 22px; padding: 6px 16px; border-radius: 999px;
+  background: rgba(31, 47, 24, .78); color: #fff; font-size: 15px; letter-spacing: .1em;
+}
+.u-story-count b { font-size: 22px; color: var(--orange); }
+.u-story-bar { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: rgba(255, 255, 255, .15); }
+.u-story-bar i { display: block; height: 100%; background: var(--orange); transform: scaleX(.25); transform-origin: left center; transition: transform .6s var(--ease); }
+
+.u-story-steps { list-style: none; margin: 0; padding: 0; }
+.u-story-step {
+  display: flex; flex-direction: column; justify-content: center; gap: 10px; min-height: 62vh;
+  padding: 24px 0 24px 32px; border-left: 2px solid rgba(255, 255, 255, .12);
+  transition: opacity .5s, border-color .5s;
+}
+/* Неактивні етапи пригасають — лише зі скриптом, що вмикає активний. */
+.js .u-story-step { opacity: .32; }
+.js .u-story-step.is-active { opacity: 1; border-left-color: var(--orange); }
+.u-story-icon { display: grid; place-items: center; width: 60px; height: 60px; border-radius: 50%; background: rgba(255, 255, 255, .08); color: var(--orange); }
+.u-story-icon .ic { width: 30px; height: 30px; stroke-width: 1.3; }
+.u-story-no { font-size: 14px; letter-spacing: .16em; color: var(--orange); }
+.u-story-step h3 { font-size: clamp(26px, 2.6vw, 36px); line-height: 1.1; }
+.u-story-step p { max-width: 26em; font-size: 19px; color: var(--green-100); }
 
 /* --- смужка прокрутки в шапці -------------------------------------------- */
 
@@ -821,12 +895,6 @@ html:not(.motion) .u-ticker ul + ul { display: none; }
 .motion [data-parallax] .u-collage-product { translate: calc(var(--px, 0) * 30px) calc(var(--py, 0) * 30px); }
 .motion [data-parallax] .u-hero-seal { translate: calc(var(--px, 0) * -26px) calc(var(--py, 0) * -26px); }
 
-/* Бігучий рядок: дві однакові копії, зсув на половину — і шва не видно.
-   Під курсором стає. */
-.motion .u-ticker-track { animation: u-marquee 48s linear infinite; }
-.u-ticker:hover .u-ticker-track { animation-play-state: paused; }
-@keyframes u-marquee { to { transform: translateX(-50%); } }
-
 /* Картки: світлова пляма йде за курсором (--mx, --my ставить center.js). */
 .motion :is(.u-card, .u-news-card) { position: relative; overflow: hidden; }
 .motion :is(.u-card, .u-news-card)::after {
@@ -870,7 +938,8 @@ html:not(.motion) .u-ticker ul + ul { display: none; }
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   [data-reveal] { opacity: 1; transform: none; transition: none; }
-  .u-btn, .u-card, .u-news-card, .u-more .ic, .u-asks li { transition: none; }
+  .u-btn, .u-card, .u-news-card, .u-more .ic, .u-asks li,
+  .u-compare-pair, .u-story-img, .u-story-step, .u-story-bar i { transition: none; }
 }
 
 /* --- адаптив ------------------------------------------------------------- */
@@ -888,6 +957,12 @@ html:not(.motion) .u-ticker ul + ul { display: none; }
   .u-hero-grid, .u-contact-grid, .u-page-intro-grid, .u-split, .u-platform { grid-template-columns: 1fr; gap: 40px; }
   .u-cards, .u-news { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .u-cards-links > li { grid-column: auto !important; }
+  .u-compare-grid { grid-template-columns: 1fr; gap: 32px; }
+  /* На вузькому фото етапу стоїть смугою вгорі, етапи гортаються під ним. */
+  .u-story-grid { grid-template-columns: 1fr; gap: 0; }
+  .u-story-media { top: 76px; margin: 0 calc(var(--gutter) * -1); padding: 0 var(--gutter) 12px; background: var(--green-900); }
+  .u-story-frame { height: 38vh; }
+  .u-story-step { min-height: 52vh; }
   .u-rows-text .u-row { grid-template-columns: 1fr; }
   .u-closing-row { flex-direction: column; align-items: flex-start; }
   .u-rooms { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -950,8 +1025,6 @@ html:not(.motion) .u-ticker ul + ul { display: none; }
   .u-collage .u-hero-seal { width: 124px; height: 124px; left: 2%; bottom: 2%; }
   .u-lead { font-size: 19px; }
   .u-section, .u-contact, .u-closing { padding: 64px 0; }
-  .u-ticker li { font-size: 16.5px; padding-left: 20px; }
-  .u-ticker ul { padding: 14px 0; }
   .u-stats { grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
   .u-stats dt { font-size: 28px; }
   .u-stats dd { font-size: 13px; }

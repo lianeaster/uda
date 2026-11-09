@@ -49,21 +49,44 @@
 </section>
 
 {% comment %}
-Бігучий рядок «сировина → продукт» відділяє перший екран від решти.
-Список двічі поспіль — щоб стрічка йшла без шва; друга копія для читача
-екрана схована. Без руху стрічка стоїть і гортається пальцем.
+«Сировина → продукт»: два фото одне над одним, повзунок відкриває продукт
+з-під сировини (static/js/center.js, `data-compare`). Справжній
+<input type="range"> — тож його тягнуть пальцем, мишею й стрілками. Коли
+блок уперше з'являється, повзунок сам «підглядає» в обидва боки, щоб було
+видно, що його можна рухати. Без скрипта — перша пара навпіл.
 {% endcomment %}
-<div class="u-ticker" aria-label="Що буває із сировиною після переробки">
-    <div class="u-ticker-track">
-        {% for copy in "12" %}
-        <ul{% if not forloop.first %} aria-hidden="true"{% endif %}>
-            {% for raw, product in home.ticker %}
-            <li>{{ raw }} <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg> <strong>{{ product }}</strong></li>
+<section class="u-section u-dark" id="peretvorennya">
+    <div class="u-wrap u-compare-grid">
+        <div class="u-head" data-reveal>
+            <span class="u-kicker">Сировина → продукт</span>
+            <h2>Що може стати з вашої сировини</h2>
+            <p class="u-lead">Потягніть повзунок. Між урожаєм і готовим продуктом — технологія, рецептура й перевірка, і з цим ми допомагаємо.</p>
+            <div class="u-compare-tabs" role="group" aria-label="Оберіть сировину" data-compare-tabs hidden>
+                {% for pair in home.compare %}
+                <button type="button" class="u-plan-chip" data-pair="{{ pair.slug }}" aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">{{ pair.raw }}</button>
+                {% endfor %}
+            </div>
+            <p class="u-compare-note">Фото — ілюстрації напрямів переробки, а не проєкти Центру.</p>
+        </div>
+
+        <div class="u-compare" data-compare data-reveal style="--pos: 50%">
+            {% for pair in home.compare %}
+            <figure class="u-compare-pair{% if forloop.first %} is-on{% endif %}" data-pair="{{ pair.slug }}">
+                <img src="{% static 'img/center/photos/product-'|add:pair.slug|add:'.jpg' %}" alt="{{ pair.product }}" width="1200" height="900" loading="lazy">
+                <div class="u-compare-before">
+                    <img src="{% static 'img/center/photos/raw-'|add:pair.slug|add:'.jpg' %}" alt="{{ pair.raw }}" width="1200" height="900" loading="lazy">
+                </div>
+                <figcaption>
+                    <span class="u-compare-tag">Сировина · <b>{{ pair.raw }}</b></span>
+                    <span class="u-compare-tag u-compare-tag-after">Продукт · <b>{{ pair.product }}</b></span>
+                </figcaption>
+            </figure>
             {% endfor %}
-        </ul>
-        {% endfor %}
+            <span class="u-compare-handle" aria-hidden="true"><i></i></span>
+            <input class="u-compare-range" type="range" min="0" max="100" value="50" aria-label="Сировина чи продукт: потягніть" data-compare-range>
+        </div>
     </div>
-</div>
+</section>
 
 <section class="u-section" id="pro-centr">
     <div class="u-wrap u-split">
@@ -84,7 +107,7 @@
     </div>
 </section>
 
-<section class="u-section u-dark">
+<section class="u-section u-section-tint">
     <div class="u-wrap">
         <div class="u-head">
             <h2 data-reveal>{{ home.potential.title }}</h2>
@@ -100,7 +123,7 @@
     </div>
 </section>
 
-<section class="u-section" id="mozhlyvosti">
+<section class="u-section u-dark" id="mozhlyvosti">
     <div class="u-wrap">
         <div class="u-head">
             <span class="u-kicker" data-reveal>Наші можливості</span>
@@ -121,7 +144,7 @@
     </div>
 </section>
 
-<section class="u-section u-dark" id="dlya-kogo">
+<section class="u-section u-section-tint" id="dlya-kogo">
     <div class="u-wrap">
         <div class="u-head">
             <h2 data-reveal>Для кого працює UFIC</h2>
@@ -135,21 +158,39 @@
     </div>
 </section>
 
-<section class="u-section" id="etapy">
+{% comment %}
+Етапи — історія, що гортається: фото ліворуч закріплене й змінюється, коли
+людина догортає до наступного етапу праворуч (static/js/center.js,
+`data-story`). Без скрипта видно перше фото й усі етапи списком.
+{% endcomment %}
+<section class="u-section u-dark u-story" id="etapy">
     <div class="u-wrap">
         <div class="u-head">
+            <span class="u-kicker" data-reveal>Як іде проєкт</span>
             <h2 data-reveal>Від задуму до виробництва</h2>
             <p class="u-lead" data-reveal>{{ home.stages_lead }}</p>
         </div>
-        <ol class="u-path" data-play="li">
-            {% for step in home.stages %}
-            <li>
-                <span class="u-path-ring"><svg class="ic" aria-hidden="true"><use href="#{{ step.icon }}"></use></svg></span>
-                <strong><span class="u-path-no">{{ forloop.counter|stringformat:"02d" }}</span> {{ step.title }}</strong>
-                <span>{{ step.text }}</span>
-            </li>
-            {% endfor %}
-        </ol>
+        <div class="u-story-grid" data-story>
+            <div class="u-story-media">
+                <div class="u-story-frame">
+                    {% for step in home.stages %}
+                    <img class="u-story-img{% if forloop.first %} is-on{% endif %}" src="{% static 'img/center/'|add:step.image %}" alt="{{ step.alt }}" loading="lazy">
+                    {% endfor %}
+                    <span class="u-story-count" aria-hidden="true"><b data-story-no>01</b> / {{ home.stages|length|stringformat:"02d" }}</span>
+                    <span class="u-story-bar" aria-hidden="true"><i data-story-bar></i></span>
+                </div>
+            </div>
+            <ol class="u-story-steps">
+                {% for step in home.stages %}
+                <li class="u-story-step{% if forloop.first %} is-active{% endif %}" data-story-step>
+                    <span class="u-story-icon"><svg class="ic" aria-hidden="true"><use href="#{{ step.icon }}"></use></svg></span>
+                    <span class="u-story-no">{{ forloop.counter|stringformat:"02d" }}</span>
+                    <h3>{{ step.title }}</h3>
+                    <p>{{ step.text }}</p>
+                </li>
+                {% endfor %}
+            </ol>
+        </div>
         <div class="u-after u-after-center" data-reveal>
             <p>{{ home.stages_after }}</p>
             <blockquote class="u-quote">{{ home.stages_quote }}</blockquote>

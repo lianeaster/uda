@@ -17,6 +17,11 @@
  *  [data-cycle]              пункти по черзі отримують .is-on, поки сцена
  *                            грає (.is-playing від data-play).
  *  [data-progress]           смужка прокрутки сторінки — працює й без руху.
+ *  [data-compare]            «сировина → продукт»: повзунок відкриває одне
+ *                            фото з-під іншого (--pos), кнопки міняють пару.
+ *                            Працює й без руху; рух додає лише «підказку».
+ *  [data-story]              етапи з фото: фото змінюється разом з етапом,
+ *                            до якого догорнули. Теж працює й без руху.
  *  .u-card, .u-news-card     світлова пляма йде за курсором (--mx, --my).
  */
 (function () {
@@ -92,6 +97,83 @@
     }, { passive: true });
     update();
   }
+
+  // --- сировина → продукт -----------------------------------------------------
+  // Повзунок — звичайний range, тож миша, палець і стрілки працюють самі;
+  // скрипт лише переносить його значення в --pos і перемикає пари.
+  each(document.querySelectorAll('[data-compare]'), function (box) {
+    var range = box.querySelector('[data-compare-range]');
+    var tabs = document.querySelector('[data-compare-tabs]');
+    var touched = false;
+    var set = function (value) { box.style.setProperty('--pos', value + '%'); };
+    range.addEventListener('input', function () { touched = true; set(range.value); });
+    if (tabs) {
+      tabs.hidden = false;
+      tabs.addEventListener('click', function (event) {
+        var chip = event.target.closest('button');
+        if (!chip) return;
+        each(tabs.querySelectorAll('button'), function (b) {
+          b.setAttribute('aria-pressed', b === chip ? 'true' : 'false');
+        });
+        each(box.querySelectorAll('.u-compare-pair'), function (pair) {
+          pair.classList.toggle('is-on', pair.getAttribute('data-pair') === chip.getAttribute('data-pair'));
+        });
+      });
+    }
+    // Підказка: коли блок уперше видно, повзунок сам ходить туди й назад.
+    if (!motion || !('IntersectionObserver' in window)) return;
+    var hint = function () {
+      var start = null, duration = 2400;
+      var step = function (now) {
+        if (touched) return;
+        if (start === null) start = now;
+        var t = Math.min((now - start) / duration, 1);
+        var value = 50 + 32 * Math.sin(t * Math.PI * 2) * (1 - t * 0.35);
+        range.value = Math.round(value);
+        set(value.toFixed(1));
+        if (t < 1) requestAnimationFrame(step); else { range.value = 50; set(50); }
+      };
+      requestAnimationFrame(step);
+    };
+    var seen = new IntersectionObserver(function (entries) {
+      if (!entries[0].isIntersecting) return;
+      seen.disconnect();
+      setTimeout(hint, 500);
+    }, { threshold: 0.5 });
+    seen.observe(box);
+  });
+
+  // --- етапи з фото ---------------------------------------------------------
+  // Активний етап — той, до якого догорнули: його верх уже вище середини екрана.
+  each(document.querySelectorAll('[data-story]'), function (story) {
+    var steps = Array.prototype.slice.call(story.querySelectorAll('[data-story-step]'));
+    var images = story.querySelectorAll('.u-story-img');
+    var no = story.querySelector('[data-story-no]');
+    var progress = story.querySelector('[data-story-bar]');
+    if (steps.length < 2) return;
+    var current = -1;
+    var show = function (i) {
+      if (i === current) return;
+      current = i;
+      steps.forEach(function (s, k) { s.classList.toggle('is-active', k === i); });
+      each(images, function (img, k) { img.classList.toggle('is-on', k === i); });
+      if (no) no.textContent = (i < 9 ? '0' : '') + (i + 1);
+      if (progress) progress.style.transform = 'scaleX(' + ((i + 1) / steps.length) + ')';
+    };
+    // Останній етап, чий верх уже вище за середину екрана.
+    var pick = function () {
+      var middle = window.innerHeight / 2, active = 0;
+      steps.forEach(function (s, k) { if (s.getBoundingClientRect().top < middle) active = k; });
+      show(active);
+      queued = false;
+    };
+    var queued = false;
+    window.addEventListener('scroll', function () {
+      if (!queued) { queued = true; requestAnimationFrame(pick); }
+    }, { passive: true });
+    window.addEventListener('resize', pick);
+    pick();
+  });
 
   if (!motion) return;
 
