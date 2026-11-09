@@ -88,36 +88,39 @@
     </div>
 </section>
 
-<section class="u-section" id="pro-centr">
-    <div class="u-wrap u-split">
-        <div data-reveal>
+{% comment %}
+«Хто ми» й «Сировина має більший потенціал» — один блок, щоб верх сторінки
+не був трьома стінами тексту поспіль: текст і лічильники ліворуч, праворуч
+фото з городу, на якому спливають і по черзі підсвічуються запитання, на
+які шукають відповідь разом із Центром (`data-play` + `data-cycle`).
+{% endcomment %}
+<section class="u-section u-potential-section" id="pro-centr">
+    <div class="u-wrap u-potential">
+        <div class="u-potential-text" data-reveal>
             <span class="u-kicker">Хто ми</span>
-            <h2>{{ home.intro.title }}</h2>
-        </div>
-        <div class="u-prose" data-reveal>
+            <h2>{{ home.potential.title }}</h2>
             <p class="u-lead">{{ home.intro.lead }}</p>
-            {% for p in home.intro.paragraphs %}<p>{{ p }}</p>{% endfor %}
-            <p><a class="u-more" href="{% url 'center:about' %}">Про Центр <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a></p>
+            <div class="u-prose">
+                {% for p in home.intro.paragraphs %}<p>{{ p }}</p>{% endfor %}
+                {% for p in home.potential.paragraphs %}<p>{{ p }}</p>{% endfor %}
+            </div>
             <dl class="u-stats u-stats-compact">
                 {% for number, label in stats %}
                 <div><dt><span data-count>{{ number }}</span></dt><dd>{{ label }}</dd></div>
                 {% endfor %}
             </dl>
+            <p class="u-potential-more"><a class="u-more" href="{% url 'center:about' %}">Про Центр <svg class="ic" aria-hidden="true"><use href="#u-arrow"></use></svg></a></p>
         </div>
-    </div>
-</section>
 
-<section class="u-section u-section-tint">
+        <figure class="u-potential-media" data-reveal>
+            <img src="{% static 'img/center/'|add:home.potential.image %}" alt="{{ home.potential.alt }}" width="1040" height="1300" loading="lazy">
+            <ul class="u-bubbles" aria-label="Запитання, з якими приходять до Центру" data-play="li" data-cycle>
+                {% for q in home.potential.questions %}<li>{{ q }}</li>{% endfor %}
+            </ul>
+        </figure>
+    </div>
     <div class="u-wrap">
-        <div class="u-head">
-            <h2 data-reveal>{{ home.potential.title }}</h2>
-            {% for p in home.potential.paragraphs %}<p class="u-lead" data-reveal>{{ p }}</p>{% endfor %}
-        </div>
-        {# Запитання підсвічуються по черзі (data-cycle), як думки, що спадають одна за одною. #}
-        <ul class="u-asks u-asks-questions" data-play="li" data-cycle>
-            {% for q in home.potential.questions %}<li>{{ q }}</li>{% endfor %}
-        </ul>
-        <div class="u-after" data-reveal>
+        <div class="u-after u-after-center" data-reveal>
             {% for p in home.potential.after %}<p>{{ p }}</p>{% endfor %}
         </div>
     </div>
@@ -132,7 +135,8 @@
         <ul class="u-cards u-cards-links" data-stagger>
             {% for item in home.capabilities %}
             <li data-reveal>
-                <a class="u-card" href="{{ item.url }}">
+                <a class="u-card u-card-photo" href="{{ item.url }}">
+                    <span class="u-card-media"><img src="{% static 'img/center/'|add:item.image %}" alt="" loading="lazy"></span>
                     <span class="u-card-icon"><svg class="ic" aria-hidden="true"><use href="#{{ item.icon }}"></use></svg></span>
                     <h3>{{ item.title }}</h3>
                     <p>{{ item.text }}</p>
@@ -152,7 +156,7 @@
         </div>
         <ul class="u-who u-who-5" data-play="li">
             {% for who in home.audience %}
-            <li><strong>{{ who.title }}</strong><span>{{ who.text }}</span></li>
+            <li><span class="u-who-icon"><svg class="ic" aria-hidden="true"><use href="#{{ who.icon }}"></use></svg></span><strong>{{ who.title }}</strong><span>{{ who.text }}</span></li>
             {% endfor %}
         </ul>
     </div>
